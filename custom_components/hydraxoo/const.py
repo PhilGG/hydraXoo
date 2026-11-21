@@ -20,6 +20,12 @@ CONF_ENABLED: Final = "enabled"
 CONF_SWITCH_ENTITY: Final = "switch_entity"
 CONF_MAX_RUNTIME: Final = "max_runtime_min"
 CONF_CYCLES: Final = "cycles"
+CONF_POWER_ENTITY: Final = "power_entity"
+CONF_SAFETY: Final = "safety"
+CONF_THRESHOLD_W: Final = "threshold_w"
+CONF_CHECK_DELAY_S: Final = "check_delay_s"
+CONF_RETRY_PULSE_S: Final = "retry_pulse_s"
+CONF_MAX_ATTEMPTS: Final = "max_attempts"
 
 # Cycle fields
 CONF_CYCLE_ID: Final = "id"
@@ -33,6 +39,14 @@ DEFAULT_DURATION: Final = 10
 DEFAULT_START_TIME: Final = "06:00"
 MAX_RUNTIME_LIMIT: Final = 240
 
+# Valve-closing check defaults
+DEFAULT_THRESHOLD_W: Final = 1.0
+DEFAULT_CHECK_DELAY_S: Final = 10
+DEFAULT_RETRY_PULSE_S: Final = 5
+DEFAULT_MAX_ATTEMPTS: Final = 5
+# Longest wait for a fresh power reading when the last one predates the command
+SENSOR_WAIT_MAX_S: Final = 60
+
 # How often the remaining-time sensor refreshes while watering (seconds)
 REMAINING_REFRESH_SECONDS: Final = 10
 
@@ -42,6 +56,7 @@ SERVICE_STOP_ZONE: Final = "stop_zone"
 SERVICE_STOP_ALL: Final = "stop_all"
 SERVICE_PAUSE: Final = "pause"
 SERVICE_RESUME: Final = "resume"
+SERVICE_ACKNOWLEDGE_FAULT: Final = "acknowledge_fault"
 ATTR_ZONE: Final = "zone"
 ATTR_DURATION: Final = "duration"
 ATTR_DAYS: Final = "days"
@@ -54,11 +69,19 @@ CONTROLLER_ID: Final = "controller"
 EVENT_CYCLE_STARTED: Final = f"{DOMAIN}_cycle_started"
 EVENT_CYCLE_FINISHED: Final = f"{DOMAIN}_cycle_finished"
 EVENT_CYCLE_SKIPPED: Final = f"{DOMAIN}_cycle_skipped"
+EVENT_SAFETY_RETRY: Final = f"{DOMAIN}_safety_retry"
+EVENT_SAFETY_FAILED: Final = f"{DOMAIN}_safety_failed"
+
+# Result of a closing check
+CHECK_CONFIRMED: Final = "confirmed"  # closed (possibly after retries)
+CHECK_FAILED: Final = "failed"  # still drawing power after all retries
+CHECK_SENSOR_UNAVAILABLE: Final = "sensor_unavailable"  # no reading, no retry
 
 # Why a cycle was skipped
 SKIP_PAUSED: Final = "paused"
 SKIP_ZONE_DISABLED: Final = "zone_disabled"
 SKIP_STOPPED: Final = "stopped"  # removed from the queue by a stop command
+SKIP_FAULT: Final = "fault"  # closing check failed, not acknowledged yet
 
 # Why a run started
 SOURCE_SCHEDULE: Final = "schedule"

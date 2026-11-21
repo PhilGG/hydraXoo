@@ -12,17 +12,24 @@ from homeassistant.config_entries import (
     OptionsFlow,
 )
 from homeassistant.core import callback
+from homeassistant.data_entry_flow import section
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import selector
 
 from .const import (
+    CONF_CHECK_DELAY_S,
     CONF_DURATION,
     CONF_ICON,
+    CONF_MAX_ATTEMPTS,
     CONF_MAX_RUNTIME,
     CONF_NAME,
+    CONF_POWER_ENTITY,
+    CONF_RETRY_PULSE_S,
+    CONF_SAFETY,
     CONF_SEQUENCE_MODE,
     CONF_START_TIME,
     CONF_SWITCH_ENTITY,
+    CONF_THRESHOLD_W,
     CONF_WEATHER_ENTITY,
     CONF_WEEKDAYS,
     DEFAULT_DURATION,
@@ -34,7 +41,7 @@ from .const import (
     MODE_PARALLEL,
     MODE_SEQUENTIAL,
 )
-from .models import Cycle, Zone
+from .models import Cycle, SafetySettings, Zone
 
 if TYPE_CHECKING:
     from .engine import HydraxooEngine
@@ -101,6 +108,7 @@ def _zone_fields(defaults: dict[str, Any], exclude: list[str]) -> dict:
         ),
         vol.Required(
             CONF_SWITCH_ENTITY,
+            CONF_THRESHOLD_W,
             default=defaults.get(CONF_SWITCH_ENTITY, vol.UNDEFINED),
         ): selector.EntitySelector(
             selector.EntitySelectorConfig(domain="switch", exclude_entities=exclude)
@@ -109,6 +117,49 @@ def _zone_fields(defaults: dict[str, Any], exclude: list[str]) -> dict:
             CONF_MAX_RUNTIME,
             default=defaults.get(CONF_MAX_RUNTIME, DEFAULT_MAX_RUNTIME),
         ): _minutes_selector(),
+        vol.Optional(
+            CONF_POWER_ENTITY,
+            description={"suggested_value": defaults.get(CONF_POWER_ENTITY)},
+        ): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain="sensor", device_class="power")
+        ),
+        vol.Required(CONF_SAFETY): section(
+            vol.Schema(_safety_fields(defaults.get(CONF_SAFETY) or {})),
+            {"collapsed": True},
+        ),
+    }
+
+
+def _number(
+    minimum: float, maximum: float, step: float, unit: str
+) -> selector.NumberSelector:
+    return selector.NumberSelector(
+        selector.NumberSelectorConfig(
+            min=minimum,
+            max=maximum,
+            step=step,
+            mode=selector.NumberSelectorMode.BOX,
+            unit_of_measurement=unit,
+        )
+    )
+
+
+def _safety_fields(defaults: dict[str, Any]) -> dict:
+    """Settings of the valve-closing check (used when a power sensor is set)."""
+    base = SafetySettings().to_dict() | defaults
+    return {
+        vol.Required(CONF_THRESHOLD_W, default=base[CONF_THRESHOLD_W]): _number(
+            0.1, 100, 0.1, "W"
+        ),
+        vol.Required(CONF_CHECK_DELAY_S, default=base[CONF_CHECK_DELAY_S]): _number(
+            1, 300, 1, "s"
+        ),
+        vol.Required(CONF_RETRY_PULSE_S, default=base[CONF_RETRY_PULSE_S]): _number(
+            1, 60, 1, "s"
+        ),
+        vol.Required(CONF_MAX_ATTEMPTS, default=base[CONF_MAX_ATTEMPTS]): _number(
+            1, 10, 1, ""
+        ),
     }
 
 
@@ -159,6 +210,8 @@ def _zone_to_form(zone: Zone) -> dict[str, Any]:
         CONF_ICON: zone.icon,
         CONF_SWITCH_ENTITY: zone.switch_entity,
         CONF_MAX_RUNTIME: zone.max_runtime_min,
+        CONF_POWER_ENTITY: zone.power_entity,
+        CONF_SAFETY: zone.safety.to_dict(),
     }
 
 
@@ -176,6 +229,8 @@ def _apply_zone(zone: Zone, user_input: dict[str, Any]) -> None:
     zone.icon = user_input[CONF_ICON]
     zone.switch_entity = user_input[CONF_SWITCH_ENTITY]
     zone.max_runtime_min = int(user_input[CONF_MAX_RUNTIME])
+    zone.power_entity = user_input.get(CONF_POWER_ENTITY) or None
+    zone.safety = SafetySettings.from_dict(user_input.get(CONF_SAFETY))
 
 
 def _apply_cycle(cycle: Cycle, user_input: dict[str, Any]) -> None:
@@ -255,6 +310,17 @@ class HydraxooOptionsFlow(OptionsFlow):
         self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
         return self.async_create_entry(data=dict(self.config_entry.options))
 
+    async def _async_cycles_changed(self) -> ConfigFlowResult:
+        """Cycles apply at once (no reload): back to the zone menu."""
+        await self._engine.async_zones_changed()
+        return await self.async_step_zone_menu()
+
+    async def async_step_finish(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Close the options (everything is already saved)."""
+        return self.async_create_entry(data=dict(self.config_entry.options))
+
     # ---------------------------------------------------------------- menus
 
     async def async_step_init(
@@ -274,6 +340,7 @@ class HydraxooOptionsFlow(OptionsFlow):
         options = ["edit_zone", "add_cycle"]
         if self._zone.cycles:
             options += ["pick_cycle", "remove_cycle"]
+        options += ["init", "finish"]
         return self.async_show_menu(
             step_id="zone_menu",
             menu_options=options,
@@ -400,7 +467,7 @@ class HydraxooOptionsFlow(OptionsFlow):
             errors = _validate_cycle(user_input, zone.max_runtime_min)
             if not errors:
                 zone.cycles.append(_new_cycle(user_input))
-                return await self._async_save_and_finish()
+                return await self._async_cycles_changed()
         return self.async_show_form(
             step_id="add_cycle",
             data_schema=self.add_suggested_values_to_schema(
@@ -434,7 +501,7 @@ class HydraxooOptionsFlow(OptionsFlow):
             errors = _validate_cycle(user_input, zone.max_runtime_min)
             if not errors:
                 _apply_cycle(cycle, user_input)
-                return await self._async_save_and_finish()
+                return await self._async_cycles_changed()
         return self.async_show_form(
             step_id="edit_cycle",
             data_schema=self.add_suggested_values_to_schema(
@@ -451,7 +518,7 @@ class HydraxooOptionsFlow(OptionsFlow):
         zone = self._zone
         if user_input is not None:
             zone.cycles = [c for c in zone.cycles if c.id != user_input[CONF_CYCLE]]
-            return await self._async_save_and_finish()
+            return await self._async_cycles_changed()
         return self.async_show_form(
             step_id="remove_cycle",
             data_schema=self._cycle_picker(),

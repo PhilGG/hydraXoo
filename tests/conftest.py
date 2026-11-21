@@ -33,7 +33,13 @@ async def paris_time_zone(hass: HomeAssistant) -> None:
 
 
 class MockValve(SwitchEntity):
-    """A switch standing in for a smart plug driving a solenoid valve."""
+    """A switch standing in for a smart plug driving a solenoid valve.
+
+    With `power_entity` set, it also reports its consumption there:
+    `open_power_w` when on, 0 W when off. `stuck_closings` makes that many
+    switch-off orders leave the valve drawing power (stuck valve), and
+    `report_power=False` simulates a plug that reports late.
+    """
 
     _attr_should_poll = False
 
@@ -42,18 +48,36 @@ class MockValve(SwitchEntity):
         self._attr_name = name
         self._attr_is_on = is_on
         self.calls: list[str] = []
+        self.power_entity: str | None = None
+        self.open_power_w = 6.0
+        self.stuck_closings = 0
+        self.report_power = True
+
+    def _report(self, watts: float) -> None:
+        if self.power_entity and self.report_power:
+            self.hass.states.async_set(
+                self.power_entity,
+                str(watts),
+                {"unit_of_measurement": "W", "device_class": "power"},
+            )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Open."""
         self.calls.append("on")
         self._attr_is_on = True
         self.async_write_ha_state()
+        self._report(self.open_power_w)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Close."""
+        """Close (unless stuck)."""
         self.calls.append("off")
         self._attr_is_on = False
         self.async_write_ha_state()
+        if self.stuck_closings > 0:
+            self.stuck_closings -= 1
+            self._report(self.open_power_w)
+        else:
+            self._report(0.0)
 
 
 @pytest.fixture

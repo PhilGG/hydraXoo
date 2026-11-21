@@ -20,9 +20,15 @@ async def async_setup_entry(
     entry: HydraxooConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Create one binary sensor per zone."""
+    """Create the binary sensors of each zone."""
     engine = entry.runtime_data
-    async_add_entities(WateringBinarySensor(engine, z) for z in engine.zones.values())
+    entities: list[BinarySensorEntity] = []
+    for zone in engine.zones.values():
+        entities += [
+            WateringBinarySensor(engine, zone),
+            FaultBinarySensor(engine, zone),
+        ]
+    async_add_entities(entities)
 
 
 class WateringBinarySensor(HydraxooZoneEntity, BinarySensorEntity):
@@ -51,3 +57,35 @@ class WateringBinarySensor(HydraxooZoneEntity, BinarySensorEntity):
             "ends": run.ends.isoformat(),
             "duration_min": run.duration_min,
         }
+
+
+class FaultBinarySensor(HydraxooZoneEntity, BinarySensorEntity):
+    """On when the valve could not be closed: the zone stops watering."""
+
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+
+    def __init__(self, engine, zone) -> None:
+        """Initialize."""
+        super().__init__(engine, zone, "fault")
+
+    @property
+    def is_on(self) -> bool:
+        """Return True while the zone is in fault."""
+        return self.zone.fault
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Outcome of the last closing check."""
+        attrs: dict[str, Any] = {
+            "check_enabled": self.zone.power_entity is not None,
+            "checking": self.zone.id in self.engine.checking,
+        }
+        last = self.engine.last_check.get(self.zone.id)
+        if last is not None:
+            attrs |= {
+                "last_check": last.result,
+                "last_check_retries": last.retries,
+                "last_check_power_w": last.power_w,
+                "last_check_time": last.finished.isoformat(),
+            }
+        return attrs

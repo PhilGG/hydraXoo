@@ -6,7 +6,7 @@
 
 Free and open-source zone-based irrigation for Home Assistant, configured entirely from the user interface — no YAML.
 
-> **Status: early development (0.0.x).** Zones, cycles, queue, pause, manual watering and the safety cut-off work. Weather adjustment, the valve-closing check and the Lovelace card are coming.
+> **Status: early development (0.0.x).** Zones, cycles, queue, pause, manual watering, the safety cut-off and the valve-closing check work. Weather adjustment and the Lovelace card are coming.
 
 ## What it does
 
@@ -16,6 +16,7 @@ Free and open-source zone-based irrigation for Home Assistant, configured entire
 - **Pause** watering until resumed or for a number of days. Manual watering still works during a pause.
 - **Water now** for the base duration or a chosen duration, and **stop** at any time.
 - **Safety cut-off**: a valve is always closed after the zone's maximum run time, even if it was switched on outside hydraXoo.
+- **Valve-closing check** (optional, with a power sensor): after each closing, hydraXoo checks that the power has dropped. If not, it switches the valve on and off again, up to 5 times; then the zone is put in fault, a notification is shown and the zone stops watering until the fault is acknowledged.
 - **Restart safety**: a valve found open when Home Assistant starts is closed; the interrupted cycle is not restarted and an event reports it.
 
 ## Installation
@@ -45,6 +46,7 @@ Per zone:
 | Watering | `binary_sensor` | On while hydraXoo has the valve open |
 | Next watering | `sensor` (timestamp) | Next scheduled start, planned duration as attribute |
 | Time remaining | `sensor` (duration) | Time left in the current watering |
+| Closing fault | `binary_sensor` (problem) | On when the valve could not be closed; last check details as attributes |
 
 ## Services
 
@@ -55,14 +57,29 @@ Per zone:
 | `hydraxoo.stop_all` | — (also empties the queue) |
 | `hydraxoo.pause` | `days` (optional; empty = until resumed) |
 | `hydraxoo.resume` | — |
+| `hydraxoo.acknowledge_fault` | `zone` (device) |
 
 ## Events
 
 | Event | Data |
 | --- | --- |
 | `hydraxoo_cycle_started` | `zone_id`, `zone_name`, `source` (`schedule`/`manual`), `duration_min`, `cycle_id` |
-| `hydraxoo_cycle_skipped` | `zone_id`, `zone_name`, `cycle_id`, `reason` (`paused`, `zone_disabled`, `stopped`) |
+| `hydraxoo_cycle_skipped` | `zone_id`, `zone_name`, `cycle_id`, `reason` (`paused`, `zone_disabled`, `stopped`, `fault`) |
+| `hydraxoo_safety_retry` | `zone_id`, `zone_name`, `attempt`, `max_attempts`, `power_w` |
+| `hydraxoo_safety_failed` | `zone_id`, `zone_name`, `attempts`, `power_w` |
 | `hydraxoo_cycle_finished` | `zone_id`, `zone_name`, `reason` (`completed`, `manual_stop`, `max_runtime`, `external`, `restart`, `unload`), … |
+
+## Valve-closing check: setting up your plug
+
+The check reads the power reported by the plug (sensor in W). Many plugs only report their consumption **periodically** or **after a minimum change** (for example every 60 s or ±5 W). If the reading after closing is older than the closing order, hydraXoo waits up to 60 s for a fresh one.
+
+For a reliable check:
+
+1. In the plug's settings (Z-Wave JS: device configuration), lower the power **reporting interval** and the **minimum change** that triggers a report, as far as the plug allows.
+2. In hydraXoo (**Configure › Edit a zone › Zone settings › Closing check**), set the **check delay** a little longer than the plug's reporting interval.
+3. Set the **threshold** between the plug's own idle consumption and the valve's consumption (a solenoid valve typically draws 2–8 W).
+
+If the sensor is unavailable, the closing is not checked (no retry) and a warning is logged.
 
 ## Development
 

@@ -44,6 +44,7 @@
           "icon": "Icon",
           "switch_entity": "Valve switch",
           "max_runtime_min": "Safety cut-off",
+          "power_entity": "Power sensor (optional)",
           "cycle_enabled": "Cycle enabled",
           "start_time": "Start time",
           "duration_min": "Duration",
@@ -51,7 +52,24 @@
         },
         "data_description": {
           "switch_entity": "The plug or relay that opens the solenoid valve.",
-          "max_runtime_min": "The valve is always closed after this time, whatever happens."
+          "max_runtime_min": "The valve is always closed after this time, whatever happens.",
+          "power_entity": "Consumption of the plug, in W. When set, hydraXoo checks after each closing that the valve really closed."
+        },
+        "sections": {
+          "safety": {
+            "name": "Closing check",
+            "description": "Used only when a power sensor is set. Some plugs report their consumption only periodically or above a minimum change: set a check delay longer than the plug's reporting interval.",
+            "data": {
+              "threshold_w": "Valve open above",
+              "check_delay_s": "Check delay after closing",
+              "retry_pulse_s": "Retry: time switched on",
+              "max_attempts": "Maximum retries"
+            },
+            "data_description": {
+              "threshold_w": "Below or at this power the valve is considered closed.",
+              "max_attempts": "After this many retries the zone is put in fault and stops watering until acknowledged."
+            }
+          }
         }
       },
       "pick_zone": {
@@ -66,7 +84,9 @@
           "edit_zone": "Zone settings (name, valve, safety)",
           "add_cycle": "Add a cycle",
           "pick_cycle": "Edit a cycle",
-          "remove_cycle": "Delete a cycle"
+          "remove_cycle": "Delete a cycle",
+          "init": "← Main menu",
+          "finish": "Done"
         }
       },
       "edit_zone": {
@@ -75,11 +95,29 @@
           "name": "Name",
           "icon": "Icon",
           "switch_entity": "Valve switch",
-          "max_runtime_min": "Safety cut-off"
+          "max_runtime_min": "Safety cut-off",
+          "power_entity": "Power sensor (optional)"
         },
         "data_description": {
           "switch_entity": "The plug or relay that opens the solenoid valve.",
-          "max_runtime_min": "The valve is always closed after this time, whatever happens."
+          "max_runtime_min": "The valve is always closed after this time, whatever happens.",
+          "power_entity": "Consumption of the plug, in W. When set, hydraXoo checks after each closing that the valve really closed."
+        },
+        "sections": {
+          "safety": {
+            "name": "Closing check",
+            "description": "Used only when a power sensor is set. Some plugs report their consumption only periodically or above a minimum change: set a check delay longer than the plug's reporting interval.",
+            "data": {
+              "threshold_w": "Valve open above",
+              "check_delay_s": "Check delay after closing",
+              "retry_pulse_s": "Retry: time switched on",
+              "max_attempts": "Maximum retries"
+            },
+            "data_description": {
+              "threshold_w": "Below or at this power the valve is considered closed.",
+              "max_attempts": "After this many retries the zone is put in fault and stops watering until acknowledged."
+            }
+          }
         }
       },
       "remove_zone": {
@@ -150,6 +188,9 @@
     "binary_sensor": {
       "watering": {
         "name": "Watering"
+      },
+      "fault": {
+        "name": "Closing fault"
       }
     },
     "sensor": {
@@ -214,6 +255,16 @@
     "resume": {
       "name": "Resume watering",
       "description": "Ends the pause."
+    },
+    "acknowledge_fault": {
+      "name": "Acknowledge a closing fault",
+      "description": "Allows a zone in fault to water again. Check the valve first.",
+      "fields": {
+        "zone": {
+          "name": "Zone",
+          "description": "The zone in fault."
+        }
+      }
     }
   },
   "exceptions": {
@@ -222,6 +273,15 @@
     },
     "zone_not_found": {
       "message": "This device is not a hydraXoo zone."
+    },
+    "zone_in_fault": {
+      "message": "Zone {zone} is in closing fault. Check the valve, then acknowledge the fault."
+    },
+    "safety_failed_title": {
+      "message": "hydraXoo: valve {zone} not closed"
+    },
+    "safety_failed": {
+      "message": "The valve of zone {zone} still draws {power} W after {attempts} retries. Watering of this zone is blocked. Check the valve and its plug, then acknowledge the fault (service hydraxoo.acknowledge_fault)."
     }
   }
 }

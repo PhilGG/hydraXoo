@@ -21,6 +21,7 @@ from .const import (
     MAX_PAUSE_DAYS,
     MAX_RUNTIME_LIMIT,
     MODE_PARALLEL,
+    SERVICE_ACKNOWLEDGE_FAULT,
     SERVICE_PAUSE,
     SERVICE_RESUME,
     SERVICE_RUN_ZONE,
@@ -94,11 +95,18 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async def resume(call: ServiceCall) -> None:
         await _engine().async_resume()
 
+    async def acknowledge_fault(call: ServiceCall) -> None:
+        engine = _engine()
+        await engine.async_acknowledge_fault(_zone_id(engine, call.data[ATTR_ZONE]))
+
     hass.services.async_register(DOMAIN, SERVICE_RUN_ZONE, run_zone, RUN_ZONE_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_STOP_ZONE, stop_zone, STOP_ZONE_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_STOP_ALL, stop_all)
     hass.services.async_register(DOMAIN, SERVICE_PAUSE, pause, PAUSE_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_RESUME, resume)
+    hass.services.async_register(
+        DOMAIN, SERVICE_ACKNOWLEDGE_FAULT, acknowledge_fault, STOP_ZONE_SCHEMA
+    )
     return True
 
 

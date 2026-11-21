@@ -36,3 +36,11 @@ pause:
           mode: box
 
 resume:
+
+acknowledge_fault:
+  fields:
+    zone:
+      required: true
+      selector:
+        device:
+          integration: hydraxoo

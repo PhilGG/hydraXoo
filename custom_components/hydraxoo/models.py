@@ -7,7 +7,14 @@ from datetime import datetime, time, timedelta
 from typing import Any
 from uuid import uuid4
 
-from .const import DEFAULT_ICON, DEFAULT_MAX_RUNTIME
+from .const import (
+    DEFAULT_CHECK_DELAY_S,
+    DEFAULT_ICON,
+    DEFAULT_MAX_ATTEMPTS,
+    DEFAULT_MAX_RUNTIME,
+    DEFAULT_RETRY_PULSE_S,
+    DEFAULT_THRESHOLD_W,
+)
 
 
 def new_id() -> str:
@@ -73,6 +80,36 @@ class Cycle:
 
 
 @dataclass
+class SafetySettings:
+    """Valve-closing check, active when the zone has a power sensor."""
+
+    threshold_w: float = DEFAULT_THRESHOLD_W  # above this, the valve is open
+    check_delay_s: int = DEFAULT_CHECK_DELAY_S  # wait after switching off
+    retry_pulse_s: int = DEFAULT_RETRY_PULSE_S  # on-time before switching off again
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS  # retries before declaring a fault
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize for storage."""
+        return {
+            "threshold_w": self.threshold_w,
+            "check_delay_s": self.check_delay_s,
+            "retry_pulse_s": self.retry_pulse_s,
+            "max_attempts": self.max_attempts,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any] | None) -> SafetySettings:
+        """Load from storage (missing values get defaults)."""
+        data = data or {}
+        return cls(
+            threshold_w=float(data.get("threshold_w", DEFAULT_THRESHOLD_W)),
+            check_delay_s=int(data.get("check_delay_s", DEFAULT_CHECK_DELAY_S)),
+            retry_pulse_s=int(data.get("retry_pulse_s", DEFAULT_RETRY_PULSE_S)),
+            max_attempts=int(data.get("max_attempts", DEFAULT_MAX_ATTEMPTS)),
+        )
+
+
+@dataclass
 class Zone:
     """A watering zone driven by one switch entity."""
 
@@ -82,6 +119,9 @@ class Zone:
     icon: str = DEFAULT_ICON
     enabled: bool = True
     cycles: list[Cycle] = field(default_factory=list)
+    power_entity: str | None = None  # optional; enables the closing check
+    safety: SafetySettings = field(default_factory=SafetySettings)
+    fault: bool = False  # closing check failed; blocks watering until acknowledged
     id: str = field(default_factory=new_id)
 
     def next_run(self, after: datetime) -> tuple[datetime, Cycle] | None:
@@ -104,6 +144,9 @@ class Zone:
             "enabled": self.enabled,
             "switch_entity": self.switch_entity,
             "max_runtime_min": self.max_runtime_min,
+            "power_entity": self.power_entity,
+            "safety": self.safety.to_dict(),
+            "fault": self.fault,
             "cycles": [c.to_dict() for c in self.cycles],
         }
 
@@ -117,5 +160,8 @@ class Zone:
             enabled=data.get("enabled", True),
             switch_entity=data["switch_entity"],
             max_runtime_min=int(data.get("max_runtime_min", DEFAULT_MAX_RUNTIME)),
+            power_entity=data.get("power_entity") or None,
+            safety=SafetySettings.from_dict(data.get("safety")),
+            fault=bool(data.get("fault", False)),
             cycles=[Cycle.from_dict(c) for c in data.get("cycles", [])],
         )

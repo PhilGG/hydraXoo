@@ -6,7 +6,7 @@
 
 Arrosage automatique par zones pour Home Assistant, libre et gratuit, entièrement configurable depuis l'interface — sans YAML.
 
-> **État : début du développement (0.0.x).** Les zones, les cycles, la file d'attente, la pause, l'arrosage manuel et la coupure de sécurité fonctionnent. L'ajustement météo, le contrôle de fermeture des vannes et la carte Lovelace arrivent.
+> **État : début du développement (0.0.x).** Les zones, les cycles, la file d'attente, la pause, l'arrosage manuel, la coupure de sécurité et le contrôle de fermeture fonctionnent. L'ajustement météo et la carte Lovelace arrivent.
 
 ## Ce que fait hydraXoo
 
@@ -16,6 +16,7 @@ Arrosage automatique par zones pour Home Assistant, libre et gratuit, entièreme
 - **Pause** de l'arrosage jusqu'à la reprise ou pendant un nombre de jours. L'arrosage manuel reste possible pendant la pause.
 - **Arroser maintenant** avec la durée de base ou une durée choisie, et **arrêter** à tout moment.
 - **Coupure de sécurité** : une vanne est toujours fermée après la durée maximale de la zone, même si elle a été ouverte en dehors de hydraXoo.
+- **Contrôle de fermeture** (facultatif, avec un capteur de consommation) : après chaque fermeture, hydraXoo vérifie que la consommation est retombée. Sinon, il rallume puis éteint la vanne, jusqu'à 5 fois ; ensuite la zone passe en défaut, une notification s'affiche et la zone n'arrose plus jusqu'à l'acquittement.
 - **Sécurité au redémarrage** : une vanne trouvée ouverte au démarrage de Home Assistant est fermée ; le cycle interrompu n'est pas relancé et un événement le signale.
 
 ## Installation
@@ -45,6 +46,7 @@ Par zone :
 | Arrosage en cours | `binary_sensor` | Allumé tant que hydraXoo garde la vanne ouverte |
 | Prochain arrosage | `sensor` (horodatage) | Prochain départ, durée prévue en attribut |
 | Temps restant | `sensor` (durée) | Temps restant de l'arrosage en cours |
+| Défaut de fermeture | `binary_sensor` (problème) | Allumé quand la vanne n'a pas pu être refermée ; détails du dernier contrôle en attributs |
 
 ## Services
 
@@ -55,14 +57,29 @@ Par zone :
 | `hydraxoo.stop_all` | — (vide aussi la file d'attente) |
 | `hydraxoo.pause` | `days` (facultatif ; vide = jusqu'à la reprise) |
 | `hydraxoo.resume` | — |
+| `hydraxoo.acknowledge_fault` | `zone` (appareil) |
 
 ## Événements
 
 | Événement | Données |
 | --- | --- |
 | `hydraxoo_cycle_started` | `zone_id`, `zone_name`, `source` (`schedule`/`manual`), `duration_min`, `cycle_id` |
-| `hydraxoo_cycle_skipped` | `zone_id`, `zone_name`, `cycle_id`, `reason` (`paused`, `zone_disabled`, `stopped`) |
+| `hydraxoo_cycle_skipped` | `zone_id`, `zone_name`, `cycle_id`, `reason` (`paused`, `zone_disabled`, `stopped`, `fault`) |
+| `hydraxoo_safety_retry` | `zone_id`, `zone_name`, `attempt`, `max_attempts`, `power_w` |
+| `hydraxoo_safety_failed` | `zone_id`, `zone_name`, `attempts`, `power_w` |
 | `hydraxoo_cycle_finished` | `zone_id`, `zone_name`, `reason` (`completed`, `manual_stop`, `max_runtime`, `external`, `restart`, `unload`), … |
+
+## Contrôle de fermeture : régler sa prise
+
+Le contrôle lit la consommation transmise par la prise (capteur en W). Beaucoup de prises ne transmettent leur consommation **qu'à intervalles réguliers** ou **au-delà d'une variation minimale** (par exemple toutes les 60 s ou ±5 W). Si la mesure lue après la fermeture est plus ancienne que l'ordre de fermeture, hydraXoo attend jusqu'à 60 s une mesure récente.
+
+Pour un contrôle fiable :
+
+1. Dans les réglages de la prise (Z-Wave JS : configuration de l'appareil), réduisez autant que possible l'**intervalle de rapport** de la consommation et la **variation minimale** qui déclenche un rapport.
+2. Dans hydraXoo (**Configurer › Modifier une zone › Réglages de la zone › Contrôle de fermeture**), choisissez un **délai de contrôle** un peu plus long que l'intervalle de rapport de la prise.
+3. Réglez le **seuil** entre la consommation propre de la prise au repos et celle de la vanne (une électrovanne consomme en général 2 à 8 W).
+
+Si le capteur est indisponible, la fermeture n'est pas contrôlée (pas de relance) et un avertissement est écrit dans le journal.
 
 ## Développement
 

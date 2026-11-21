@@ -44,6 +44,7 @@
           "icon": "Icône",
           "switch_entity": "Interrupteur de l'électrovanne",
           "max_runtime_min": "Coupure de sécurité",
+          "power_entity": "Capteur de consommation (facultatif)",
           "cycle_enabled": "Cycle actif",
           "start_time": "Heure de départ",
           "duration_min": "Durée",
@@ -51,7 +52,24 @@
         },
         "data_description": {
           "switch_entity": "La prise ou le relais qui ouvre l'électrovanne.",
-          "max_runtime_min": "La vanne est toujours fermée après ce délai, quoi qu'il arrive."
+          "max_runtime_min": "La vanne est toujours fermée après ce délai, quoi qu'il arrive.",
+          "power_entity": "Consommation de la prise, en W. S'il est renseigné, hydraXoo vérifie après chaque fermeture que la vanne s'est bien refermée."
+        },
+        "sections": {
+          "safety": {
+            "name": "Contrôle de fermeture",
+            "description": "Utilisé seulement si un capteur de consommation est renseigné. Certaines prises ne transmettent leur consommation qu'à intervalles réguliers ou au-delà d'une variation minimale : choisissez un délai de contrôle plus long que l'intervalle de la prise.",
+            "data": {
+              "threshold_w": "Vanne ouverte au-delà de",
+              "check_delay_s": "Délai de contrôle après fermeture",
+              "retry_pulse_s": "Relance : durée d'ouverture",
+              "max_attempts": "Nombre maximal de relances"
+            },
+            "data_description": {
+              "threshold_w": "À cette puissance ou en dessous, la vanne est considérée comme fermée.",
+              "max_attempts": "Après ce nombre de relances, la zone passe en défaut et n'arrose plus jusqu'à l'acquittement."
+            }
+          }
         }
       },
       "pick_zone": {
@@ -66,7 +84,9 @@
           "edit_zone": "Réglages de la zone (nom, vanne, sécurité)",
           "add_cycle": "Ajouter un cycle",
           "pick_cycle": "Modifier un cycle",
-          "remove_cycle": "Supprimer un cycle"
+          "remove_cycle": "Supprimer un cycle",
+          "init": "← Menu principal",
+          "finish": "Terminer"
         }
       },
       "edit_zone": {
@@ -75,11 +95,29 @@
           "name": "Nom",
           "icon": "Icône",
           "switch_entity": "Interrupteur de l'électrovanne",
-          "max_runtime_min": "Coupure de sécurité"
+          "max_runtime_min": "Coupure de sécurité",
+          "power_entity": "Capteur de consommation (facultatif)"
         },
         "data_description": {
           "switch_entity": "La prise ou le relais qui ouvre l'électrovanne.",
-          "max_runtime_min": "La vanne est toujours fermée après ce délai, quoi qu'il arrive."
+          "max_runtime_min": "La vanne est toujours fermée après ce délai, quoi qu'il arrive.",
+          "power_entity": "Consommation de la prise, en W. S'il est renseigné, hydraXoo vérifie après chaque fermeture que la vanne s'est bien refermée."
+        },
+        "sections": {
+          "safety": {
+            "name": "Contrôle de fermeture",
+            "description": "Utilisé seulement si un capteur de consommation est renseigné. Certaines prises ne transmettent leur consommation qu'à intervalles réguliers ou au-delà d'une variation minimale : choisissez un délai de contrôle plus long que l'intervalle de la prise.",
+            "data": {
+              "threshold_w": "Vanne ouverte au-delà de",
+              "check_delay_s": "Délai de contrôle après fermeture",
+              "retry_pulse_s": "Relance : durée d'ouverture",
+              "max_attempts": "Nombre maximal de relances"
+            },
+            "data_description": {
+              "threshold_w": "À cette puissance ou en dessous, la vanne est considérée comme fermée.",
+              "max_attempts": "Après ce nombre de relances, la zone passe en défaut et n'arrose plus jusqu'à l'acquittement."
+            }
+          }
         }
       },
       "remove_zone": {
@@ -150,6 +188,9 @@
     "binary_sensor": {
       "watering": {
         "name": "Arrosage en cours"
+      },
+      "fault": {
+        "name": "Défaut de fermeture"
       }
     },
     "sensor": {
@@ -214,6 +255,16 @@
     "resume": {
       "name": "Reprendre l'arrosage",
       "description": "Met fin à la pause."
+    },
+    "acknowledge_fault": {
+      "name": "Acquitter un défaut de fermeture",
+      "description": "Permet à une zone en défaut d'arroser de nouveau. Vérifiez d'abord la vanne.",
+      "fields": {
+        "zone": {
+          "name": "Zone",
+          "description": "La zone en défaut."
+        }
+      }
     }
   },
   "exceptions": {
@@ -222,6 +273,15 @@
     },
     "zone_not_found": {
       "message": "Cet appareil n'est pas une zone hydraXoo."
+    },
+    "zone_in_fault": {
+      "message": "La zone {zone} est en défaut de fermeture. Vérifiez la vanne, puis acquittez le défaut."
+    },
+    "safety_failed_title": {
+      "message": "hydraXoo : vanne {zone} non refermée"
+    },
+    "safety_failed": {
+      "message": "La vanne de la zone {zone} consomme encore {power} W après {attempts} relances. L'arrosage de cette zone est bloqué. Vérifiez la vanne et sa prise, puis acquittez le défaut (service hydraxoo.acknowledge_fault)."
     }
   }
 }

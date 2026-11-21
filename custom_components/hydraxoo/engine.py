@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import logging
 from collections.abc import Callable
@@ -9,6 +10,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
 
+from homeassistant.components import persistent_notification
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     EVENT_HOMEASSISTANT_STARTED,
@@ -27,6 +29,7 @@ from homeassistant.core import (
     HomeAssistant,
     callback,
 )
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.event import (
     async_call_later,
     async_track_point_in_utc_time,
@@ -34,10 +37,15 @@ from homeassistant.helpers.event import (
     async_track_time_change,
     async_track_time_interval,
 )
+from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    CHECK_CONFIRMED,
+    CHECK_FAILED,
+    CHECK_SENSOR_UNAVAILABLE,
     DEFAULT_DURATION,
+    DOMAIN,
     END_COMPLETED,
     END_EXTERNAL,
     END_MANUAL_STOP,
@@ -47,7 +55,10 @@ from .const import (
     EVENT_CYCLE_FINISHED,
     EVENT_CYCLE_SKIPPED,
     EVENT_CYCLE_STARTED,
+    EVENT_SAFETY_FAILED,
+    EVENT_SAFETY_RETRY,
     REMAINING_REFRESH_SECONDS,
+    SKIP_FAULT,
     SKIP_PAUSED,
     SKIP_STOPPED,
     SKIP_ZONE_DISABLED,
@@ -55,6 +66,7 @@ from .const import (
     SOURCE_SCHEDULE,
 )
 from .models import Cycle, Zone
+from .safety import CheckResult, ClosingCheck
 from .store import StoredData, ZoneStore
 
 _LOGGER = logging.getLogger(__name__)
@@ -111,6 +123,9 @@ class HydraxooEngine:
         self.sequential = sequential
         self.runs: dict[str, ZoneRun] = {}
         self.queue: list[QueuedRun] = []
+        # Closing checks in progress, and the last outcome per zone
+        self.checking: dict[str, asyncio.Task] = {}
+        self.last_check: dict[str, CheckResult] = {}
         self._pause_timer: CALLBACK_TYPE | None = None
         # Safety cut-off for valves switched on outside hydraXoo
         self._external_cutoff: dict[str, CALLBACK_TYPE] = {}
@@ -163,7 +178,21 @@ class HydraxooEngine:
             cancel()
         self._external_cutoff.clear()
         for zone_id in list(self.runs):
-            await self._async_close_zone(zone_id, END_UNLOAD)
+            await self._async_close_zone(zone_id, END_UNLOAD, check=False)
+        interrupted = list(self.checking)
+        tasks = list(self.checking.values())
+        for task in tasks:
+            task.cancel()
+        for task in tasks:
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+        self.checking.clear()
+        # A check interrupted during a retry may have left the valve on.
+        for zone_id in interrupted:
+            zone = self.zones.get(zone_id)
+            state = self.hass.states.get(zone.switch_entity) if zone else None
+            if zone and state is not None and state.state == STATE_ON:
+                await self._async_switch(zone.switch_entity, SERVICE_TURN_OFF)
 
     async def _async_on_ha_started(self, _event: Event) -> None:
         await self._async_close_open_valves()
@@ -172,14 +201,20 @@ class HydraxooEngine:
         """Close valves we opened before Home Assistant stops."""
         self.queue.clear()
         for zone_id in list(self.runs):
-            await self._async_close_zone(zone_id, END_UNLOAD)
+            await self._async_close_zone(zone_id, END_UNLOAD, check=False)
 
     async def _async_close_open_valves(self) -> None:
-        """At startup, any valve found open is closed: it was interrupted."""
+        """At startup, any valve found open is closed: it was interrupted.
+
+        Zones with a power sensor are also checked when their switch is off
+        but the valve still draws power (e.g. restart during a retry).
+        """
         for zone in self.zones.values():
             state = self.hass.states.get(zone.switch_entity)
             if state is not None and state.state == STATE_ON:
                 await self._async_close_interrupted(zone)
+            elif self._draws_power(zone):
+                self._start_check(zone)
 
     async def _async_close_interrupted(self, zone: Zone) -> None:
         _LOGGER.warning(
@@ -189,6 +224,7 @@ class HydraxooEngine:
         )
         await self._async_switch(zone.switch_entity, SERVICE_TURN_OFF)
         self._fire(EVENT_CYCLE_FINISHED, zone, reason=END_RESTART)
+        self._start_check(zone)
 
     # -------------------------------------------------------------- listeners
 
@@ -209,6 +245,10 @@ class HydraxooEngine:
             update()
 
     # --------------------------------------------------------------- queries
+
+    def is_busy(self, zone_id: str) -> bool:
+        """Watering or being checked after closing."""
+        return zone_id in self.runs or zone_id in self.checking
 
     def is_running(self, zone_id: str) -> bool:
         """Return True if hydraXoo is currently watering this zone."""
@@ -307,13 +347,21 @@ class HydraxooEngine:
         - One zone at a time and another zone is watering: wait in the queue.
         """
         zone = self.zones[zone_id]
+        if zone.fault:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="zone_in_fault",
+                translation_placeholders={"zone": zone.name},
+            )
         duration = (
             duration_min if duration_min is not None else self.base_duration(zone)
         )
         if zone_id in self.runs:
             must_wait = source == SOURCE_SCHEDULE
+        elif zone_id in self.checking:
+            must_wait = True
         else:
-            must_wait = self.sequential and bool(self.runs)
+            must_wait = self.sequential and (bool(self.runs) or bool(self.checking))
         if not must_wait:
             await self.async_start_zone(zone_id, duration, source, cycle_id)
             return
@@ -332,12 +380,15 @@ class HydraxooEngine:
             if zone is None:
                 self.queue.pop(index)
                 continue
-            if self.sequential and self.runs:
+            if self.sequential and (self.runs or self.checking):
                 return
-            if item.zone_id in self.runs:
+            if self.is_busy(item.zone_id):
                 index += 1
                 continue
             self.queue.pop(index)
+            if zone.fault:
+                self._fire_skipped(zone.id, item.cycle_id, SKIP_FAULT)
+                continue
             if item.source == SOURCE_SCHEDULE and not zone.enabled:
                 self._fire_skipped(zone.id, item.cycle_id, SKIP_ZONE_DISABLED)
                 continue
@@ -420,8 +471,10 @@ class HydraxooEngine:
         await self._async_close_zone(zone_id, reason)
         await self._async_process_queue()
 
-    async def _async_close_zone(self, zone_id: str, reason: str) -> None:
-        """Close a zone's valve and end its run."""
+    async def _async_close_zone(
+        self, zone_id: str, reason: str, check: bool = True
+    ) -> None:
+        """Close a zone's valve, end its run, then check the closing."""
         zone = self.zones.get(zone_id)
         if zone is None:
             return
@@ -431,10 +484,13 @@ class HydraxooEngine:
         self._cancel_external_cutoff(zone_id)
 
         state = self.hass.states.get(zone.switch_entity)
-        if run is not None or (state is not None and state.state != STATE_OFF):
+        closed = run is not None or (state is not None and state.state != STATE_OFF)
+        if closed:
             await self._async_switch(zone.switch_entity, SERVICE_TURN_OFF)
         if run is not None:
             self._fire_finished(zone, run, reason)
+        if closed and check:
+            self._start_check(zone)
         self._notify()
 
     async def async_stop_all(self) -> None:
@@ -444,11 +500,13 @@ class HydraxooEngine:
             await self._async_close_zone(zone_id, END_MANUAL_STOP)
         self._notify()
 
-    def _drop_queued(self, predicate: Callable[[QueuedRun], bool]) -> None:
+    def _drop_queued(
+        self, predicate: Callable[[QueuedRun], bool], reason: str = SKIP_STOPPED
+    ) -> None:
         kept: list[QueuedRun] = []
         for item in self.queue:
             if predicate(item):
-                self._fire_skipped(item.zone_id, item.cycle_id, SKIP_STOPPED)
+                self._fire_skipped(item.zone_id, item.cycle_id, reason)
             else:
                 kept.append(item)
         self.queue = kept
@@ -487,6 +545,9 @@ class HydraxooEngine:
                 if not zone.enabled:
                     self._fire_skipped(zone.id, cycle.id, SKIP_ZONE_DISABLED)
                     continue
+                if zone.fault:
+                    self._fire_skipped(zone.id, cycle.id, SKIP_FAULT)
+                    continue
                 try:
                     await self.async_request_zone(
                         zone.id, cycle.duration_min, SOURCE_SCHEDULE, cycle.id
@@ -503,6 +564,8 @@ class HydraxooEngine:
         old_value = old.state if old else None
         new_value = new.state if new else None
         for zone in [z for z in self.zones.values() if z.switch_entity == entity_id]:
+            if zone.id in self.checking:
+                continue  # the closing check is switching the valve itself
             if new_value == STATE_ON and zone.id not in self.runs:
                 if old_value in (None, STATE_UNAVAILABLE, STATE_UNKNOWN):
                     # The device just came back and reports an open valve:
@@ -516,6 +579,7 @@ class HydraxooEngine:
                 if run is not None:
                     run.cancel_timers()
                     self._fire_finished(zone, run, END_EXTERNAL)
+                    self._start_check(zone)
                     self._notify()
                     await self._async_process_queue()
 
@@ -534,6 +598,7 @@ class HydraxooEngine:
             )
             await self._async_switch(zone.switch_entity, SERVICE_TURN_OFF)
             self._fire(EVENT_CYCLE_FINISHED, zone, reason=END_MAX_RUNTIME)
+            self._start_check(zone)
 
         self._external_cutoff[zone.id] = async_call_later(
             self.hass, zone.max_runtime_min * 60, _async_cutoff
@@ -560,6 +625,118 @@ class HydraxooEngine:
             duration_min=run.duration_min,
             elapsed_min=round(elapsed / 60, 1),
         )
+
+    # ----------------------------------------------------------- safety check
+
+    def _draws_power(self, zone: Zone) -> bool:
+        if zone.power_entity is None:
+            return False
+        state = self.hass.states.get(zone.power_entity)
+        try:
+            return state is not None and float(state.state) > zone.safety.threshold_w
+        except ValueError:
+            return False
+
+    def _start_check(self, zone: Zone) -> None:
+        """Start the closing check in the background (zones with a sensor)."""
+        if zone.power_entity is None or zone.id in self.checking:
+            return
+        self.checking[zone.id] = self.hass.async_create_background_task(
+            self._async_check(zone), f"{DOMAIN} closing check {zone.name}"
+        )
+        self._notify()
+
+    async def _async_check(self, zone: Zone) -> None:
+        def on_retry(attempt: int, power: float) -> None:
+            self._fire(
+                EVENT_SAFETY_RETRY,
+                zone,
+                attempt=attempt,
+                max_attempts=zone.safety.max_attempts,
+                power_w=power,
+            )
+
+        result: CheckResult | None = None
+        try:
+            result = await ClosingCheck(
+                self.hass, zone, self._async_switch, on_retry
+            ).async_run()
+        except asyncio.CancelledError:
+            self.checking.pop(zone.id, None)
+            raise
+        except Exception:
+            _LOGGER.exception("Closing check of zone %s failed", zone.name)
+        self.checking.pop(zone.id, None)
+
+        if result is not None:
+            self.last_check[zone.id] = result
+            await self._async_handle_check_result(zone, result)
+        self._notify()
+        await self._async_process_queue()
+
+    async def _async_handle_check_result(self, zone: Zone, result: CheckResult) -> None:
+        if result.result == CHECK_CONFIRMED and result.retries:
+            _LOGGER.warning(
+                "Zone %s closed after %s retries", zone.name, result.retries
+            )
+        elif result.result == CHECK_SENSOR_UNAVAILABLE:
+            _LOGGER.warning(
+                "Power sensor %s of zone %s unavailable, closing not checked",
+                zone.power_entity,
+                zone.name,
+            )
+        elif result.result == CHECK_FAILED:
+            _LOGGER.error(
+                "Zone %s still draws %.1f W after %s retries: fault",
+                zone.name,
+                result.power_w,
+                result.retries,
+            )
+            zone.fault = True
+            self._drop_queued(lambda item: item.zone_id == zone.id, SKIP_FAULT)
+            await self.async_save()
+            self._fire(
+                EVENT_SAFETY_FAILED,
+                zone,
+                attempts=result.retries,
+                power_w=result.power_w,
+            )
+            await self._async_notify_fault(zone, result)
+
+    async def _async_notify_fault(self, zone: Zone, result: CheckResult) -> None:
+        """Persistent notification, in the user's language."""
+        texts = await async_get_translations(
+            self.hass, self.hass.config.language, "exceptions", [DOMAIN]
+        )
+        prefix = f"component.{DOMAIN}.exceptions"
+        title = texts.get(f"{prefix}.safety_failed_title.message", "hydraXoo")
+        message = texts.get(
+            f"{prefix}.safety_failed.message",
+            "Zone {zone}: the valve still draws {power} W after {attempts} retries.",
+        )
+        persistent_notification.async_create(
+            self.hass,
+            message.format(
+                zone=zone.name,
+                power=f"{result.power_w:.1f}",
+                attempts=result.retries,
+            ),
+            title=title.format(zone=zone.name),
+            notification_id=f"{DOMAIN}_fault_{zone.id}",
+        )
+
+    async def async_acknowledge_fault(self, zone_id: str) -> None:
+        """Clear a zone's fault so it can water again."""
+        zone = self.zones[zone_id]
+        zone.fault = False
+        await self.async_save()
+        persistent_notification.async_dismiss(self.hass, f"{DOMAIN}_fault_{zone.id}")
+        self._notify()
+
+    async def async_zones_changed(self) -> None:
+        """Save and refresh after zones or cycles were edited in place."""
+        await self.async_save()
+        self._notify()
 
     def _fire_skipped(self, zone_id: str, cycle_id: str | None, reason: str) -> None:
         zone = self.zones.get(zone_id)
