@@ -1,0 +1,3 @@
+# Pins Home Assistant itself and the pytest plugins used by its own test suite.
+pytest-homeassistant-custom-component==0.13.375
+ruff==0.17.6

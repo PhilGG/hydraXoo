@@ -1,0 +1,10 @@
+services:
+  dev:
+    build: .
+    image: hydraxoo-dev
+    # Only the project folder is shared with the container.
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Run development tasks inside Docker. Only Docker is needed on the host.
+#   ./dev build    build the development image
+#   ./dev test     run the test suite (extra args are passed to pytest)
+#   ./dev lint     check code style
+#   ./dev format   fix code style
+#   ./dev shell    open a shell in the container
+set -euo pipefail
+cd "$(dirname "$0")"
+
+run() { docker compose run --rm dev "$@"; }
+
+case "${1:-}" in
+  build)  docker compose build ;;
+  test)   shift; run pytest -p no:cacheprovider "$@" ;;
+  lint)   run sh -c "ruff check . && ruff format --check ." ;;
+  format) run sh -c "ruff format . ; ruff check --fix ." ;;
+  shell)  run bash ;;
+  *) sed -n '2,8p' "$0"; exit 1 ;;
+esac

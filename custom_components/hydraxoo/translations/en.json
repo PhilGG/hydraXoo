@@ -1,0 +1,161 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up hydraXoo",
+        "description": "Zones are added afterwards, from the integration's Configure button.",
+        "data": {
+          "weather_entity": "Weather entity"
+        },
+        "data_description": {
+          "weather_entity": "Optional for now. It will be used to adjust watering to rain and heat."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "hydraXoo is already set up."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "hydraXoo",
+        "menu_options": {
+          "add_zone": "Add a zone",
+          "pick_zone": "Edit a zone",
+          "remove_zone": "Delete a zone",
+          "settings": "General settings"
+        }
+      },
+      "settings": {
+        "title": "General settings",
+        "data": {
+          "weather_entity": "Weather entity"
+        }
+      },
+      "add_zone": {
+        "title": "New zone",
+        "data": {
+          "name": "Name",
+          "icon": "Icon",
+          "switch_entity": "Valve switch",
+          "max_runtime_min": "Safety cut-off",
+          "cycle_enabled": "Cycle enabled",
+          "start_time": "Start time",
+          "duration_min": "Duration",
+          "weekdays": "Days"
+        },
+        "data_description": {
+          "switch_entity": "The plug or relay that opens the solenoid valve.",
+          "max_runtime_min": "The valve is always closed after this time, whatever happens."
+        }
+      },
+      "pick_zone": {
+        "title": "Edit a zone",
+        "data": {
+          "zone": "Zone"
+        }
+      },
+      "edit_zone": {
+        "title": "Zone {zone}",
+        "data": {
+          "name": "Name",
+          "icon": "Icon",
+          "switch_entity": "Valve switch",
+          "max_runtime_min": "Safety cut-off",
+          "cycle_enabled": "Cycle enabled",
+          "start_time": "Start time",
+          "duration_min": "Duration",
+          "weekdays": "Days"
+        },
+        "data_description": {
+          "switch_entity": "The plug or relay that opens the solenoid valve.",
+          "max_runtime_min": "The valve is always closed after this time, whatever happens."
+        }
+      },
+      "remove_zone": {
+        "title": "Delete a zone",
+        "description": "The zone, its cycles and its entities will be deleted.",
+        "data": {
+          "zone": "Zone"
+        }
+      }
+    },
+    "error": {
+      "name_required": "Enter a name.",
+      "no_weekday": "Select at least one day.",
+      "duration_exceeds_max": "The duration cannot exceed the safety cut-off."
+    }
+  },
+  "selector": {
+    "weekday": {
+      "options": {
+        "0": "Monday",
+        "1": "Tuesday",
+        "2": "Wednesday",
+        "3": "Thursday",
+        "4": "Friday",
+        "5": "Saturday",
+        "6": "Sunday"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "watering": {
+        "name": "Watering"
+      }
+    },
+    "sensor": {
+      "next_run": {
+        "name": "Next watering"
+      },
+      "remaining": {
+        "name": "Time remaining"
+      }
+    },
+    "switch": {
+      "zone_enabled": {
+        "name": "Zone enabled"
+      }
+    }
+  },
+  "services": {
+    "run_zone": {
+      "name": "Water a zone",
+      "description": "Opens a zone's valve now.",
+      "fields": {
+        "zone": {
+          "name": "Zone",
+          "description": "The zone to water."
+        },
+        "duration": {
+          "name": "Duration",
+          "description": "Minutes. If empty, the zone's base duration is used."
+        }
+      }
+    },
+    "stop_zone": {
+      "name": "Stop a zone",
+      "description": "Closes a zone's valve.",
+      "fields": {
+        "zone": {
+          "name": "Zone",
+          "description": "The zone to stop."
+        }
+      }
+    },
+    "stop_all": {
+      "name": "Stop all zones",
+      "description": "Closes every valve managed by hydraXoo."
+    }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "hydraXoo is not loaded."
+    },
+    "zone_not_found": {
+      "message": "This device is not a hydraXoo zone."
+    }
+  }
+}
