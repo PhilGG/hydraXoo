@@ -15,7 +15,9 @@ from .const import (
     ATTR_DAYS,
     ATTR_DURATION,
     ATTR_ZONE,
+    CONF_RAIN_SENSOR,
     CONF_SEQUENCE_MODE,
+    CONF_WEATHER_ENTITY,
     CONTROLLER_ID,
     DOMAIN,
     MAX_PAUSE_DAYS,
@@ -118,6 +120,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: HydraxooConfigEntry) -> 
         store,
         await store.async_load(),
         sequential=entry.options.get(CONF_SEQUENCE_MODE) != MODE_PARALLEL,
+        weather_entity=entry.options.get(CONF_WEATHER_ENTITY) or None,
+        rain_sensor=entry.options.get(CONF_RAIN_SENSOR) or None,
     )
     entry.runtime_data = engine
 

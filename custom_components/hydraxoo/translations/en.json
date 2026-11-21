@@ -5,10 +5,14 @@
         "title": "Set up hydraXoo",
         "description": "Zones are added afterwards, from the integration's Configure button.",
         "data": {
-          "weather_entity": "Weather entity"
+          "weather_entity": "Weather entity",
+          "rain_sensor": "Rain sensor (optional)",
+          "sequence_mode": "Watering order"
         },
         "data_description": {
-          "weather_entity": "Optional for now. It will be used to adjust watering to rain and heat."
+          "weather_entity": "Optional for now. It will be used to adjust watering to rain and heat.",
+          "rain_sensor": "Cumulative rain gauge in mm. Without it, the rain fallen is estimated from the hourly forecast.",
+          "sequence_mode": "With one zone at a time, a watering that comes up while another zone is watering waits its turn."
         }
       }
     },
@@ -31,10 +35,13 @@
         "title": "General settings",
         "data": {
           "weather_entity": "Weather entity",
-          "sequence_mode": "Watering order"
+          "sequence_mode": "Watering order",
+          "rain_sensor": "Rain sensor (optional)"
         },
         "data_description": {
-          "sequence_mode": "With one zone at a time, a watering that comes up while another zone is watering waits its turn."
+          "sequence_mode": "With one zone at a time, a watering that comes up while another zone is watering waits its turn.",
+          "rain_sensor": "Cumulative rain gauge in mm. Without it, the rain fallen is estimated from the hourly forecast.",
+          "weather_entity": "Used to adjust outdoor zones to rain and heat. Any weather entity works; hourly forecasts give the best results."
         }
       },
       "add_zone": {
@@ -48,12 +55,14 @@
           "cycle_enabled": "Cycle enabled",
           "start_time": "Start time",
           "duration_min": "Duration",
-          "weekdays": "Days"
+          "weekdays": "Days",
+          "exposure": "Exposure"
         },
         "data_description": {
           "switch_entity": "The plug or relay that opens the solenoid valve.",
           "max_runtime_min": "The valve is always closed after this time, whatever happens.",
-          "power_entity": "Consumption of the plug, in W. When set, hydraXoo checks after each closing that the valve really closed."
+          "power_entity": "Consumption of the plug, in W. When set, hydraXoo checks after each closing that the valve really closed.",
+          "exposure": "Outdoor zones are adjusted to the weather; sheltered zones (greenhouse, covered area) never are."
         },
         "sections": {
           "safety": {
@@ -68,6 +77,24 @@
             "data_description": {
               "threshold_w": "Below or at this power the valve is considered closed.",
               "max_attempts": "After this many retries the zone is put in fault and stops watering until acknowledged."
+            }
+          },
+          "weather_rules": {
+            "name": "Weather rule",
+            "description": "Coefficient = 1 − (rain fallen, weighted + rain expected) ÷ threshold, then the heat bonus, then the limits. Rain fallen in the last 24 h counts fully, before that half.",
+            "data": {
+              "skip_mm": "Skip threshold (rain expected)",
+              "past_window_h": "Rain fallen: window",
+              "forecast_window_h": "Rain expected: window",
+              "heat_threshold_c": "Heat bonus above",
+              "heat_bonus_pct": "Heat bonus",
+              "min_pct": "Minimum coefficient",
+              "max_pct": "Maximum coefficient"
+            },
+            "data_description": {
+              "skip_mm": "At or above this forecast the cycle is skipped. Also the amount of rain that replaces a full watering.",
+              "heat_bonus_pct": "0 disables the heat bonus.",
+              "min_pct": "Above 0, the zone is always watered a little, unless enough rain is expected."
             }
           }
         }
@@ -96,12 +123,14 @@
           "icon": "Icon",
           "switch_entity": "Valve switch",
           "max_runtime_min": "Safety cut-off",
-          "power_entity": "Power sensor (optional)"
+          "power_entity": "Power sensor (optional)",
+          "exposure": "Exposure"
         },
         "data_description": {
           "switch_entity": "The plug or relay that opens the solenoid valve.",
           "max_runtime_min": "The valve is always closed after this time, whatever happens.",
-          "power_entity": "Consumption of the plug, in W. When set, hydraXoo checks after each closing that the valve really closed."
+          "power_entity": "Consumption of the plug, in W. When set, hydraXoo checks after each closing that the valve really closed.",
+          "exposure": "Outdoor zones are adjusted to the weather; sheltered zones (greenhouse, covered area) never are."
         },
         "sections": {
           "safety": {
@@ -116,6 +145,24 @@
             "data_description": {
               "threshold_w": "Below or at this power the valve is considered closed.",
               "max_attempts": "After this many retries the zone is put in fault and stops watering until acknowledged."
+            }
+          },
+          "weather_rules": {
+            "name": "Weather rule",
+            "description": "Coefficient = 1 − (rain fallen, weighted + rain expected) ÷ threshold, then the heat bonus, then the limits. Rain fallen in the last 24 h counts fully, before that half.",
+            "data": {
+              "skip_mm": "Skip threshold (rain expected)",
+              "past_window_h": "Rain fallen: window",
+              "forecast_window_h": "Rain expected: window",
+              "heat_threshold_c": "Heat bonus above",
+              "heat_bonus_pct": "Heat bonus",
+              "min_pct": "Minimum coefficient",
+              "max_pct": "Maximum coefficient"
+            },
+            "data_description": {
+              "skip_mm": "At or above this forecast the cycle is skipped. Also the amount of rain that replaces a full watering.",
+              "heat_bonus_pct": "0 disables the heat bonus.",
+              "min_pct": "Above 0, the zone is always watered a little, unless enough rain is expected."
             }
           }
         }
@@ -182,6 +229,12 @@
         "sequential": "One zone at a time",
         "parallel": "Zones in parallel"
       }
+    },
+    "exposure": {
+      "options": {
+        "outdoor": "Outdoor",
+        "sheltered": "Sheltered"
+      }
     }
   },
   "entity": {
@@ -202,6 +255,9 @@
       },
       "queue": {
         "name": "Queue"
+      },
+      "weather_coefficient": {
+        "name": "Weather coefficient"
       }
     },
     "switch": {

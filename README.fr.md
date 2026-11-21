@@ -6,7 +6,7 @@
 
 Arrosage automatique par zones pour Home Assistant, libre et gratuit, entièrement configurable depuis l'interface — sans YAML.
 
-> **État : début du développement (0.0.x).** Les zones, les cycles, la file d'attente, la pause, l'arrosage manuel, la coupure de sécurité et le contrôle de fermeture fonctionnent. L'ajustement météo et la carte Lovelace arrivent.
+> **État : début du développement (0.0.x).** Les zones, les cycles, la file d'attente, la pause, l'arrosage manuel, la coupure de sécurité, le contrôle de fermeture et l'ajustement météo fonctionnent. La carte Lovelace arrive.
 
 ## Ce que fait hydraXoo
 
@@ -14,6 +14,7 @@ Arrosage automatique par zones pour Home Assistant, libre et gratuit, entièreme
 - Chaque zone a autant de **cycles** que nécessaire, chacun avec son heure, sa durée, ses jours et son interrupteur actif/inactif.
 - **Une zone à la fois** (par défaut) ou **zones en parallèle**. En mode une zone à la fois, un arrosage qui tombe pendant qu'une autre zone arrose attend dans une **file d'attente** et démarre dès que la vanne précédente est fermée.
 - **Pause** de l'arrosage jusqu'à la reprise ou pendant un nombre de jours. L'arrosage manuel reste possible pendant la pause.
+- **Ajustement météo** des zones extérieures : la durée d'arrosage est multipliée par un coefficient recalculé juste avant chaque départ, d'après la pluie prévue, la pluie tombée et la chaleur (détails plus bas).
 - **Arroser maintenant** avec la durée de base ou une durée choisie, et **arrêter** à tout moment.
 - **Coupure de sécurité** : une vanne est toujours fermée après la durée maximale de la zone, même si elle a été ouverte en dehors de hydraXoo.
 - **Contrôle de fermeture** (facultatif, avec un capteur de consommation) : après chaque fermeture, hydraXoo vérifie que la consommation est retombée. Sinon, il rallume puis éteint la vanne, jusqu'à 5 fois ; ensuite la zone passe en défaut, une notification s'affiche et la zone n'arrose plus jusqu'à l'acquittement.
@@ -44,8 +45,9 @@ Par zone :
 | --- | --- | --- |
 | Zone active | `switch` | Désactivée, la zone ne lance plus ses cycles |
 | Arrosage en cours | `binary_sensor` | Allumé tant que hydraXoo garde la vanne ouverte |
-| Prochain arrosage | `sensor` (horodatage) | Prochain départ, durée prévue en attribut |
+| Prochain arrosage | `sensor` (horodatage) | Prochain départ ; durée de base et durée ajustée en attributs |
 | Temps restant | `sensor` (durée) | Temps restant de l'arrosage en cours |
+| Coefficient météo | `sensor` (%) | Pourcentage appliqué à la durée de base ; raisons (pluie tombée, pluie prévue, température, avertissements) en attributs |
 | Défaut de fermeture | `binary_sensor` (problème) | Allumé quand la vanne n'a pas pu être refermée ; détails du dernier contrôle en attributs |
 
 ## Services
@@ -63,11 +65,24 @@ Par zone :
 
 | Événement | Données |
 | --- | --- |
-| `hydraxoo_cycle_started` | `zone_id`, `zone_name`, `source` (`schedule`/`manual`), `duration_min`, `cycle_id` |
-| `hydraxoo_cycle_skipped` | `zone_id`, `zone_name`, `cycle_id`, `reason` (`paused`, `zone_disabled`, `stopped`, `fault`) |
+| `hydraxoo_cycle_started` | `zone_id`, `zone_name`, `source` (`schedule`/`manual`), `duration_min`, `cycle_id`, et pour les cycles `base_duration_min`, `coefficient_pct` |
+| `hydraxoo_cycle_skipped` | `zone_id`, `zone_name`, `cycle_id`, `reason` (`paused`, `zone_disabled`, `stopped`, `fault`, `weather`), `weather` (détails) |
 | `hydraxoo_safety_retry` | `zone_id`, `zone_name`, `attempt`, `max_attempts`, `power_w` |
 | `hydraxoo_safety_failed` | `zone_id`, `zone_name`, `attempts`, `power_w` |
 | `hydraxoo_cycle_finished` | `zone_id`, `zone_name`, `reason` (`completed`, `manual_stop`, `max_runtime`, `external`, `restart`, `unload`), … |
+
+## Ajustement météo
+
+Choisissez une entité météo (et éventuellement un pluviomètre cumulatif) dans **Configurer › Réglages généraux**. Chaque zone extérieure a sa propre règle (**Modifier une zone › Réglages de la zone › Règle météo**) :
+
+- **Pluie prévue** sur les 24 prochaines heures (via `weather.get_forecasts`, horaire si disponible, sinon journalière) supérieure ou égale au **seuil d'annulation** (5 mm) : le cycle est sauté.
+- Sinon **coefficient = 1 − (pluie tombée pondérée + pluie prévue) ÷ seuil**, borné entre 0 et 100 %. La pluie des dernières 24 h compte entièrement, celle de 24 à 48 h pour moitié.
+- **Bonus chaleur** (désactivé par défaut) : +X % quand la température maximale prévue atteint un seuil.
+- Le résultat est borné entre le minimum et le maximum de la zone (0 à 150 %), et la durée est arrondie à la minute. 0 % saute le cycle.
+- **Pluie tombée** : lue sur le pluviomètre s'il est renseigné ; sinon estimée en enregistrant, chaque heure, la pluie prévue pour cette heure.
+- **Météo indisponible** : 100 % et un avertissement.
+
+Testé avec les formats Met.no et Météo-France ; les fournisseurs qui ne donnent que des prévisions journalières, ou aucune quantité de pluie, sont gérés (100 % avec un avertissement dans ce dernier cas). L'arrosage manuel n'est jamais ajusté.
 
 ## Contrôle de fermeture : régler sa prise
 

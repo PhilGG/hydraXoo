@@ -23,6 +23,8 @@ class StoredData:
     zones: list[Zone] = field(default_factory=list)
     paused: bool = False
     pause_until: datetime | None = None  # None with paused=True: until resumed
+    rain_history: dict[str, float] = field(default_factory=dict)  # hour -> mm
+    rain_total: float | None = None  # last value of the rain sensor
 
 
 class ZoneStore:
@@ -42,6 +44,10 @@ class ZoneStore:
             zones=[Zone.from_dict(z) for z in data.get("zones", [])],
             paused=bool(data.get("paused", False)),
             pause_until=dt_util.parse_datetime(until) if until else None,
+            rain_history={
+                k: float(v) for k, v in (data.get("rain_history") or {}).items()
+            },
+            rain_total=data.get("rain_total"),
         )
 
     async def async_save(self, data: StoredData) -> None:
@@ -53,6 +59,8 @@ class ZoneStore:
                 "pause_until": (
                     data.pause_until.isoformat() if data.pause_until else None
                 ),
+                "rain_history": data.rain_history,
+                "rain_total": data.rain_total,
             }
         )
 

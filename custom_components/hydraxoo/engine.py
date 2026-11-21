@@ -61,6 +61,7 @@ from .const import (
     SKIP_FAULT,
     SKIP_PAUSED,
     SKIP_STOPPED,
+    SKIP_WEATHER,
     SKIP_ZONE_DISABLED,
     SOURCE_MANUAL,
     SOURCE_SCHEDULE,
@@ -68,6 +69,7 @@ from .const import (
 from .models import Cycle, Zone
 from .safety import CheckResult, ClosingCheck
 from .store import StoredData, ZoneStore
+from .weather import WeatherResult, WeatherService
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -84,6 +86,7 @@ class ZoneRun:
     duration_min: int
     capped: bool  # True if the duration was cut down to max_runtime_min
     cycle_id: str | None = None
+    weather: dict[str, Any] | None = None  # base duration and coefficient
     unsubs: list[CALLBACK_TYPE] = field(default_factory=list)
 
     def cancel_timers(self) -> None:
@@ -101,6 +104,7 @@ class QueuedRun:
     source: str
     cycle_id: str | None
     queued_at: datetime
+    weather: dict[str, Any] | None = None
 
 
 class HydraxooEngine:
@@ -112,6 +116,8 @@ class HydraxooEngine:
         store: ZoneStore,
         data: StoredData,
         sequential: bool = True,
+        weather_entity: str | None = None,
+        rain_sensor: str | None = None,
     ) -> None:
         """Initialize the engine."""
         self.hass = hass
@@ -126,6 +132,11 @@ class HydraxooEngine:
         # Closing checks in progress, and the last outcome per zone
         self.checking: dict[str, asyncio.Task] = {}
         self.last_check: dict[str, CheckResult] = {}
+        # Weather coefficient per zone, refreshed every 30 min and before starts
+        self.weather = WeatherService(
+            hass, weather_entity, rain_sensor, data.rain_history, data.rain_total
+        )
+        self.weather_results: dict[str, WeatherResult] = {}
         self._pause_timer: CALLBACK_TYPE | None = None
         # Safety cut-off for valves switched on outside hydraXoo
         self._external_cutoff: dict[str, CALLBACK_TYPE] = {}
@@ -158,6 +169,7 @@ class HydraxooEngine:
         )
         if self.hass.is_running:
             await self._async_close_open_valves()
+            await self.async_update_weather()
         else:
             self._unsubs.append(
                 self.hass.bus.async_listen_once(
@@ -196,6 +208,7 @@ class HydraxooEngine:
 
     async def _async_on_ha_started(self, _event: Event) -> None:
         await self._async_close_open_valves()
+        await self.async_update_weather()
 
     async def _async_on_ha_stop(self, _event: Event) -> None:
         """Close valves we opened before Home Assistant stops."""
@@ -287,6 +300,8 @@ class HydraxooEngine:
                 zones=list(self.zones.values()),
                 paused=self.paused,
                 pause_until=self.pause_until,
+                rain_history=self.weather.history,
+                rain_total=self.weather.rain_total,
             )
         )
 
@@ -339,6 +354,7 @@ class HydraxooEngine:
         duration_min: int | None = None,
         source: str = SOURCE_MANUAL,
         cycle_id: str | None = None,
+        weather: dict[str, Any] | None = None,
     ) -> None:
         """Water a zone now, or queue it if it has to wait its turn.
 
@@ -363,10 +379,10 @@ class HydraxooEngine:
         else:
             must_wait = self.sequential and (bool(self.runs) or bool(self.checking))
         if not must_wait:
-            await self.async_start_zone(zone_id, duration, source, cycle_id)
+            await self.async_start_zone(zone_id, duration, source, cycle_id, weather)
             return
         self.queue.append(
-            QueuedRun(zone_id, duration, source, cycle_id, dt_util.utcnow())
+            QueuedRun(zone_id, duration, source, cycle_id, dt_util.utcnow(), weather)
         )
         _LOGGER.info("Zone %s queued (%s min)", zone.name, duration)
         self._notify()
@@ -394,7 +410,7 @@ class HydraxooEngine:
                 continue
             try:
                 await self.async_start_zone(
-                    zone.id, item.duration_min, item.source, item.cycle_id
+                    zone.id, item.duration_min, item.source, item.cycle_id, item.weather
                 )
             except Exception:
                 _LOGGER.exception("Could not start zone %s", zone.name)
@@ -411,6 +427,7 @@ class HydraxooEngine:
         duration_min: int | None = None,
         source: str = SOURCE_MANUAL,
         cycle_id: str | None = None,
+        weather: dict[str, Any] | None = None,
     ) -> None:
         """Open a zone's valve for a number of minutes."""
         zone = self.zones[zone_id]
@@ -429,6 +446,7 @@ class HydraxooEngine:
             duration_min=duration,
             capped=duration < wanted,
             cycle_id=cycle_id,
+            weather=weather,
         )
         # Register the run before switching on, so the resulting state
         # change is not mistaken for someone else opening the valve.
@@ -459,6 +477,7 @@ class HydraxooEngine:
             source=source,
             duration_min=duration,
             cycle_id=cycle_id,
+            **(weather or {}),
         )
         self._notify()
 
@@ -531,29 +550,50 @@ class HydraxooEngine:
     async def _async_tick(self, now: datetime) -> None:
         """Every minute: start (or queue) the cycles due now."""
         local = dt_util.as_local(now).replace(second=0, microsecond=0)
-        for zone in list(self.zones.values()):
-            for cycle in zone.cycles:
-                if (
-                    not cycle.enabled
-                    or local.weekday() not in cycle.weekdays
-                    or cycle.start != local.time()
-                ):
-                    continue
-                if self.paused:
-                    self._fire_skipped(zone.id, cycle.id, SKIP_PAUSED)
-                    continue
-                if not zone.enabled:
-                    self._fire_skipped(zone.id, cycle.id, SKIP_ZONE_DISABLED)
-                    continue
-                if zone.fault:
-                    self._fire_skipped(zone.id, cycle.id, SKIP_FAULT)
-                    continue
-                try:
-                    await self.async_request_zone(
-                        zone.id, cycle.duration_min, SOURCE_SCHEDULE, cycle.id
-                    )
-                except Exception:
-                    _LOGGER.exception("Could not start zone %s", zone.name)
+        due = [
+            (zone, cycle)
+            for zone in list(self.zones.values())
+            for cycle in zone.cycles
+            if cycle.enabled
+            and local.weekday() in cycle.weekdays
+            and cycle.start == local.time()
+        ]
+        if local.minute == 0:
+            await self.weather.async_refresh()
+            if self.weather.record_hour(now):
+                await self.async_save()
+        if due:
+            # Coefficient recalculated right before the start
+            await self.async_update_weather(force=True)
+        elif local.minute in (0, 30):
+            await self.async_update_weather()
+        for zone, cycle in due:
+            if self.paused:
+                self._fire_skipped(zone.id, cycle.id, SKIP_PAUSED)
+                continue
+            if not zone.enabled:
+                self._fire_skipped(zone.id, cycle.id, SKIP_ZONE_DISABLED)
+                continue
+            if zone.fault:
+                self._fire_skipped(zone.id, cycle.id, SKIP_FAULT)
+                continue
+            result = self.weather_results.get(zone.id) or self.weather.compute(zone)
+            duration = result.adjust(cycle.duration_min)
+            if duration < 1:
+                self._fire_skipped(
+                    zone.id, cycle.id, SKIP_WEATHER, weather=result.as_dict()
+                )
+                continue
+            weather = {
+                "base_duration_min": cycle.duration_min,
+                "coefficient_pct": result.percent,
+            }
+            try:
+                await self.async_request_zone(
+                    zone.id, duration, SOURCE_SCHEDULE, cycle.id, weather
+                )
+            except Exception:
+                _LOGGER.exception("Could not start zone %s", zone.name)
         self._notify()
 
     async def _async_switch_changed(self, event: Event[EventStateChangedData]) -> None:
@@ -738,10 +778,32 @@ class HydraxooEngine:
         await self.async_save()
         self._notify()
 
-    def _fire_skipped(self, zone_id: str, cycle_id: str | None, reason: str) -> None:
+    async def async_update_weather(self, force: bool = False) -> None:
+        """Refresh forecasts and every zone's coefficient."""
+        try:
+            await self.weather.async_refresh(force)
+        except Exception:
+            _LOGGER.exception("Could not read the weather")
+        self.weather_results = {
+            zone.id: self.weather.compute(zone) for zone in self.zones.values()
+        }
+        self._notify()
+
+    def weather_result(self, zone_id: str) -> WeatherResult:
+        """Last coefficient of a zone (computed now if never computed)."""
+        result = self.weather_results.get(zone_id)
+        if result is None:
+            result = self.weather.compute(self.zones[zone_id])
+        return result
+
+    def _fire_skipped(
+        self, zone_id: str, cycle_id: str | None, reason: str, **extra: Any
+    ) -> None:
         zone = self.zones.get(zone_id)
         if zone is not None:
-            self._fire(EVENT_CYCLE_SKIPPED, zone, cycle_id=cycle_id, reason=reason)
+            self._fire(
+                EVENT_CYCLE_SKIPPED, zone, cycle_id=cycle_id, reason=reason, **extra
+            )
 
     def _fire(self, event_type: str, zone: Zone, **data: Any) -> None:
         self.hass.bus.async_fire(

@@ -29,6 +29,16 @@ ZONE_FORM = {
         "retry_pulse_s": 5,
         "max_attempts": 5,
     },
+    "exposure": "outdoor",
+    "weather_rules": {
+        "skip_mm": 5.0,
+        "past_window_h": 48,
+        "forecast_window_h": 24,
+        "heat_threshold_c": 30.0,
+        "heat_bonus_pct": 0,
+        "min_pct": 0,
+        "max_pct": 150,
+    },
 }
 
 
@@ -106,7 +116,15 @@ async def test_add_zone_errors(hass: HomeAssistant, valve: MockValve) -> None:
 
 ZONE_ONLY = {
     k: ZONE_FORM[k]
-    for k in ("name", "icon", "switch_entity", "max_runtime_min", "safety")
+    for k in (
+        "name",
+        "icon",
+        "switch_entity",
+        "max_runtime_min",
+        "safety",
+        "exposure",
+        "weather_rules",
+    )
 }
 CYCLE_FORM = {
     "cycle_enabled": True,

@@ -19,29 +19,41 @@ from homeassistant.helpers import selector
 from .const import (
     CONF_CHECK_DELAY_S,
     CONF_DURATION,
+    CONF_EXPOSURE,
+    CONF_FORECAST_WINDOW_H,
+    CONF_HEAT_BONUS_PCT,
+    CONF_HEAT_THRESHOLD_C,
     CONF_ICON,
     CONF_MAX_ATTEMPTS,
+    CONF_MAX_PCT,
     CONF_MAX_RUNTIME,
+    CONF_MIN_PCT,
     CONF_NAME,
+    CONF_PAST_WINDOW_H,
     CONF_POWER_ENTITY,
+    CONF_RAIN_SENSOR,
     CONF_RETRY_PULSE_S,
     CONF_SAFETY,
     CONF_SEQUENCE_MODE,
+    CONF_SKIP_MM,
     CONF_START_TIME,
     CONF_SWITCH_ENTITY,
     CONF_THRESHOLD_W,
     CONF_WEATHER_ENTITY,
+    CONF_WEATHER_RULES,
     CONF_WEEKDAYS,
     DEFAULT_DURATION,
     DEFAULT_ICON,
     DEFAULT_MAX_RUNTIME,
     DEFAULT_START_TIME,
     DOMAIN,
+    EXPOSURE_OUTDOOR,
+    EXPOSURE_SHELTERED,
     MAX_RUNTIME_LIMIT,
     MODE_PARALLEL,
     MODE_SEQUENTIAL,
 )
-from .models import Cycle, SafetySettings, Zone
+from .models import Cycle, SafetySettings, WeatherRules, Zone
 
 if TYPE_CHECKING:
     from .engine import HydraxooEngine
@@ -70,6 +82,14 @@ def _settings_schema(defaults: dict[str, Any]) -> vol.Schema:
         {
             key: selector.EntitySelector(
                 selector.EntitySelectorConfig(domain="weather")
+            ),
+            vol.Optional(
+                CONF_RAIN_SENSOR,
+                description={"suggested_value": defaults.get(CONF_RAIN_SENSOR)},
+            ): selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    domain="sensor", device_class="precipitation"
+                )
             ),
             vol.Required(
                 CONF_SEQUENCE_MODE,
@@ -127,7 +147,35 @@ def _zone_fields(defaults: dict[str, Any], exclude: list[str]) -> dict:
             vol.Schema(_safety_fields(defaults.get(CONF_SAFETY) or {})),
             {"collapsed": True},
         ),
+        vol.Required(
+            CONF_EXPOSURE, default=defaults.get(CONF_EXPOSURE, EXPOSURE_OUTDOOR)
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[EXPOSURE_OUTDOOR, EXPOSURE_SHELTERED],
+                mode=selector.SelectSelectorMode.LIST,
+                translation_key="exposure",
+            )
+        ),
+        vol.Required(CONF_WEATHER_RULES): section(
+            vol.Schema(_weather_fields(defaults.get(CONF_WEATHER_RULES) or {})),
+            {"collapsed": True},
+        ),
     }
+
+
+def _weather_fields(defaults: dict[str, Any]) -> dict:
+    """Weather rule of an outdoor zone."""
+    base = WeatherRules().to_dict() | defaults
+    fields = {
+        CONF_SKIP_MM: _number(0.5, 50, 0.5, "mm"),
+        CONF_PAST_WINDOW_H: _number(0, 96, 1, "h"),
+        CONF_FORECAST_WINDOW_H: _number(1, 72, 1, "h"),
+        CONF_HEAT_THRESHOLD_C: _number(15, 45, 0.5, "°C"),
+        CONF_HEAT_BONUS_PCT: _number(0, 100, 5, "%"),
+        CONF_MIN_PCT: _number(0, 100, 5, "%"),
+        CONF_MAX_PCT: _number(100, 200, 5, "%"),
+    }
+    return {vol.Required(k, default=base[k]): v for k, v in fields.items()}
 
 
 def _number(
@@ -212,6 +260,8 @@ def _zone_to_form(zone: Zone) -> dict[str, Any]:
         CONF_MAX_RUNTIME: zone.max_runtime_min,
         CONF_POWER_ENTITY: zone.power_entity,
         CONF_SAFETY: zone.safety.to_dict(),
+        CONF_EXPOSURE: zone.exposure,
+        CONF_WEATHER_RULES: zone.weather_rules.to_dict(),
     }
 
 
@@ -231,6 +281,8 @@ def _apply_zone(zone: Zone, user_input: dict[str, Any]) -> None:
     zone.max_runtime_min = int(user_input[CONF_MAX_RUNTIME])
     zone.power_entity = user_input.get(CONF_POWER_ENTITY) or None
     zone.safety = SafetySettings.from_dict(user_input.get(CONF_SAFETY))
+    zone.exposure = user_input.get(CONF_EXPOSURE, EXPOSURE_OUTDOOR)
+    zone.weather_rules = WeatherRules.from_dict(user_input.get(CONF_WEATHER_RULES))
 
 
 def _apply_cycle(cycle: Cycle, user_input: dict[str, Any]) -> None:

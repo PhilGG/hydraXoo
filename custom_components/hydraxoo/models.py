@@ -9,11 +9,19 @@ from uuid import uuid4
 
 from .const import (
     DEFAULT_CHECK_DELAY_S,
+    DEFAULT_FORECAST_WINDOW_H,
+    DEFAULT_HEAT_BONUS_PCT,
+    DEFAULT_HEAT_THRESHOLD_C,
     DEFAULT_ICON,
     DEFAULT_MAX_ATTEMPTS,
+    DEFAULT_MAX_PCT,
     DEFAULT_MAX_RUNTIME,
+    DEFAULT_MIN_PCT,
+    DEFAULT_PAST_WINDOW_H,
     DEFAULT_RETRY_PULSE_S,
+    DEFAULT_SKIP_MM,
     DEFAULT_THRESHOLD_W,
+    EXPOSURE_OUTDOOR,
 )
 
 
@@ -110,6 +118,50 @@ class SafetySettings:
 
 
 @dataclass
+class WeatherRules:
+    """How the weather adjusts an outdoor zone's watering time."""
+
+    skip_mm: float = DEFAULT_SKIP_MM
+    past_window_h: int = DEFAULT_PAST_WINDOW_H
+    forecast_window_h: int = DEFAULT_FORECAST_WINDOW_H
+    heat_threshold_c: float = DEFAULT_HEAT_THRESHOLD_C
+    heat_bonus_pct: int = DEFAULT_HEAT_BONUS_PCT
+    min_pct: int = DEFAULT_MIN_PCT
+    max_pct: int = DEFAULT_MAX_PCT
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize for storage."""
+        return {
+            "skip_mm": self.skip_mm,
+            "past_window_h": self.past_window_h,
+            "forecast_window_h": self.forecast_window_h,
+            "heat_threshold_c": self.heat_threshold_c,
+            "heat_bonus_pct": self.heat_bonus_pct,
+            "min_pct": self.min_pct,
+            "max_pct": self.max_pct,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any] | None) -> WeatherRules:
+        """Load from storage (missing values get defaults)."""
+        data = data or {}
+        default = cls()
+        return cls(
+            skip_mm=float(data.get("skip_mm", default.skip_mm)),
+            past_window_h=int(data.get("past_window_h", default.past_window_h)),
+            forecast_window_h=int(
+                data.get("forecast_window_h", default.forecast_window_h)
+            ),
+            heat_threshold_c=float(
+                data.get("heat_threshold_c", default.heat_threshold_c)
+            ),
+            heat_bonus_pct=int(data.get("heat_bonus_pct", default.heat_bonus_pct)),
+            min_pct=int(data.get("min_pct", default.min_pct)),
+            max_pct=int(data.get("max_pct", default.max_pct)),
+        )
+
+
+@dataclass
 class Zone:
     """A watering zone driven by one switch entity."""
 
@@ -122,6 +174,8 @@ class Zone:
     power_entity: str | None = None  # optional; enables the closing check
     safety: SafetySettings = field(default_factory=SafetySettings)
     fault: bool = False  # closing check failed; blocks watering until acknowledged
+    exposure: str = EXPOSURE_OUTDOOR
+    weather_rules: WeatherRules = field(default_factory=WeatherRules)
     id: str = field(default_factory=new_id)
 
     def next_run(self, after: datetime) -> tuple[datetime, Cycle] | None:
@@ -147,6 +201,8 @@ class Zone:
             "power_entity": self.power_entity,
             "safety": self.safety.to_dict(),
             "fault": self.fault,
+            "exposure": self.exposure,
+            "weather_rules": self.weather_rules.to_dict(),
             "cycles": [c.to_dict() for c in self.cycles],
         }
 
@@ -163,5 +219,7 @@ class Zone:
             power_entity=data.get("power_entity") or None,
             safety=SafetySettings.from_dict(data.get("safety")),
             fault=bool(data.get("fault", False)),
+            exposure=data.get("exposure", EXPOSURE_OUTDOOR),
+            weather_rules=WeatherRules.from_dict(data.get("weather_rules")),
             cycles=[Cycle.from_dict(c) for c in data.get("cycles", [])],
         )

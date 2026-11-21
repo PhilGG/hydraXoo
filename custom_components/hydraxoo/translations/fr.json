@@ -5,10 +5,14 @@
         "title": "Installer hydraXoo",
         "description": "Les zones s'ajoutent ensuite avec le bouton Configurer de l'intégration.",
         "data": {
-          "weather_entity": "Entité météo"
+          "weather_entity": "Entité météo",
+          "rain_sensor": "Capteur de pluie (facultatif)",
+          "sequence_mode": "Enchaînement des zones"
         },
         "data_description": {
-          "weather_entity": "Facultative pour l'instant. Elle servira à adapter l'arrosage à la pluie et à la chaleur."
+          "weather_entity": "Facultative pour l'instant. Elle servira à adapter l'arrosage à la pluie et à la chaleur.",
+          "rain_sensor": "Pluviomètre cumulatif en mm. Sans lui, la pluie tombée est estimée à partir des prévisions horaires.",
+          "sequence_mode": "En mode une zone à la fois, un arrosage qui tombe pendant qu'une autre zone arrose attend son tour."
         }
       }
     },
@@ -31,10 +35,13 @@
         "title": "Réglages généraux",
         "data": {
           "weather_entity": "Entité météo",
-          "sequence_mode": "Enchaînement des zones"
+          "sequence_mode": "Enchaînement des zones",
+          "rain_sensor": "Capteur de pluie (facultatif)"
         },
         "data_description": {
-          "sequence_mode": "En mode une zone à la fois, un arrosage qui tombe pendant qu'une autre zone arrose attend son tour."
+          "sequence_mode": "En mode une zone à la fois, un arrosage qui tombe pendant qu'une autre zone arrose attend son tour.",
+          "rain_sensor": "Pluviomètre cumulatif en mm. Sans lui, la pluie tombée est estimée à partir des prévisions horaires.",
+          "weather_entity": "Sert à adapter les zones extérieures à la pluie et à la chaleur. Toute entité météo convient ; les prévisions horaires donnent les meilleurs résultats."
         }
       },
       "add_zone": {
@@ -48,12 +55,14 @@
           "cycle_enabled": "Cycle actif",
           "start_time": "Heure de départ",
           "duration_min": "Durée",
-          "weekdays": "Jours"
+          "weekdays": "Jours",
+          "exposure": "Exposition"
         },
         "data_description": {
           "switch_entity": "La prise ou le relais qui ouvre l'électrovanne.",
           "max_runtime_min": "La vanne est toujours fermée après ce délai, quoi qu'il arrive.",
-          "power_entity": "Consommation de la prise, en W. S'il est renseigné, hydraXoo vérifie après chaque fermeture que la vanne s'est bien refermée."
+          "power_entity": "Consommation de la prise, en W. S'il est renseigné, hydraXoo vérifie après chaque fermeture que la vanne s'est bien refermée.",
+          "exposure": "Les zones extérieures sont ajustées selon la météo ; les zones sous abri (serre, zone couverte) ne le sont jamais."
         },
         "sections": {
           "safety": {
@@ -68,6 +77,24 @@
             "data_description": {
               "threshold_w": "À cette puissance ou en dessous, la vanne est considérée comme fermée.",
               "max_attempts": "Après ce nombre de relances, la zone passe en défaut et n'arrose plus jusqu'à l'acquittement."
+            }
+          },
+          "weather_rules": {
+            "name": "Règle météo",
+            "description": "Coefficient = 1 − (pluie tombée pondérée + pluie prévue) ÷ seuil, puis bonus chaleur, puis bornes. La pluie des dernières 24 h compte entièrement, celle d'avant pour moitié.",
+            "data": {
+              "skip_mm": "Seuil d'annulation (pluie prévue)",
+              "past_window_h": "Pluie tombée : fenêtre",
+              "forecast_window_h": "Pluie prévue : fenêtre",
+              "heat_threshold_c": "Bonus chaleur au-delà de",
+              "heat_bonus_pct": "Bonus chaleur",
+              "min_pct": "Coefficient minimum",
+              "max_pct": "Coefficient maximum"
+            },
+            "data_description": {
+              "skip_mm": "À partir de cette prévision, le cycle est sauté. C'est aussi la quantité de pluie qui remplace un arrosage complet.",
+              "heat_bonus_pct": "0 désactive le bonus chaleur.",
+              "min_pct": "Au-dessus de 0, la zone est toujours un peu arrosée, sauf si assez de pluie est prévue."
             }
           }
         }
@@ -96,12 +123,14 @@
           "icon": "Icône",
           "switch_entity": "Interrupteur de l'électrovanne",
           "max_runtime_min": "Coupure de sécurité",
-          "power_entity": "Capteur de consommation (facultatif)"
+          "power_entity": "Capteur de consommation (facultatif)",
+          "exposure": "Exposition"
         },
         "data_description": {
           "switch_entity": "La prise ou le relais qui ouvre l'électrovanne.",
           "max_runtime_min": "La vanne est toujours fermée après ce délai, quoi qu'il arrive.",
-          "power_entity": "Consommation de la prise, en W. S'il est renseigné, hydraXoo vérifie après chaque fermeture que la vanne s'est bien refermée."
+          "power_entity": "Consommation de la prise, en W. S'il est renseigné, hydraXoo vérifie après chaque fermeture que la vanne s'est bien refermée.",
+          "exposure": "Les zones extérieures sont ajustées selon la météo ; les zones sous abri (serre, zone couverte) ne le sont jamais."
         },
         "sections": {
           "safety": {
@@ -116,6 +145,24 @@
             "data_description": {
               "threshold_w": "À cette puissance ou en dessous, la vanne est considérée comme fermée.",
               "max_attempts": "Après ce nombre de relances, la zone passe en défaut et n'arrose plus jusqu'à l'acquittement."
+            }
+          },
+          "weather_rules": {
+            "name": "Règle météo",
+            "description": "Coefficient = 1 − (pluie tombée pondérée + pluie prévue) ÷ seuil, puis bonus chaleur, puis bornes. La pluie des dernières 24 h compte entièrement, celle d'avant pour moitié.",
+            "data": {
+              "skip_mm": "Seuil d'annulation (pluie prévue)",
+              "past_window_h": "Pluie tombée : fenêtre",
+              "forecast_window_h": "Pluie prévue : fenêtre",
+              "heat_threshold_c": "Bonus chaleur au-delà de",
+              "heat_bonus_pct": "Bonus chaleur",
+              "min_pct": "Coefficient minimum",
+              "max_pct": "Coefficient maximum"
+            },
+            "data_description": {
+              "skip_mm": "À partir de cette prévision, le cycle est sauté. C'est aussi la quantité de pluie qui remplace un arrosage complet.",
+              "heat_bonus_pct": "0 désactive le bonus chaleur.",
+              "min_pct": "Au-dessus de 0, la zone est toujours un peu arrosée, sauf si assez de pluie est prévue."
             }
           }
         }
@@ -182,6 +229,12 @@
         "sequential": "Une zone à la fois",
         "parallel": "Zones en parallèle"
       }
+    },
+    "exposure": {
+      "options": {
+        "outdoor": "Extérieur",
+        "sheltered": "Sous abri"
+      }
     }
   },
   "entity": {
@@ -202,6 +255,9 @@
       },
       "queue": {
         "name": "File d'attente"
+      },
+      "weather_coefficient": {
+        "name": "Coefficient météo"
       }
     },
     "switch": {

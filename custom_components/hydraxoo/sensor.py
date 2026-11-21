@@ -5,8 +5,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
-from homeassistant.const import UnitOfTime
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
+from homeassistant.const import PERCENTAGE, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -23,7 +27,11 @@ async def async_setup_entry(
     engine = entry.runtime_data
     entities: list[SensorEntity] = [QueueSensor(engine, entry.entry_id)]
     for zone in engine.zones.values():
-        entities += [NextRunSensor(engine, zone), RemainingSensor(engine, zone)]
+        entities += [
+            NextRunSensor(engine, zone),
+            RemainingSensor(engine, zone),
+            WeatherCoefficientSensor(engine, zone),
+        ]
     async_add_entities(entities)
 
 
@@ -48,7 +56,13 @@ class NextRunSensor(HydraxooZoneEntity, SensorEntity):
         nxt = self.engine.next_run(self.zone.id)
         if nxt is None:
             return None
-        return {"duration_min": nxt[1].duration_min, "cycle_id": nxt[1].id}
+        result = self.engine.weather_result(self.zone.id)
+        return {
+            "duration_min": nxt[1].duration_min,
+            "adjusted_duration_min": result.adjust(nxt[1].duration_min),
+            "coefficient_pct": result.percent,
+            "cycle_id": nxt[1].id,
+        }
 
 
 class RemainingSensor(HydraxooZoneEntity, SensorEntity):
@@ -95,3 +109,26 @@ class QueueSensor(HydraxooControllerEntity, SensorEntity):
                 if item.zone_id in self.engine.zones
             ]
         }
+
+
+class WeatherCoefficientSensor(HydraxooZoneEntity, SensorEntity):
+    """Percentage applied to the cycles' base duration, with its reasons."""
+
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, engine, zone) -> None:
+        """Initialize."""
+        super().__init__(engine, zone, "weather_coefficient")
+
+    @property
+    def native_value(self) -> int:
+        """Coefficient in percent (100 = base duration)."""
+        return self.engine.weather_result(self.zone.id).percent
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Why the coefficient has this value."""
+        attrs = self.engine.weather_result(self.zone.id).as_dict()
+        attrs.pop("coefficient_pct")
+        return attrs
