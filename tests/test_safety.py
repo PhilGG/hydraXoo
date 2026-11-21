@@ -18,6 +18,7 @@ from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import (
     async_capture_events,
     async_fire_time_changed,
+    async_mock_service,
     setup_test_component_platform,
 )
 
@@ -75,6 +76,7 @@ async def _setup(
     hass_storage: dict[str, Any],
     valve_on: bool = False,
     power_w: float = 0.0,
+    options: dict[str, Any] | None = None,
     **zone: Any,
 ) -> MockValve:
     valve = await _setup_valve(hass, valve_on)
@@ -82,7 +84,7 @@ async def _setup(
     # Cycle on Sundays only, so that it does not start during the tests.
     zone.setdefault("cycle", {"weekdays": [6]})
     store_zones(hass_storage, [zone_data(power_entity=POWER, **zone)])
-    await setup_entry(hass)
+    await setup_entry(hass, options)
     return valve
 
 
@@ -331,3 +333,147 @@ async def test_unload_during_retry_closes_valve(
     assert await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()
     assert hass.states.get(VALVE).state == STATE_OFF
+
+
+# --------------------------------------------------- continuous monitoring
+
+
+async def test_unexpected_consumption_while_idle(
+    hass: HomeAssistant, hass_storage: dict[str, Any], clock: Clock
+) -> None:
+    """No watering, switch off, power suddenly rises: the valve is retried."""
+    valve = await _setup(hass, hass_storage)
+    retries = async_capture_events(hass, EVENT_SAFETY_RETRY)
+    hass.states.async_set(POWER, "6.0", {"unit_of_measurement": "W"})
+    await hass.async_block_till_done()
+    assert hass.states.get(FAULT).attributes["checking"] is True
+
+    await clock.advance(10 + 5 + 10)
+    attrs = hass.states.get(FAULT).attributes
+    assert attrs["last_check"] == "confirmed"
+    assert attrs["last_check_retries"] == 1
+    assert len(retries) == 1
+    assert valve.calls == ["on", "off"]  # the retry pulse only
+
+
+async def test_no_check_when_switched_on_on_purpose(
+    hass: HomeAssistant, hass_storage: dict[str, Any], clock: Clock
+) -> None:
+    """Valve switched on by hand: consumption is expected, nothing is fought."""
+    valve = await _setup(hass, hass_storage)
+    await hass.services.async_call(
+        "switch", "turn_on", {"entity_id": VALVE}, blocking=True
+    )
+    await clock.advance(30)
+    assert hass.states.get(FAULT).attributes["checking"] is False
+    assert "last_check" not in hass.states.get(FAULT).attributes
+    assert valve.calls == ["on"]
+
+
+async def test_no_check_during_watering(
+    hass: HomeAssistant, hass_storage: dict[str, Any], clock: Clock
+) -> None:
+    """Consumption while hydraXoo waters is normal."""
+    await _setup(hass, hass_storage)
+    await hass.services.async_call(
+        DOMAIN, "run_zone", {"zone": _device(hass), "duration": 5}, blocking=True
+    )
+    hass.states.async_set(POWER, "6.5", {"unit_of_measurement": "W"})
+    await clock.advance(30)
+    assert hass.states.get(FAULT).attributes["checking"] is False
+    assert hass.states.get(VALVE).state == STATE_ON
+
+
+async def test_no_endless_retries_once_in_fault(
+    hass: HomeAssistant, hass_storage: dict[str, Any], clock: Clock
+) -> None:
+    """A zone already in fault is not retried again at every reading."""
+    valve = await _setup(hass, hass_storage, fault=True)
+    hass.states.async_set(POWER, "6.0", {"unit_of_measurement": "W"})
+    await clock.advance(30)
+    assert hass.states.get(FAULT).attributes["checking"] is False
+    assert valve.calls == []
+
+
+async def test_sensor_available_late_after_restart(
+    hass: HomeAssistant, hass_storage: dict[str, Any], clock: Clock
+) -> None:
+    """Z-Wave not ready at startup: the first reading, high, starts the check."""
+    valve = await _setup(hass, hass_storage)
+    hass.states.async_set(POWER, STATE_UNAVAILABLE)
+    await hass.async_block_till_done()
+    assert hass.states.get(FAULT).attributes["checking"] is False
+
+    hass.states.async_set(POWER, "5.0", {"unit_of_measurement": "W"})
+    await hass.async_block_till_done()
+    assert hass.states.get(FAULT).attributes["checking"] is True
+    await clock.advance(25)
+    assert hass.states.get(FAULT).attributes["last_check"] == "confirmed"
+    assert valve.calls == ["on", "off"]
+
+
+async def test_small_threshold(
+    hass: HomeAssistant, hass_storage: dict[str, Any], clock: Clock
+) -> None:
+    """A 0.2 W threshold: 0.5 W counts as open."""
+    await _setup(hass, hass_storage, safety={"threshold_w": 0.2})
+    hass.states.async_set(POWER, "0.5", {"unit_of_measurement": "W"})
+    await hass.async_block_till_done()
+    assert hass.states.get(FAULT).attributes["checking"] is True
+
+
+async def test_phone_alert_on_fault_and_cleared_on_acknowledge(
+    hass: HomeAssistant, hass_storage: dict[str, Any], clock: Clock
+) -> None:
+    """A valve that cannot be closed alerts the chosen phones, high priority."""
+    phone = async_mock_service(hass, "notify", "mobile_app_pixel")
+    valve = await _setup(
+        hass, hass_storage, options={"notify_services": ["mobile_app_pixel"]}
+    )
+    valve.stuck_closings = 99
+    with patch(f"{NOTIFY}.async_create"):
+        await _water_one_minute(hass, clock)
+        await clock.advance(5 * 15 + 10)
+
+    assert len(phone) == 1
+    alert = phone[0].data
+    assert "Lawn" in alert["title"]
+    assert "6.0 W" in alert["message"]
+    assert alert["data"]["priority"] == "high"
+    assert alert["data"]["push"]["interruption-level"] == "time-sensitive"
+    tag = alert["data"]["tag"]
+
+    with patch(f"{NOTIFY}.async_dismiss"):
+        await hass.services.async_call(
+            DOMAIN, "acknowledge_fault", {"zone": _device(hass)}, blocking=True
+        )
+    assert phone[1].data == {"message": "clear_notification", "data": {"tag": tag}}
+
+
+async def test_no_phone_alert_when_closed_after_retries(
+    hass: HomeAssistant, hass_storage: dict[str, Any], clock: Clock
+) -> None:
+    """Retries that work do not wake anybody up."""
+    phone = async_mock_service(hass, "notify", "mobile_app_pixel")
+    valve = await _setup(
+        hass, hass_storage, options={"notify_services": ["mobile_app_pixel"]}
+    )
+    valve.stuck_closings = 2
+    await _water_one_minute(hass, clock)
+    await clock.advance(2 * 15 + 10)
+    assert hass.states.get(FAULT).attributes["last_check"] == "confirmed"
+    assert phone == []
+
+
+async def test_missing_phone_does_not_block_safety(
+    hass: HomeAssistant, hass_storage: dict[str, Any], clock: Clock
+) -> None:
+    """A phone removed from Home Assistant: the fault is still recorded."""
+    valve = await _setup(
+        hass, hass_storage, options={"notify_services": ["mobile_app_gone"]}
+    )
+    valve.stuck_closings = 99
+    with patch(f"{NOTIFY}.async_create"):
+        await _water_one_minute(hass, clock)
+        await clock.advance(5 * 15 + 10)
+    assert hass.states.get(FAULT).state == STATE_ON

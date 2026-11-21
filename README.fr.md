@@ -14,10 +14,10 @@ Arrosage automatique par zones pour Home Assistant, libre et gratuit, entièreme
 - Chaque zone a autant de **cycles** que nécessaire, chacun avec son heure, sa durée, ses jours et son interrupteur actif/inactif.
 - **Une zone à la fois** (par défaut) ou **zones en parallèle**. En mode une zone à la fois, un arrosage qui tombe pendant qu'une autre zone arrose attend dans une **file d'attente** et démarre dès que la vanne précédente est fermée.
 - **Pause** de l'arrosage jusqu'à la reprise ou pendant un nombre de jours. L'arrosage manuel reste possible pendant la pause.
-- **Ajustement météo** des zones extérieures : la durée d'arrosage est multipliée par un coefficient recalculé juste avant chaque départ, d'après la pluie prévue, la pluie tombée et la chaleur (détails plus bas).
+- **Ajustement météo** : la durée d'arrosage est multipliée par un coefficient recalculé juste avant chaque départ, d'après la pluie prévue, la pluie tombée et la chaleur (détails plus bas).
 - **Arroser maintenant** avec la durée de base ou une durée choisie, et **arrêter** à tout moment.
 - **Coupure de sécurité** : une vanne est toujours fermée après la durée maximale de la zone, même si elle a été ouverte en dehors de hydraXoo.
-- **Contrôle de fermeture** (facultatif, avec un capteur de consommation) : après chaque fermeture, hydraXoo vérifie que la consommation est retombée. Sinon, il rallume puis éteint la vanne, jusqu'à 5 fois ; ensuite la zone passe en défaut, une notification s'affiche et la zone n'arrose plus jusqu'à l'acquittement.
+- **Contrôle de fermeture** (facultatif, avec un capteur de consommation) : après chaque fermeture, hydraXoo vérifie que la consommation est retombée. Sinon, il rallume puis éteint la vanne, jusqu'à 5 fois ; ensuite la zone passe en défaut, une notification s'affiche (et part en priorité haute sur les téléphones choisis dans **Configurer › Réglages généraux › Notifications sur mobile**) et la zone n'arrose plus jusqu'à l'acquittement. La consommation est aussi **surveillée en permanence** : si une prise éteinte se met à consommer (vanne bloquée, prise revenue en ligne après un redémarrage…), le même contrôle est lancé.
 - **Sécurité au redémarrage** : une vanne trouvée ouverte au démarrage de Home Assistant est fermée ; le cycle interrompu n'est pas relancé et un événement le signale.
 
 ## Installation
@@ -45,7 +45,7 @@ zones: []              # facultatif : identifiants des zones affichées, toutes 
 
 - **Tableau de bord** : bandeau météo (coefficient du jour et raison), dernier contrôle de fermeture, frise de 24 h, une carte par zone (interrupteur, prochain passage, cycles du jour avec durée de base et durée ajustée, **Arroser maintenant** avec une durée choisie, **Modifier**).
 - **Réglages d'une zone** : électrovanne et contrôle de fermeture, cycles (activation, heure, durée −/+, jours, ajout, suppression), règle météo, **Enregistrer**. Les modifications s'appliquent immédiatement.
-- **Nouvelle zone** : nom, icône, exposition, interrupteur de la vanne et capteur de consommation, puis les cycles.
+- **Nouvelle zone** : nom, icône, reçoit la pluie ou non, interrupteur de la vanne et capteur de consommation, puis les cycles.
 
 La modification est réservée aux administrateurs. Les thèmes clair et sombre suivent Home Assistant.
 
@@ -92,7 +92,7 @@ Par zone :
 
 ## Ajustement météo
 
-Choisissez une entité météo (et éventuellement un pluviomètre cumulatif) dans **Configurer › Réglages généraux**. Chaque zone extérieure a sa propre règle (**Modifier une zone › Réglages de la zone › Règle météo**) :
+Choisissez une entité météo (et éventuellement un pluviomètre cumulatif) dans **Configurer › Réglages généraux**. Chaque zone a sa propre règle (**Modifier une zone › Réglages de la zone › Règle météo**, ou la section **Météo** de la carte) :
 
 - **Pluie prévue** sur les 24 prochaines heures (via `weather.get_forecasts`, horaire si disponible, sinon journalière) supérieure ou égale au **seuil d'annulation** (5 mm) : le cycle est sauté.
 - Sinon **coefficient = 1 − (pluie tombée pondérée + pluie prévue) ÷ seuil**, borné entre 0 et 100 %. La pluie des dernières 24 h compte entièrement, celle de 24 à 48 h pour moitié.
@@ -100,6 +100,7 @@ Choisissez une entité météo (et éventuellement un pluviomètre cumulatif) da
 - Le résultat est borné entre le minimum et le maximum de la zone (0 à 150 %), et la durée est arrondie à la minute. 0 % saute le cycle.
 - **Pluie tombée** : lue sur le pluviomètre s'il est renseigné ; sinon estimée en enregistrant, chaque heure, la pluie prévue pour cette heure.
 - **Météo indisponible** : 100 % et un avertissement.
+- **Zones à l'abri de la pluie** (serre, terrasse couverte : *Reçoit la pluie* désactivé) : la pluie est ignorée, mais le bonus chaleur s'applique.
 
 Testé avec les formats Met.no et Météo-France ; les fournisseurs qui ne donnent que des prévisions journalières, ou aucune quantité de pluie, sont gérés (100 % avec un avertissement dans ce dernier cas). L'arrosage manuel n'est jamais ajusté.
 

@@ -58,7 +58,7 @@ export interface ZoneConfig {
   switch_entity: string;
   power_entity: string | null;
   max_runtime_min: number;
-  exposure: "outdoor" | "sheltered";
+  receives_rain: boolean; // false: sheltered, rain ignored (heat still counts)
   safety: SafetySettings;
   weather_rules: WeatherRules;
   cycles: Cycle[];

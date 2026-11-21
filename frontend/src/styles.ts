@@ -279,10 +279,20 @@ export const styles = css`
     box-sizing: border-box;
   }
   .mark.done,
-  .mark.past,
-  .mark.skipped {
+  .mark.past {
     background: var(--hx-muted);
     opacity: 0.55;
+  }
+  /* Skipped (rain, pause, fault…): striped, so it never looks like "done" */
+  .mark.skipped,
+  .swatch.skipped {
+    background: repeating-linear-gradient(
+      135deg,
+      var(--hx-muted) 0 2px,
+      transparent 2px 5px
+    );
+    border: 1.5px solid var(--hx-muted);
+    opacity: 0.8;
   }
   .mark.disabled {
     background: transparent;
@@ -323,6 +333,9 @@ export const styles = css`
     border-radius: 3px;
     background: var(--hx-primary);
     box-sizing: border-box;
+  }
+  .swatch.running {
+    background: var(--hx-success);
   }
   .swatch.done {
     background: var(--hx-muted);
@@ -485,12 +498,12 @@ export const styles = css`
     background: var(--hx-soft);
     color: var(--hx-primary);
   }
-  .exposure-grid {
+  .choice-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
-  .exposure-grid .choice {
+  .choice-grid .choice {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;

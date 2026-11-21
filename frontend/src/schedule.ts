@@ -67,7 +67,6 @@ export function formatClock(seconds: number): string {
 
 /** Duration after the weather coefficient (0 when the cycle would be skipped). */
 export function adjustedDuration(zone: Zone, base: number): number {
-  if (zone.exposure !== "outdoor") return base;
   if (zone.weather.skip) return 0;
   return Math.round((base * zone.weather.coefficient_pct) / 100);
 }

@@ -19,7 +19,6 @@ from homeassistant.helpers import selector
 from .const import (
     CONF_CHECK_DELAY_S,
     CONF_DURATION,
-    CONF_EXPOSURE,
     CONF_FORECAST_WINDOW_H,
     CONF_HEAT_BONUS_PCT,
     CONF_HEAT_THRESHOLD_C,
@@ -29,9 +28,11 @@ from .const import (
     CONF_MAX_RUNTIME,
     CONF_MIN_PCT,
     CONF_NAME,
+    CONF_NOTIFY_SERVICES,
     CONF_PAST_WINDOW_H,
     CONF_POWER_ENTITY,
     CONF_RAIN_SENSOR,
+    CONF_RECEIVES_RAIN,
     CONF_RETRY_PULSE_S,
     CONF_SAFETY,
     CONF_SEQUENCE_MODE,
@@ -47,8 +48,6 @@ from .const import (
     DEFAULT_MAX_RUNTIME,
     DEFAULT_START_TIME,
     DOMAIN,
-    EXPOSURE_OUTDOOR,
-    EXPOSURE_SHELTERED,
     MAX_RUNTIME_LIMIT,
     MODE_PARALLEL,
     MODE_SEQUENTIAL,
@@ -71,7 +70,17 @@ WEEKDAY_SHORT = {
 }
 
 
-def _settings_schema(defaults: dict[str, Any]) -> vol.Schema:
+def _notify_options(hass) -> list[str]:
+    """notify services, phones of the companion app first."""
+    names = [
+        name
+        for name in hass.services.async_services_for_domain("notify")
+        if name not in ("persistent_notification", "send_message")
+    ]
+    return sorted(names, key=lambda n: (not n.startswith("mobile_app_"), n))
+
+
+def _settings_schema(defaults: dict[str, Any], notify: list[str]) -> vol.Schema:
     weather = defaults.get(CONF_WEATHER_ENTITY)
     key = (
         vol.Optional(CONF_WEATHER_ENTITY, description={"suggested_value": weather})
@@ -99,6 +108,21 @@ def _settings_schema(defaults: dict[str, Any]) -> vol.Schema:
                     options=[MODE_SEQUENTIAL, MODE_PARALLEL],
                     mode=selector.SelectSelectorMode.LIST,
                     translation_key="sequence_mode",
+                )
+            ),
+            vol.Optional(
+                CONF_NOTIFY_SERVICES,
+                default=[
+                    s for s in defaults.get(CONF_NOTIFY_SERVICES, []) if s in notify
+                ],
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[
+                        selector.SelectOptionDict(value=n, label=f"notify.{n}")
+                        for n in notify
+                    ],
+                    multiple=True,
+                    mode=selector.SelectSelectorMode.LIST,
                 )
             ),
         }
@@ -148,14 +172,8 @@ def _zone_fields(defaults: dict[str, Any], exclude: list[str]) -> dict:
             {"collapsed": True},
         ),
         vol.Required(
-            CONF_EXPOSURE, default=defaults.get(CONF_EXPOSURE, EXPOSURE_OUTDOOR)
-        ): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=[EXPOSURE_OUTDOOR, EXPOSURE_SHELTERED],
-                mode=selector.SelectSelectorMode.LIST,
-                translation_key="exposure",
-            )
-        ),
+            CONF_RECEIVES_RAIN, default=defaults.get(CONF_RECEIVES_RAIN, True)
+        ): selector.BooleanSelector(),
         vol.Required(CONF_WEATHER_RULES): section(
             vol.Schema(_weather_fields(defaults.get(CONF_WEATHER_RULES) or {})),
             {"collapsed": True},
@@ -164,7 +182,7 @@ def _zone_fields(defaults: dict[str, Any], exclude: list[str]) -> dict:
 
 
 def _weather_fields(defaults: dict[str, Any]) -> dict:
-    """Weather rule of an outdoor zone."""
+    """Weather rule of a zone (rain part ignored when sheltered)."""
     base = WeatherRules().to_dict() | defaults
     fields = {
         CONF_SKIP_MM: _number(0.5, 50, 0.5, "mm"),
@@ -260,7 +278,7 @@ def _zone_to_form(zone: Zone) -> dict[str, Any]:
         CONF_MAX_RUNTIME: zone.max_runtime_min,
         CONF_POWER_ENTITY: zone.power_entity,
         CONF_SAFETY: zone.safety.to_dict(),
-        CONF_EXPOSURE: zone.exposure,
+        CONF_RECEIVES_RAIN: zone.receives_rain,
         CONF_WEATHER_RULES: zone.weather_rules.to_dict(),
     }
 
@@ -281,7 +299,7 @@ def _apply_zone(zone: Zone, user_input: dict[str, Any]) -> None:
     zone.max_runtime_min = int(user_input[CONF_MAX_RUNTIME])
     zone.power_entity = user_input.get(CONF_POWER_ENTITY) or None
     zone.safety = SafetySettings.from_dict(user_input.get(CONF_SAFETY))
-    zone.exposure = user_input.get(CONF_EXPOSURE, EXPOSURE_OUTDOOR)
+    zone.receives_rain = bool(user_input.get(CONF_RECEIVES_RAIN, True))
     zone.weather_rules = WeatherRules.from_dict(user_input.get(CONF_WEATHER_RULES))
 
 
@@ -319,7 +337,9 @@ class HydraxooConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_create_entry(
                 title="hydraXoo", data={}, options=user_input
             )
-        return self.async_show_form(step_id="user", data_schema=_settings_schema({}))
+        return self.async_show_form(
+            step_id="user", data_schema=_settings_schema({}, _notify_options(self.hass))
+        )
 
     @staticmethod
     @callback
@@ -407,7 +427,9 @@ class HydraxooOptionsFlow(OptionsFlow):
             return self.async_create_entry(data=user_input)
         return self.async_show_form(
             step_id="settings",
-            data_schema=_settings_schema(dict(self.config_entry.options)),
+            data_schema=_settings_schema(
+                dict(self.config_entry.options), _notify_options(self.hass)
+            ),
         )
 
     # ---------------------------------------------------------------- zones

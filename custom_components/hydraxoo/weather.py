@@ -1,4 +1,4 @@
-"""Weather coefficient: adjusts outdoor watering to rain and heat.
+"""Weather coefficient: adjusts watering to rain and heat.
 
 Sources
 - Rain expected: `weather.get_forecasts` (hourly if available, else daily).
@@ -25,7 +25,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 
-from .const import EXPOSURE_SHELTERED, FORECAST_CACHE_MINUTES, RAIN_HISTORY_HOURS
+from .const import FORECAST_CACHE_MINUTES, RAIN_HISTORY_HOURS
 from .models import WeatherRules, Zone
 
 _LOGGER = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ _LOGGER = logging.getLogger(__name__)
 REASON_ADJUSTED = "adjusted"
 REASON_RAIN_FORECAST = "rain_forecast"  # skipped: enough rain expected
 REASON_ENOUGH_RAIN = "enough_rain"  # skipped: coefficient fell to 0
-REASON_SHELTERED = "sheltered"
+REASON_SHELTERED = "sheltered"  # no rain, no heat bonus: base duration
 REASON_NO_WEATHER = "no_weather_entity"
 REASON_UNAVAILABLE = "weather_unavailable"
 
@@ -334,7 +334,8 @@ class WeatherService:
 
     def compute(self, zone: Zone) -> WeatherResult:
         """Coefficient for a zone, with the data already fetched."""
-        if zone.exposure == EXPOSURE_SHELTERED:
+        rules = zone.weather_rules
+        if not zone.receives_rain and rules.heat_bonus_pct == 0:
             return WeatherResult(1.0, False, REASON_SHELTERED)
         if self.weather_entity is None:
             return WeatherResult(1.0, False, REASON_NO_WEATHER)
@@ -342,17 +343,18 @@ class WeatherService:
             return WeatherResult(
                 1.0, False, REASON_UNAVAILABLE, warnings=[WARN_UNAVAILABLE]
             )
-        rules = zone.weather_rules
         now = dt_util.utcnow()
+        temperature = self.temperature(now, rules.forecast_window_h)
+        if not zone.receives_rain:
+            # Sheltered from rain: only the heat bonus can change the duration.
+            result = compute_coefficient(rules, 0.0, 0.0, temperature)
+            result.past_rain_mm = result.forecast_rain_mm = None
+            return result
         warnings: list[str] = []
         forecast = self.forecast_rain(now, rules.forecast_window_h)
         if forecast is None:
             warnings.append(WARN_NO_PRECIPITATION)
         past = self.past_rain(now, rules.past_window_h)
         return compute_coefficient(
-            rules,
-            past or 0.0,
-            forecast or 0.0,
-            self.temperature(now, rules.forecast_window_h),
-            warnings,
+            rules, past or 0.0, forecast or 0.0, temperature, warnings
         )

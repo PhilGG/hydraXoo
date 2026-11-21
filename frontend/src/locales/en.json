@@ -6,11 +6,11 @@
   "weather": {
     "rain": "Rain: {past} mm fallen, {forecast} mm expected",
     "rain_forecast": "Rain: {forecast} mm expected",
-    "adjusted": "Outdoor zones adjusted automatically",
-    "skipped": "Enough rain expected: outdoor cycles skipped",
+    "adjusted": "Durations adjusted automatically",
+    "skipped": "Enough rain expected: cycles skipped for zones that receive rain",
     "of_durations": "of durations",
     "unavailable": "Weather unavailable",
-    "unavailable_detail": "Outdoor zones water their full duration",
+    "unavailable_detail": "Zones water their full duration",
     "no_data": "The weather provider gives no rain amounts",
     "heat": "Heat bonus +{bonus} % ({temp} °C)"
   },
@@ -36,20 +36,26 @@
   "timeline": {
     "title": "Today",
     "total": "{min} min of watering",
+    "running": "In progress",
     "done": "Done",
+    "skipped": "Skipped",
     "upcoming": "Upcoming",
     "disabled": "Disabled",
     "now": "Now",
     "label": "{zone}: {count} cycles today"
   },
   "zone": {
-    "outdoor": "Outdoor · adjusted to rain",
-    "sheltered": "Sheltered · fixed duration",
+    "rain": "Receives rain · adjusted duration",
+    "no_rain": "Sheltered from rain",
+    "heat": " · heat bonus",
     "enable": "Enable zone {zone}",
     "next": "Next: {time} · {min} min",
     "next_day": "Next: {day} {time} · {min} min",
+    "next_skipped": "Next: {time} · skipped (rain)",
+    "next_day_skipped": "Next: {day} {time} · skipped (rain)",
     "nothing": "No cycle scheduled",
-    "weather": "Weather {pct} %",
+    "weather": "Weather: {pct} % of the duration",
+    "weather_skip": "Rain: watering skipped",
     "running": "Watering · {left} left",
     "queued": "Waiting its turn",
     "checking": "Checking the closing…",
@@ -72,11 +78,11 @@
       "tonight": "tonight"
     },
     "skip": {
-      "weather": "Rain",
-      "paused": "Paused",
-      "zone_disabled": "Zone off",
-      "fault": "Fault",
-      "stopped": "Stopped"
+      "weather": "Skipped · rain",
+      "paused": "Skipped · paused",
+      "zone_disabled": "Skipped · zone off",
+      "fault": "Skipped · fault",
+      "stopped": "Skipped · stopped"
     }
   },
   "new_zone": "New zone",
@@ -95,11 +101,6 @@
       "flower": "Flowers",
       "drop": "Drop"
     },
-    "exposure": "Exposure",
-    "outdoor": "Outdoor",
-    "outdoor_desc": "Gets the rain, adjusted to the weather",
-    "sheltered": "Sheltered",
-    "sheltered_desc": "Fixed durations, no weather",
     "hardware": "Hardware",
     "valve": "Solenoid valve",
     "switch": "Valve switch · required",
@@ -137,19 +138,20 @@
     "increase": "Increase {what}",
     "duration_of": "the duration of cycle {n}",
     "add_cycle": "Add a cycle",
-    "rain": "Adjust to rain",
+    "rain": "Receives rain",
     "rain_source": "Source: {name}",
     "rain_none": "No weather entity yet: choose one in the integration's general settings.",
     "today": "Today",
     "rain_detail": "{past} mm fallen · {forecast} mm expected",
-    "skip": "Skip if rain expected ≥",
-    "skip_hint": "The cycle is skipped",
-    "past": "Past rain counted",
-    "past_hint": "Sliding window",
-    "heat": "Heat bonus",
-    "heat_hint": "Above {t} °C · 0 = off",
-    "heat_threshold": "Heat bonus threshold",
-    "heat_threshold_hint": "Highest temperature expected",
+    "skip": "Skip the cycle if rain expected reaches",
+    "skip_hint": "Rain expected in the next 24 hours",
+    "past": "Rain fallen taken into account",
+    "past_hint": "Over the last hours",
+    "heat": "Water more on hot days",
+    "heat_hint": "Duration increased by this percentage · 0 % = never",
+    "heat_threshold": "Hot day from",
+    "heat_threshold_hint": "Highest temperature expected during the day",
+    "heat_summary": "If the day is expected to reach {t} °C or more, the duration is increased by {pct} %.",
     "save": "Save",
     "saving": "Saving…",
     "create": "Create and add cycles",
@@ -162,11 +164,35 @@
       "no_day": "Each cycle needs at least one day.",
       "duration_exceeds_max": "A cycle lasts longer than the safety cut-off.",
       "generic": "Could not save: {message}"
-    }
+    },
+    "rain_choice": "Rain",
+    "receives_rain": "Receives rain",
+    "receives_rain_desc": "Durations adjusted to the rain",
+    "no_rain": "Sheltered from rain",
+    "no_rain_desc": "Greenhouse, covered area: rain is ignored",
+    "weather_title": "Weather",
+    "rain_hint": "Duration adjusted to the rain fallen and expected",
+    "no_rain_detail": "Rain ignored: only heat can change the duration"
   },
   "days": {
-    "short": ["M", "T", "W", "T", "F", "S", "S"],
-    "long": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    "short": [
+      "M",
+      "T",
+      "W",
+      "T",
+      "F",
+      "S",
+      "S"
+    ],
+    "long": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ]
   },
   "card_editor": {
     "title": "Title",

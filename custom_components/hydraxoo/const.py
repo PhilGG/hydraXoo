@@ -10,6 +10,8 @@ DOMAIN: Final = "hydraxoo"
 CONF_WEATHER_ENTITY: Final = "weather_entity"
 CONF_RAIN_SENSOR: Final = "rain_sensor"
 CONF_SEQUENCE_MODE: Final = "sequence_mode"
+# notify services (e.g. "mobile_app_pixel_8") alerted when a valve stays open
+CONF_NOTIFY_SERVICES: Final = "notify_services"
 MODE_SEQUENTIAL: Final = "sequential"  # one zone at a time (default)
 MODE_PARALLEL: Final = "parallel"
 
@@ -27,9 +29,9 @@ CONF_THRESHOLD_W: Final = "threshold_w"
 CONF_CHECK_DELAY_S: Final = "check_delay_s"
 CONF_RETRY_PULSE_S: Final = "retry_pulse_s"
 CONF_MAX_ATTEMPTS: Final = "max_attempts"
-CONF_EXPOSURE: Final = "exposure"
-EXPOSURE_OUTDOOR: Final = "outdoor"  # adjusted to the weather
-EXPOSURE_SHELTERED: Final = "sheltered"  # never adjusted
+# True: rain fallen and expected adjust the zone; False: sheltered from rain.
+# The heat bonus applies either way.
+CONF_RECEIVES_RAIN: Final = "receives_rain"
 CONF_WEATHER_RULES: Final = "weather_rules"
 CONF_SKIP_MM: Final = "skip_mm"
 CONF_PAST_WINDOW_H: Final = "past_window_h"

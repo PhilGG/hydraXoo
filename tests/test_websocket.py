@@ -17,7 +17,7 @@ NEW_ZONE = {
     "icon": "mdi:flower",
     "switch_entity": "switch.valve_2",
     "max_runtime_min": 20,
-    "exposure": "sheltered",
+    "receives_rain": False,
     "cycles": [
         {"start_time": "07:15", "duration_min": 8, "weekdays": [1, 3, 5]},
     ],
@@ -85,7 +85,7 @@ async def test_create_update_delete_zone(
     assert entry.runtime_data is engine  # no reload
     assert hass.states.get("binary_sensor.roses_watering") is not None
     stored = hass_storage["hydraxoo.zones"]["data"]["zones"][1]
-    assert stored["exposure"] == "sheltered"
+    assert stored["receives_rain"] is False
     assert stored["cycles"][0]["start_time"] == "07:15"
     assert stored["cycles"][0]["id"]
 

@@ -14,10 +14,10 @@ Free and open-source zone-based irrigation for Home Assistant, configured entire
 - Each zone has as many **cycles** as needed, each with its own start time, duration and days of the week, and its own on/off switch.
 - **One zone at a time** (default) or **zones in parallel**. With one zone at a time, a watering that comes up while another zone is watering waits in a **queue** and starts as soon as the valve before it is closed.
 - **Pause** watering until resumed or for a number of days. Manual watering still works during a pause.
-- **Weather adjustment** for outdoor zones: the watering time is multiplied by a coefficient recalculated right before each start, from the rain expected, the rain fallen and the heat (details below).
+- **Weather adjustment**: the watering time is multiplied by a coefficient recalculated right before each start, from the rain expected, the rain fallen and the heat (details below).
 - **Water now** for the base duration or a chosen duration, and **stop** at any time.
 - **Safety cut-off**: a valve is always closed after the zone's maximum run time, even if it was switched on outside hydraXoo.
-- **Valve-closing check** (optional, with a power sensor): after each closing, hydraXoo checks that the power has dropped. If not, it switches the valve on and off again, up to 5 times; then the zone is put in fault, a notification is shown and the zone stops watering until the fault is acknowledged.
+- **Valve-closing check** (optional, with a power sensor): after each closing, hydraXoo checks that the power has dropped. If not, it switches the valve on and off again, up to 5 times; then the zone is put in fault, a notification is shown (and sent with high priority to the phones chosen in **Configure › General settings › Mobile notifications**) and the zone stops watering until the fault is acknowledged. The consumption is also **watched at all times**: if a plug that is switched off starts drawing power (stuck valve, plug back online after a restart…), the same check runs.
 - **Restart safety**: a valve found open when Home Assistant starts is closed; the interrupted cycle is not restarted and an event reports it.
 
 ## Installation
@@ -45,7 +45,7 @@ zones: []              # optional: zone ids to show, all when empty
 
 - **Dashboard**: weather banner (today's coefficient and why), last valve-closing check, 24-hour timeline, one card per zone (switch, next watering, today's cycles with base and adjusted durations, **Water now** with a chosen duration, **Edit**).
 - **Zone settings**: valve and closing check, cycles (on/off, time, duration −/+, days, add, delete), weather rule, **Save**. Changes apply at once.
-- **New zone**: name, icon, exposure, valve switch and power sensor, then cycles.
+- **New zone**: name, icon, receives rain or not, valve switch and power sensor, then cycles.
 
 Editing is available to administrators. Light and dark themes follow Home Assistant.
 
@@ -92,7 +92,7 @@ Per zone:
 
 ## Weather adjustment
 
-Choose a weather entity (and optionally a cumulative rain gauge) in **Configure › General settings**. Each outdoor zone has its own rule (**Edit a zone › Zone settings › Weather rule**):
+Choose a weather entity (and optionally a cumulative rain gauge) in **Configure › General settings**. Each zone has its own rule (**Edit a zone › Zone settings › Weather rule**, or the **Weather** section of the card):
 
 - **Rain expected** over the next 24 h (from `weather.get_forecasts`, hourly if available, otherwise daily) at or above the **skip threshold** (5 mm): the cycle is skipped.
 - Otherwise **coefficient = 1 − (rain fallen, weighted + rain expected) ÷ threshold**, kept between 0 and 100 %. Rain fallen in the last 24 h counts fully, from 24 to 48 h for half.
@@ -100,6 +100,7 @@ Choose a weather entity (and optionally a cumulative rain gauge) in **Configure 
 - The result is kept between the zone's minimum and maximum (0–150 %), and the duration is rounded to the minute. 0 % skips the cycle.
 - **Rain fallen** comes from the rain gauge if you set one; otherwise it is estimated by recording, each hour, the forecast rain for that hour.
 - **Weather unavailable**: 100 % and a warning.
+- **Zones sheltered from rain** (greenhouse, covered area: *Receives rain* off) ignore the rain, but the heat bonus still applies to them.
 
 Tested with the Met.no and Météo-France formats; providers that give daily forecasts only, or no rain amounts, are handled (100 % with a warning in the latter case). Manual watering is never adjusted.
 

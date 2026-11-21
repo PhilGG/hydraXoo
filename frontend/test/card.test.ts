@@ -62,13 +62,54 @@ describe("dashboard", () => {
     expect(t).toContain("Terrasse · fermeture vérifiée à 07:08");
     expect(t).toContain("refermée après 1 relance de 5 s");
     expect(t).toContain("Potager");
-    expect(t).toContain("Extérieur · adapté à la pluie");
-    expect(t).toContain("Sous abri · durée fixe");
+    expect(t).toContain("Reçoit la pluie · durée ajustée");
+    expect(t).toContain("À l'abri de la pluie");
     expect(t).toContain("Prochain : 13:00 · 3 min");
-    expect(t).toContain("Météo −40 %");
+    expect(t).toContain("Météo : 60 % de la durée");
     // Timeline: 3 cycles today for Potager, 1 for Terrasse, a "now" marker per row
     expect(root(card).querySelectorAll(".track")[0].querySelectorAll(".mark").length).toBe(3);
     expect(root(card).querySelectorAll(".track .now").length).toBe(2);
+  });
+
+  it("shows skipped cycles differently from finished ones", async () => {
+    const state = makeState();
+    state.history.push({
+      zone_id: "z2",
+      kind: "skipped",
+      cycle_id: "t1",
+      started: "2026-11-23T06:00:00+00:00",
+      reason: "weather",
+    });
+    const card = await mount(makeHass(state));
+    const tracks = root(card).querySelectorAll(".track");
+    expect(tracks[0].querySelector(".mark")!.classList.contains("done")).toBe(true);
+    const skipped = tracks[1].querySelector(".mark")!;
+    expect(skipped.classList.contains("skipped")).toBe(true);
+    expect(skipped.getAttribute("title")).toContain("Sauté · pluie");
+    expect(text(card)).toContain("Sauté");
+    // Legend only lists "In progress" when something is watering
+    expect(text(card)).not.toContain("En cours");
+  });
+
+  it("says plainly when rain will skip the watering", async () => {
+    const zone = makeZone({
+      weather: { ...makeZone().weather, coefficient_pct: 0, skip: true, reason: "rain_forecast" },
+      next_run: { time: "2026-11-23T12:00:00+00:00", cycle_id: "c2", duration_min: 5, adjusted_duration_min: 0 },
+    });
+    const card = await mount(makeHass(makeState({ zones: [zone] })));
+    const t = text(card);
+    expect(t).toContain("Pluie : arrosage sauté");
+    expect(t).toContain("Prochain : 13:00 · sauté (pluie)");
+    const chips = root(card).querySelector(".chips")!.textContent!;
+    expect(chips).not.toContain("0 min");
+    expect(chips).not.toContain("100 %");
+    const row = [...root(card).querySelectorAll(".cycle-row")][1];
+    expect(row.querySelector("s")!.textContent).toBe("5 min");
+    expect(row.textContent).toContain("Sauté · pluie");
+    expect(row.querySelector(".status ha-icon")!.getAttribute("icon")).toBe("mdi:close");
+    // and the tick for a finished cycle
+    const done = [...root(card).querySelectorAll(".cycle-row")][0];
+    expect(done.querySelector(".status ha-icon")!.getAttribute("icon")).toBe("mdi:check");
   });
 
   it("lists today's cycles with base and adjusted durations", async () => {
@@ -185,7 +226,7 @@ describe("zone settings", () => {
     const scope = el.shadowRoot!;
     expect(scope.textContent).toContain("Réglages de la zone");
     expect(scope.textContent).toContain("Vérifier la fermeture");
-    expect(scope.textContent).toContain("Adapter selon la pluie");
+    expect(scope.textContent).toContain("Reçoit la pluie");
 
     // Cycle 2: add Wednesday, one more minute
     (scope.querySelector('[aria-label="Mercredi, cycle 2"]') as HTMLButtonElement).click();
@@ -200,6 +241,58 @@ describe("zone settings", () => {
     expect(call.zone.cycles[1].weekdays).toEqual([0, 1, 2, 3, 4]);
     expect(call.zone.cycles[1].duration_min).toBe(6);
     expect(call.zone).not.toHaveProperty("running");
+  });
+
+  it("lets the threshold go down to 0.1 W in 0.1 W steps", async () => {
+    const card = await mount(makeHass(makeState()));
+    buttonByText(root(card), "Modifier").click();
+    const el = await form(card);
+    const scope = el.shadowRoot!;
+    const label = 'Diminuer Vanne considérée ouverte au-delà de';
+    for (let i = 0; i < 12; i++) {
+      (scope.querySelector(`[aria-label="${label}"]`) as HTMLButtonElement).click();
+      await el.updateComplete;
+    }
+    expect(scope.textContent).toContain("0,1 W");
+    expect((scope.querySelector(`[aria-label="${label}"]`) as HTMLButtonElement).disabled).toBe(true);
+    (scope.querySelector('[aria-label="Augmenter Vanne considérée ouverte au-delà de"]') as HTMLButtonElement).click();
+    await el.updateComplete;
+    expect(scope.textContent).toContain("0,2 W");
+  });
+
+  it("explains the heat bonus in plain words", async () => {
+    const zone = makeZone({ weather_rules: { ...makeZone().weather_rules, heat_bonus_pct: 30 } });
+    const card = await mount(makeHass(makeState({ zones: [zone] })));
+    buttonByText(root(card), "Modifier").click();
+    const el = await form(card);
+    const t = el.shadowRoot!.textContent!.replace(/\s+/g, " ");
+    expect(t).toContain("Arroser plus les jours chauds");
+    expect(t).toContain("+30 %");
+    expect(t).toContain("Jour chaud à partir de");
+    expect(t).toContain("Si la journée doit atteindre 30 °C ou plus, la durée est allongée de 30 %.");
+    // 60 % fills 60 % of the bar
+    const bar = el.shadowRoot!.querySelector(".meter > div") as HTMLElement;
+    expect(bar.style.width).toBe("60%");
+  });
+
+  it("a zone sheltered from rain keeps the heat bonus settings", async () => {
+    const hass = makeHass(makeState());
+    const card = await mount(hass);
+    buttonByText(root(card), "Modifier").click();
+    const el = await form(card);
+    const scope = el.shadowRoot!;
+    // No duplicate rain choice in the settings screen: one switch in "Météo"
+    expect(scope.querySelector(".choice-grid")).toBeNull();
+    const rainSwitch = scope.querySelector('[aria-label="Reçoit la pluie"]') as HTMLButtonElement;
+    expect(rainSwitch.getAttribute("aria-checked")).toBe("true");
+    expect(scope.textContent).toContain("Sauter le cycle si la pluie prévue atteint");
+    rainSwitch.click();
+    await el.updateComplete;
+    expect(scope.textContent).not.toContain("Sauter le cycle si la pluie prévue atteint");
+    expect(scope.textContent).toContain("Arroser plus les jours chauds");
+    buttonByText(scope, "Enregistrer").click();
+    await vi.waitFor(() => expect(hass.callWS).toHaveBeenCalled());
+    expect(hass.callWS.mock.calls[0][0].zone.receives_rain).toBe(false);
   });
 
   it("adds and deletes cycles", async () => {
@@ -255,7 +348,7 @@ describe("new zone", () => {
     name.value = "Rosiers";
     name.dispatchEvent(new Event("input"));
     (scope.querySelector('[aria-label="Fleurs"]') as HTMLButtonElement).click();
-    buttonByText(scope, "Sous abri").click();
+    buttonByText(scope, "À l'abri de la pluie").click();
     const select = scope.querySelector("select") as HTMLSelectElement;
     select.value = "switch.vanne_roses";
     select.dispatchEvent(new Event("change"));
@@ -268,7 +361,7 @@ describe("new zone", () => {
     expect(zone).toMatchObject({
       name: "Rosiers",
       icon: "mdi:flower",
-      exposure: "sheltered",
+      receives_rain: false,
       switch_entity: "switch.vanne_roses",
       power_entity: null,
       cycles: [],

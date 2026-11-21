@@ -29,7 +29,7 @@ ZONE_FORM = {
         "retry_pulse_s": 5,
         "max_attempts": 5,
     },
-    "exposure": "outdoor",
+    "receives_rain": True,
     "weather_rules": {
         "skip_mm": 5.0,
         "past_window_h": 48,
@@ -122,7 +122,7 @@ ZONE_ONLY = {
         "switch_entity",
         "max_runtime_min",
         "safety",
-        "exposure",
+        "receives_rain",
         "weather_rules",
     )
 }
@@ -333,5 +333,23 @@ async def test_settings(hass: HomeAssistant) -> None:
     assert entry.options == {
         "weather_entity": "weather.home",
         "sequence_mode": "parallel",
+        "notify_services": [],
     }
     assert entry.runtime_data.sequential is False
+
+
+async def test_settings_offer_phones(hass: HomeAssistant) -> None:
+    """Phones of the companion app are offered first for the alerts."""
+    hass.services.async_register("notify", "mobile_app_pixel", lambda call: None)
+    hass.services.async_register("notify", "email_me", lambda call: None)
+    entry = await setup_entry(hass)
+    result = await _open_menu(hass, entry.entry_id, "settings")
+    options = result["data_schema"].schema["notify_services"].config["options"]
+    assert [o["value"] for o in options] == ["mobile_app_pixel", "email_me"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"sequence_mode": "sequential", "notify_services": ["mobile_app_pixel"]},
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert entry.runtime_data.notify_services == ["mobile_app_pixel"]

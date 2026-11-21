@@ -515,11 +515,11 @@ var q = {
 	weather: {
 		rain: "Rain: {past} mm fallen, {forecast} mm expected",
 		rain_forecast: "Rain: {forecast} mm expected",
-		adjusted: "Outdoor zones adjusted automatically",
-		skipped: "Enough rain expected: outdoor cycles skipped",
+		adjusted: "Durations adjusted automatically",
+		skipped: "Enough rain expected: cycles skipped for zones that receive rain",
 		of_durations: "of durations",
 		unavailable: "Weather unavailable",
-		unavailable_detail: "Outdoor zones water their full duration",
+		unavailable_detail: "Zones water their full duration",
 		no_data: "The weather provider gives no rain amounts",
 		heat: "Heat bonus +{bonus} % ({temp} °C)"
 	},
@@ -545,20 +545,26 @@ var q = {
 	timeline: {
 		title: "Today",
 		total: "{min} min of watering",
+		running: "In progress",
 		done: "Done",
+		skipped: "Skipped",
 		upcoming: "Upcoming",
 		disabled: "Disabled",
 		now: "Now",
 		label: "{zone}: {count} cycles today"
 	},
 	zone: {
-		outdoor: "Outdoor · adjusted to rain",
-		sheltered: "Sheltered · fixed duration",
+		rain: "Receives rain · adjusted duration",
+		no_rain: "Sheltered from rain",
+		heat: " · heat bonus",
 		enable: "Enable zone {zone}",
 		next: "Next: {time} · {min} min",
 		next_day: "Next: {day} {time} · {min} min",
+		next_skipped: "Next: {time} · skipped (rain)",
+		next_day_skipped: "Next: {day} {time} · skipped (rain)",
 		nothing: "No cycle scheduled",
-		weather: "Weather {pct} %",
+		weather: "Weather: {pct} % of the duration",
+		weather_skip: "Rain: watering skipped",
 		running: "Watering · {left} left",
 		queued: "Waiting its turn",
 		checking: "Checking the closing…",
@@ -581,11 +587,11 @@ var q = {
 			tonight: "tonight"
 		},
 		skip: {
-			weather: "Rain",
-			paused: "Paused",
-			zone_disabled: "Zone off",
-			fault: "Fault",
-			stopped: "Stopped"
+			weather: "Skipped · rain",
+			paused: "Skipped · paused",
+			zone_disabled: "Skipped · zone off",
+			fault: "Skipped · fault",
+			stopped: "Skipped · stopped"
 		}
 	},
 	new_zone: "New zone",
@@ -604,11 +610,6 @@ var q = {
 			flower: "Flowers",
 			drop: "Drop"
 		},
-		exposure: "Exposure",
-		outdoor: "Outdoor",
-		outdoor_desc: "Gets the rain, adjusted to the weather",
-		sheltered: "Sheltered",
-		sheltered_desc: "Fixed durations, no weather",
 		hardware: "Hardware",
 		valve: "Solenoid valve",
 		switch: "Valve switch · required",
@@ -646,19 +647,20 @@ var q = {
 		increase: "Increase {what}",
 		duration_of: "the duration of cycle {n}",
 		add_cycle: "Add a cycle",
-		rain: "Adjust to rain",
+		rain: "Receives rain",
 		rain_source: "Source: {name}",
 		rain_none: "No weather entity yet: choose one in the integration's general settings.",
 		today: "Today",
 		rain_detail: "{past} mm fallen · {forecast} mm expected",
-		skip: "Skip if rain expected ≥",
-		skip_hint: "The cycle is skipped",
-		past: "Past rain counted",
-		past_hint: "Sliding window",
-		heat: "Heat bonus",
-		heat_hint: "Above {t} °C · 0 = off",
-		heat_threshold: "Heat bonus threshold",
-		heat_threshold_hint: "Highest temperature expected",
+		skip: "Skip the cycle if rain expected reaches",
+		skip_hint: "Rain expected in the next 24 hours",
+		past: "Rain fallen taken into account",
+		past_hint: "Over the last hours",
+		heat: "Water more on hot days",
+		heat_hint: "Duration increased by this percentage · 0 % = never",
+		heat_threshold: "Hot day from",
+		heat_threshold_hint: "Highest temperature expected during the day",
+		heat_summary: "If the day is expected to reach {t} °C or more, the duration is increased by {pct} %.",
 		save: "Save",
 		saving: "Saving…",
 		create: "Create and add cycles",
@@ -671,7 +673,15 @@ var q = {
 			no_day: "Each cycle needs at least one day.",
 			duration_exceeds_max: "A cycle lasts longer than the safety cut-off.",
 			generic: "Could not save: {message}"
-		}
+		},
+		rain_choice: "Rain",
+		receives_rain: "Receives rain",
+		receives_rain_desc: "Durations adjusted to the rain",
+		no_rain: "Sheltered from rain",
+		no_rain_desc: "Greenhouse, covered area: rain is ignored",
+		weather_title: "Weather",
+		rain_hint: "Duration adjusted to the rain fallen and expected",
+		no_rain_detail: "Rain ignored: only heat can change the duration"
 	},
 	days: {
 		short: [
@@ -708,11 +718,11 @@ var q = {
 		weather: {
 			rain: "Pluie : {past} mm tombés, {forecast} mm prévus",
 			rain_forecast: "Pluie : {forecast} mm prévus",
-			adjusted: "Zones extérieures ajustées automatiquement",
-			skipped: "Assez de pluie prévue : cycles extérieurs sautés",
+			adjusted: "Durées ajustées automatiquement",
+			skipped: "Assez de pluie prévue : cycles sautés pour les zones qui reçoivent la pluie",
 			of_durations: "des durées",
 			unavailable: "Météo indisponible",
-			unavailable_detail: "Les zones extérieures arrosent leur durée complète",
+			unavailable_detail: "Les zones arrosent leur durée complète",
 			no_data: "Le fournisseur météo ne donne pas de quantité de pluie",
 			heat: "Bonus chaleur +{bonus} % ({temp} °C)"
 		},
@@ -738,20 +748,26 @@ var q = {
 		timeline: {
 			title: "Aujourd'hui",
 			total: "{min} min d'arrosage",
+			running: "En cours",
 			done: "Terminé",
+			skipped: "Sauté",
 			upcoming: "À venir",
 			disabled: "Désactivé",
 			now: "Maintenant",
 			label: "{zone} : {count} cycles aujourd'hui"
 		},
 		zone: {
-			outdoor: "Extérieur · adapté à la pluie",
-			sheltered: "Sous abri · durée fixe",
+			rain: "Reçoit la pluie · durée ajustée",
+			no_rain: "À l'abri de la pluie",
+			heat: " · bonus chaleur",
 			enable: "Activer la zone {zone}",
 			next: "Prochain : {time} · {min} min",
 			next_day: "Prochain : {day} {time} · {min} min",
+			next_skipped: "Prochain : {time} · sauté (pluie)",
+			next_day_skipped: "Prochain : {day} {time} · sauté (pluie)",
 			nothing: "Aucun cycle programmé",
-			weather: "Météo {pct} %",
+			weather: "Météo : {pct} % de la durée",
+			weather_skip: "Pluie : arrosage sauté",
 			running: "Arrosage · reste {left}",
 			queued: "En attente de son tour",
 			checking: "Contrôle de fermeture…",
@@ -774,11 +790,11 @@ var q = {
 				tonight: "ce soir"
 			},
 			skip: {
-				weather: "Pluie",
-				paused: "Pause",
-				zone_disabled: "Zone inactive",
-				fault: "Défaut",
-				stopped: "Arrêté"
+				weather: "Sauté · pluie",
+				paused: "Sauté · pause",
+				zone_disabled: "Sauté · zone inactive",
+				fault: "Sauté · défaut",
+				stopped: "Sauté · arrêté"
 			}
 		},
 		new_zone: "Nouvelle zone",
@@ -797,11 +813,6 @@ var q = {
 				flower: "Fleurs",
 				drop: "Goutte"
 			},
-			exposure: "Exposition",
-			outdoor: "Extérieur",
-			outdoor_desc: "Reçoit la pluie, adapté à la météo",
-			sheltered: "Sous abri",
-			sheltered_desc: "Durées fixes, sans météo",
 			hardware: "Matériel",
 			valve: "Électrovanne",
 			switch: "Interrupteur de la vanne · obligatoire",
@@ -839,19 +850,20 @@ var q = {
 			increase: "Augmenter {what}",
 			duration_of: "la durée du cycle {n}",
 			add_cycle: "Ajouter un cycle",
-			rain: "Adapter selon la pluie",
+			rain: "Reçoit la pluie",
 			rain_source: "Source : {name}",
 			rain_none: "Pas encore d'entité météo : choisissez-en une dans les réglages généraux de l'intégration.",
 			today: "Aujourd'hui",
 			rain_detail: "{past} mm tombés · {forecast} mm prévus",
-			skip: "Annuler si pluie prévue ≥",
-			skip_hint: "Le cycle est sauté",
-			past: "Pluie passée prise en compte",
-			past_hint: "Fenêtre glissante",
-			heat: "Bonus forte chaleur",
-			heat_hint: "Au-dessus de {t} °C · 0 = désactivé",
-			heat_threshold: "Seuil du bonus chaleur",
-			heat_threshold_hint: "Température maximale prévue",
+			skip: "Sauter le cycle si la pluie prévue atteint",
+			skip_hint: "Pluie attendue dans les 24 prochaines heures",
+			past: "Pluie tombée prise en compte",
+			past_hint: "Sur les dernières heures",
+			heat: "Arroser plus les jours chauds",
+			heat_hint: "Durée allongée de ce pourcentage · 0 % = jamais",
+			heat_threshold: "Jour chaud à partir de",
+			heat_threshold_hint: "Température maximale prévue dans la journée",
+			heat_summary: "Si la journée doit atteindre {t} °C ou plus, la durée est allongée de {pct} %.",
 			save: "Enregistrer",
 			saving: "Enregistrement…",
 			create: "Créer et ajouter des cycles",
@@ -864,7 +876,15 @@ var q = {
 				no_day: "Chaque cycle doit avoir au moins un jour.",
 				duration_exceeds_max: "Un cycle dure plus longtemps que la coupure de sécurité.",
 				generic: "Enregistrement impossible : {message}"
-			}
+			},
+			rain_choice: "Pluie",
+			receives_rain: "Reçoit la pluie",
+			receives_rain_desc: "Durées ajustées selon la pluie",
+			no_rain: "À l'abri de la pluie",
+			no_rain_desc: "Serre, terrasse couverte : la pluie est ignorée",
+			weather_title: "Météo",
+			rain_hint: "Durée ajustée selon la pluie tombée et prévue",
+			no_rain_detail: "Pluie ignorée : seule la chaleur peut changer la durée"
 		},
 		days: {
 			short: [
@@ -1062,7 +1082,7 @@ function Te(e) {
 	return n ? `${n}:${String(r).padStart(2, "0")}:${i}` : `${r}:${i}`;
 }
 function Ee(e, t) {
-	return e.exposure === "outdoor" ? e.weather.skip ? 0 : Math.round(t * e.weather.coefficient_pct / 100) : t;
+	return e.weather.skip ? 0 : Math.round(t * e.weather.coefficient_pct / 100);
 }
 function De(e, t, n, r, i) {
 	return [...e].reverse().find((e) => e.zone_id === t.id && e.cycle_id === n && Q(new Date(e.started), i).dateKey === r);
@@ -1386,10 +1406,20 @@ var je = o`
     box-sizing: border-box;
   }
   .mark.done,
-  .mark.past,
-  .mark.skipped {
+  .mark.past {
     background: var(--hx-muted);
     opacity: 0.55;
+  }
+  /* Skipped (rain, pause, fault…): striped, so it never looks like "done" */
+  .mark.skipped,
+  .swatch.skipped {
+    background: repeating-linear-gradient(
+      135deg,
+      var(--hx-muted) 0 2px,
+      transparent 2px 5px
+    );
+    border: 1.5px solid var(--hx-muted);
+    opacity: 0.8;
   }
   .mark.disabled {
     background: transparent;
@@ -1430,6 +1460,9 @@ var je = o`
     border-radius: 3px;
     background: var(--hx-primary);
     box-sizing: border-box;
+  }
+  .swatch.running {
+    background: var(--hx-success);
   }
   .swatch.done {
     background: var(--hx-muted);
@@ -1592,12 +1625,12 @@ var je = o`
     background: var(--hx-soft);
     color: var(--hx-primary);
   }
-  .exposure-grid {
+  .choice-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
-  .exposure-grid .choice {
+  .choice-grid .choice {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
@@ -1691,7 +1724,7 @@ function Ie() {
 		switch_entity: "",
 		power_entity: null,
 		max_runtime_min: 30,
-		exposure: "outdoor",
+		receives_rain: !0,
 		safety: { ...Me },
 		weather_rules: { ...Ne },
 		cycles: []
@@ -1735,7 +1768,7 @@ var Le = class extends K {
 		e !== this._loadedFor && (this._loadedFor = e, this._draft = this.zone ? Fe(this._configOf(this.zone)) : Ie(), this._error = "");
 	}
 	_configOf(e) {
-		let { id: t, name: n, icon: r, enabled: i, switch_entity: a, power_entity: o, max_runtime_min: s, exposure: c, safety: l, weather_rules: u, cycles: d } = e;
+		let { id: t, name: n, icon: r, enabled: i, switch_entity: a, power_entity: o, max_runtime_min: s, receives_rain: c, safety: l, weather_rules: u, cycles: d } = e;
 		return {
 			id: t,
 			name: n,
@@ -1744,7 +1777,7 @@ var Le = class extends K {
 			switch_entity: a,
 			power_entity: o,
 			max_runtime_min: s,
-			exposure: c,
+			receives_rain: c,
 			safety: l,
 			weather_rules: u,
 			cycles: d
@@ -1767,20 +1800,22 @@ var Le = class extends K {
 		this._set({ cycles: n });
 	}
 	_stepper(e, t, n) {
-		let r = this._t, i = t.step ?? 1, a = (e) => Math.round(e * 10) / 10, o = (e) => n(a(Math.min(t.max, Math.max(t.min, e))));
+		let r = this._t, i = t.step ?? 1, a = t.fine && e <= (t.fineBelow ?? 0) ? t.fine : i, o = t.fine && e < (t.fineBelow ?? 0) ? t.fine : i, s = (e) => Math.round(e * 10) / 10, c = (e) => n(s(Math.min(t.max, Math.max(t.min, e))));
 		return F`<span class="stepper">
       <button
         type="button"
         aria-label=${r("editor.decrease", { what: t.what })}
         ?disabled=${e <= t.min}
-        @click=${() => o(e - i)}
+        @click=${() => c(e - a)}
       >−</button>
-      <span class="value" aria-live="polite">${e} ${t.unit}</span>
+      <span class="value" aria-live="polite"
+        >${t.signed && e > 0 ? "+" : ""}${e.toLocaleString(X(this.hass))} ${t.unit}</span
+      >
       <button
         type="button"
         aria-label=${r("editor.increase", { what: t.what })}
         ?disabled=${e >= t.max}
-        @click=${() => o(e + i)}
+        @click=${() => c(e + o)}
       >+</button>
     </span>`;
 	}
@@ -1813,45 +1848,45 @@ var Le = class extends K {
       </select>
     </label>`;
 	}
-	_general() {
-		let e = this._t, t = this._draft;
+	_general(e) {
+		let t = this._t, n = this._draft;
 		return F`<section class="tile" aria-labelledby="hx-general">
-      <h3 id="hx-general">${e("editor.general")}</h3>
+      <h3 id="hx-general">${t("editor.general")}</h3>
       <label class="field">
-        ${e("editor.name")}
+        ${t("editor.name")}
         <input
           type="text"
-          .value=${t.name}
-          placeholder=${e("editor.name_placeholder")}
+          .value=${n.name}
+          placeholder=${t("editor.name_placeholder")}
           @input=${(e) => this._set({ name: e.target.value })}
         />
       </label>
-      <div class="stack" role="group" aria-label=${e("editor.icon")}>
-        <span class="small strong">${e("editor.icon")}</span>
+      <div class="stack" role="group" aria-label=${t("editor.icon")}>
+        <span class="small strong">${t("editor.icon")}</span>
         <div class="icon-grid">
-          ${Pe.map((n) => F`<button
+          ${Pe.map((e) => F`<button
               type="button"
               class="choice"
-              aria-pressed=${t.icon === n.icon ? "true" : "false"}
-              aria-label=${e(`editor.icons.${n.key}`)}
-              @click=${() => this._set({ icon: n.icon })}
-            ><ha-icon .icon=${n.icon}></ha-icon></button>`)}
+              aria-pressed=${n.icon === e.icon ? "true" : "false"}
+              aria-label=${t(`editor.icons.${e.key}`)}
+              @click=${() => this._set({ icon: e.icon })}
+            ><ha-icon .icon=${e.icon}></ha-icon></button>`)}
         </div>
       </div>
-      <div class="stack" role="group" aria-label=${e("editor.exposure")}>
-        <span class="small strong">${e("editor.exposure")}</span>
-        <div class="exposure-grid">
-          ${["outdoor", "sheltered"].map((n) => F`<button
-              type="button"
-              class="choice"
-              aria-pressed=${t.exposure === n ? "true" : "false"}
-              @click=${() => this._set({ exposure: n })}
-            >
-              <span class="strong">${e(`editor.${n}`)}</span>
-              <span class="tiny">${e(`editor.${n}_desc`)}</span>
-            </button>`)}
-        </div>
-      </div>
+      ${e ? F`<div class="stack" role="group" aria-label=${t("editor.rain_choice")}>
+            <span class="small strong">${t("editor.rain_choice")}</span>
+            <div class="choice-grid">
+              ${[!0, !1].map((e) => F`<button
+                  type="button"
+                  class="choice"
+                  aria-pressed=${n.receives_rain === e ? "true" : "false"}
+                  @click=${() => this._set({ receives_rain: e })}
+                >
+                  <span class="strong">${t(e ? "editor.receives_rain" : "editor.no_rain")}</span>
+                  <span class="tiny">${t(e ? "editor.receives_rain_desc" : "editor.no_rain_desc")}</span>
+                </button>`)}
+            </div>
+          </div>` : L}
     </section>`;
 	}
 	_hardware(e) {
@@ -1873,9 +1908,11 @@ var Le = class extends K {
       <span class="tiny">${t("editor.power_hint")}</span>
       ${e && a ? F`<div>
             ${this._setting(t("editor.threshold"), t("editor.threshold_hint"), this._stepper(o.threshold_w, {
-			min: .5,
+			min: .1,
 			max: 100,
 			step: .5,
+			fine: .1,
+			fineBelow: 1,
 			unit: "W",
 			what: t("editor.threshold")
 		}, (e) => this._set({ safety: {
@@ -1985,31 +2022,35 @@ var Le = class extends K {
 		let n = this._draft.cycles[e].weekdays;
 		this._setCycle(e, { weekdays: n.includes(t) ? n.filter((e) => e !== t) : [...n, t].sort() });
 	}
-	_rain() {
-		let e = this._t, t = this._draft, n = t.exposure === "outdoor", r = t.weather_rules, i = this.state?.settings, a = this.zone?.weather;
-		return F`<section class="tile" aria-labelledby="hx-rain">
-      <div class="row">
-        <span class="stack grow">
-          <h2 id="hx-rain">${e("editor.rain")}</h2>
-          <span class="tiny">${i?.weather_entity ? e("editor.rain_source", { name: i.weather_name ?? i.weather_entity }) : e("editor.rain_none")}</span>
-        </span>
-        ${this._switch(n, e("editor.rain"), (e) => this._set({ exposure: e ? "outdoor" : "sheltered" }))}
-      </div>
-      ${n && a && i?.weather_entity ? F`<div class="stack">
+	_weather() {
+		let e = this._t, t = this._draft, n = t.receives_rain, r = t.weather_rules, i = this.state?.settings, a = this.zone?.weather;
+		return F`<section class="tile" aria-labelledby="hx-weather">
+      <span class="stack">
+        <h2 id="hx-weather">${e("editor.weather_title")}</h2>
+        <span class="tiny">${i?.weather_entity ? e("editor.rain_source", { name: i.weather_name ?? i.weather_entity }) : e("editor.rain_none")}</span>
+      </span>
+      ${a && i?.weather_entity ? F`<div class="stack">
             <div class="row">
               <span class="grow small">${e("editor.today")}</span>
               <span class="strong">${a.coefficient_pct} %</span>
             </div>
             <div class="meter" role="img" aria-label="${a.coefficient_pct} %">
-              <div style="width: ${Math.min(100, a.coefficient_pct / 150 * 100)}%"></div>
+              <div style="width: ${Math.min(100, a.coefficient_pct)}%"></div>
             </div>
-            <span class="tiny">${e("editor.rain_detail", {
+            <span class="tiny">${n ? e("editor.rain_detail", {
 			past: a.past_rain_mm ?? 0,
 			forecast: a.forecast_rain_mm ?? 0
-		})}</span>
+		}) : e("editor.no_rain_detail")}</span>
           </div>` : L}
-      ${n ? F`<div>
-            ${this._setting(e("editor.skip"), e("editor.skip_hint"), this._stepper(r.skip_mm, {
+      <div>
+        <div class="setting">
+          <span class="stack"
+            ><span class="strong">${e("editor.rain")}</span
+            ><span class="tiny">${e(n ? "editor.rain_hint" : "editor.no_rain_desc")}</span></span
+          >
+          ${this._switch(n, e("editor.rain"), (e) => this._set({ receives_rain: e }))}
+        </div>
+        ${n ? F`${this._setting(e("editor.skip"), e("editor.skip_hint"), this._stepper(r.skip_mm, {
 			min: .5,
 			max: 50,
 			step: .5,
@@ -2028,18 +2069,19 @@ var Le = class extends K {
 		}, (e) => this._set({ weather_rules: {
 			...r,
 			past_window_h: e
-		} })))}
-            ${this._setting(e("editor.heat"), e("editor.heat_hint", { t: r.heat_threshold_c }), this._stepper(r.heat_bonus_pct, {
+		} })))}` : L}
+        ${this._setting(e("editor.heat"), e("editor.heat_hint"), this._stepper(r.heat_bonus_pct, {
 			min: 0,
 			max: 100,
 			step: 5,
+			signed: !0,
 			unit: "%",
 			what: e("editor.heat")
 		}, (e) => this._set({ weather_rules: {
 			...r,
 			heat_bonus_pct: e
 		} })))}
-            ${r.heat_bonus_pct > 0 ? this._setting(e("editor.heat_threshold"), e("editor.heat_threshold_hint"), this._stepper(r.heat_threshold_c, {
+        ${r.heat_bonus_pct > 0 ? this._setting(e("editor.heat_threshold"), e("editor.heat_threshold_hint"), this._stepper(r.heat_threshold_c, {
 			min: 15,
 			max: 45,
 			step: 1,
@@ -2049,7 +2091,11 @@ var Le = class extends K {
 			...r,
 			heat_threshold_c: e
 		} }))) : L}
-          </div>` : L}
+      </div>
+      ${r.heat_bonus_pct > 0 ? F`<span class="tiny">${e("editor.heat_summary", {
+			t: r.heat_threshold_c.toLocaleString(X(this.hass)),
+			pct: r.heat_bonus_pct
+		})}</span>` : L}
     </section>`;
 	}
 	_validate() {
@@ -2114,10 +2160,10 @@ var Le = class extends K {
           </div>
         </div>
       </div>
-      ${this._general()}
+      ${this._general(t)}
       ${this._hardware(!t)}
       ${t ? L : this._cycles()}
-      ${t ? L : this._rain()}
+      ${t ? L : this._weather()}
       ${this._error ? F`<div class="error-text" role="alert">${this._error}</div>` : L}
       <button type="button" class="btn primary" ?disabled=${this._saving} @click=${this._save}>
         ${this._saving ? e("editor.saving") : e(t ? "editor.create" : "editor.save")}
@@ -2128,7 +2174,7 @@ var Le = class extends K {
 };
 customElements.get("hydraxoo-zone-form") || customElements.define("hydraxoo-zone-form", Le);
 // src/hydraxoo-card.ts
-var Re = "0.0.5", ze = class extends K {
+var Re = "0.0.6", ze = class extends K {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:hydraxoo-card" }, this._state = null, this._view = { name: "dashboard" }, this._error = "", this._runFor = null, this._runMinutes = 10, this._subscribing = !1;
 	}
@@ -2358,7 +2404,7 @@ var Re = "0.0.5", ze = class extends K {
 	_timeline(e, t, n) {
 		let r = this._t;
 		if (!e.length) return L;
-		let i = [...t.values()].reduce((e, t) => e + ke(t), 0), a = n.minutes / 1440 * 100;
+		let i = [...t.values()].reduce((e, t) => e + ke(t), 0), a = n.minutes / 1440 * 100, o = new Set([...t.values()].flat().map((e) => e.status.kind));
 		return F`<section class="tile" aria-labelledby="hx-today">
       <div class="row">
         <h2 id="hx-today" class="grow">${r("timeline.title")}</h2>
@@ -2377,7 +2423,7 @@ var Re = "0.0.5", ze = class extends K {
 				return F`<div
                   class="mark ${e.status.kind}"
                   style="left: ${t}%; width: ${n}%"
-                  title="${e.cycle.start_time} · ${e.adjusted} min"
+                  title="${e.cycle.start_time} · ${e.status.kind === "skipped" ? r(`zone.skip.${e.status.reason}`) : `${e.adjusted} min`}"
                 ></div>`;
 			})}
               <div class="now" style="left: ${a}%"></div>
@@ -2387,7 +2433,9 @@ var Re = "0.0.5", ze = class extends K {
         <div class="hours"><span>0 h</span><span>6 h</span><span>12 h</span><span>18 h</span><span>24 h</span></div>
       </div>
       <div class="legend">
+        ${o.has("running") ? F`<span><span class="swatch running"></span>${r("timeline.running")}</span>` : L}
         <span><span class="swatch done"></span>${r("timeline.done")}</span>
+        ${o.has("skipped") ? F`<span><span class="swatch skipped"></span>${r("timeline.skipped")}</span>` : L}
         <span><span class="swatch"></span>${r("timeline.upcoming")}</span>
         <span><span class="swatch disabled"></span>${r("timeline.disabled")}</span>
         <span><span class="swatch nowline"></span>${r("timeline.now")}</span>
@@ -2400,19 +2448,16 @@ var Re = "0.0.5", ze = class extends K {
 	_chips(e) {
 		let t = this._t, n = [];
 		if (e.fault && n.push(F`<span class="chip error">${t("zone.fault")}</span>`), e.running && n.push(F`<span class="chip success"><ha-icon icon="mdi:water"></ha-icon>${t("zone.running", { left: Te(this._remaining(e)) })}</span>`), e.queued && n.push(F`<span class="chip warning">${t("zone.queued")}</span>`), e.checking && n.push(F`<span class="chip warning">${t("zone.checking")}</span>`), e.enabled || n.push(F`<span class="chip muted">${t("zone.disabled")}</span>`), e.next_run && !e.running) {
-			let r = new Date(e.next_run.time), i = Q(r, this._tz).dateKey === Q(/* @__PURE__ */ new Date(), this._tz).dateKey, a = $(r, this._tz, this._lang), o = e.next_run.adjusted_duration_min;
-			n.push(F`<span class="chip"><ha-icon icon="mdi:clock-outline"></ha-icon>${i ? t("zone.next", {
+			let r = new Date(e.next_run.time), i = Q(r, this._tz).dateKey === Q(/* @__PURE__ */ new Date(), this._tz).dateKey, a = $(r, this._tz, this._lang), o = e.next_run.adjusted_duration_min, s = ye(this.hass).long[Q(r, this._tz).weekday], c = `zone.${i ? "next" : "next_day"}${o === 0 ? "_skipped" : ""}`;
+			n.push(F`<span class="chip ${o === 0 ? "muted" : ""}"><ha-icon icon="mdi:clock-outline"></ha-icon>${t(c, {
 				time: a,
-				min: o
-			}) : t("zone.next_day", {
-				day: ye(this.hass).long[Q(r, this._tz).weekday],
-				time: a,
-				min: o
+				min: o,
+				day: s
 			})}</span>`);
 		} else !e.next_run && e.enabled && !e.running && n.push(F`<span class="chip muted">${t("zone.nothing")}</span>`);
-		if (e.exposure === "outdoor" && this._state.settings.weather_entity && e.weather.coefficient_pct !== 100) {
-			let r = e.weather.coefficient_pct - 100;
-			n.push(F`<span class="chip warning">${t("zone.weather", { pct: r > 0 ? `+${r}` : `−${-r}` })}</span>`);
+		if (this._state.settings.weather_entity) {
+			let r = e.weather;
+			r.skip || r.coefficient_pct === 0 ? n.push(F`<span class="chip warning"><ha-icon icon="mdi:weather-rainy"></ha-icon>${t("zone.weather_skip")}</span>`) : r.coefficient_pct !== 100 && n.push(F`<span class="chip warning">${t("zone.weather", { pct: r.coefficient_pct })}</span>`);
 		}
 		return n;
 	}
@@ -2421,7 +2466,7 @@ var Re = "0.0.5", ze = class extends K {
 		switch (n.kind) {
 			case "running": return F`<span class="status running">${t("zone.status.running")}</span>`;
 			case "done": return F`<span class="status"><ha-icon icon="mdi:check"></ha-icon>${t("zone.status.done")}</span>`;
-			case "skipped": return F`<span class="status">${t(`zone.skip.${n.reason}`)}</span>`;
+			case "skipped": return F`<span class="status skipped"><ha-icon icon="mdi:close"></ha-icon>${t(`zone.skip.${n.reason}`)}</span>`;
 			case "disabled": return F`<span class="status">${t("zone.status.disabled")}</span>`;
 			case "past": return F`<span class="status">—</span>`;
 			case "upcoming": {
@@ -2431,13 +2476,15 @@ var Re = "0.0.5", ze = class extends K {
 		}
 	}
 	_zoneCard(e, t) {
-		let n = this._t, r = e.running || e.queued, i = e.exposure === "outdoor";
+		let n = this._t, r = e.running || e.queued;
 		return F`<section class="tile" aria-labelledby="hx-zone-${e.id}">
       <div class="row">
         <div class="badge-icon"><ha-icon .icon=${e.icon}></ha-icon></div>
         <span class="stack grow">
           <span id="hx-zone-${e.id}" class="strong" style="font-size:17px">${e.name}</span>
-          <span class="small zone-sub">${n(i ? "zone.outdoor" : "zone.sheltered")}</span>
+          <span class="small zone-sub"
+            >${n(e.receives_rain ? "zone.rain" : "zone.no_rain")}${e.weather_rules.heat_bonus_pct > 0 ? n("zone.heat") : ""}</span
+          >
         </span>
         <button
           type="button"
@@ -2459,12 +2506,11 @@ var Re = "0.0.5", ze = class extends K {
 				"past",
 				"disabled",
 				"skipped"
-			].includes(e.status.kind), n = i && e.adjusted !== e.base && e.status.kind !== "skipped";
+			].includes(e.status.kind), n = e.adjusted !== e.base && e.status.kind !== "skipped";
 			return F`<div class="cycle-row ${t ? "muted" : ""}">
                 <span class="time">${e.cycle.start_time}</span>
                 <span class="dur">
-                  ${n ? F`<s>${e.base} min</s>` : L}
-                  <b>${e.status.kind === "skipped" ? `${e.base} min` : `${n ? e.adjusted : e.base} min`}</b>
+                  ${e.status.kind === "skipped" ? F`<s>${e.base} min</s>` : F`${n ? F`<s>${e.base} min</s>` : L}<b>${n ? e.adjusted : e.base} min</b>`}
                 </span>
                 ${this._statusLabel(e)}
               </div>`;

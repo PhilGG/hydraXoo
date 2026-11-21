@@ -11,7 +11,7 @@ export function makeZone(overrides: Partial<Zone> = {}): Zone {
     switch_entity: "switch.vanne_potager",
     power_entity: "sensor.vanne_potager_power",
     max_runtime_min: 30,
-    exposure: "outdoor",
+    receives_rain: true,
     safety: { ...DEFAULT_SAFETY },
     weather_rules: { ...DEFAULT_WEATHER },
     cycles: [
@@ -83,7 +83,7 @@ export function makeState(overrides: Partial<HydraxooState> = {}): HydraxooState
       makeZone({
         id: "z2",
         name: "Terrasse",
-        exposure: "sheltered",
+        receives_rain: false,
         switch_entity: "switch.vanne_terrasse",
         cycles: [{ id: "t1", enabled: true, start_time: "07:00", duration_min: 8, weekdays: [0] }],
         weather: { ...makeZone().weather, coefficient_pct: 100, reason: "sheltered" },

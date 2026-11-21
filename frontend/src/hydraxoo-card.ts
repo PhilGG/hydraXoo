@@ -18,7 +18,7 @@ import "./zone-form";
 
 type View = { name: "dashboard" } | { name: "zone"; id: string } | { name: "new" };
 
-const VERSION = "0.0.5";
+const VERSION = "0.0.6";
 
 export class HydraxooCard extends LitElement {
   static properties = {
@@ -348,6 +348,7 @@ export class HydraxooCard extends LitElement {
     if (!zones.length) return nothing;
     const total = [...perZone.values()].reduce((sum, c) => sum + totalToday(c), 0);
     const nowPct = (now.minutes / 1440) * 100;
+    const kinds = new Set([...perZone.values()].flat().map((c) => c.status.kind));
     return html`<section class="tile" aria-labelledby="hx-today">
       <div class="row">
         <h2 id="hx-today" class="grow">${t("timeline.title")}</h2>
@@ -364,7 +365,9 @@ export class HydraxooCard extends LitElement {
                 return html`<div
                   class="mark ${c.status.kind}"
                   style="left: ${left}%; width: ${width}%"
-                  title="${c.cycle.start_time} · ${c.adjusted} min"
+                  title="${c.cycle.start_time} · ${c.status.kind === "skipped"
+                    ? t(`zone.skip.${c.status.reason}`)
+                    : `${c.adjusted} min`}"
                 ></div>`;
               })}
               <div class="now" style="left: ${nowPct}%"></div>
@@ -374,7 +377,13 @@ export class HydraxooCard extends LitElement {
         <div class="hours"><span>0 h</span><span>6 h</span><span>12 h</span><span>18 h</span><span>24 h</span></div>
       </div>
       <div class="legend">
+        ${kinds.has("running")
+          ? html`<span><span class="swatch running"></span>${t("timeline.running")}</span>`
+          : nothing}
         <span><span class="swatch done"></span>${t("timeline.done")}</span>
+        ${kinds.has("skipped")
+          ? html`<span><span class="swatch skipped"></span>${t("timeline.skipped")}</span>`
+          : nothing}
         <span><span class="swatch"></span>${t("timeline.upcoming")}</span>
         <span><span class="swatch disabled"></span>${t("timeline.disabled")}</span>
         <span><span class="swatch nowline"></span>${t("timeline.now")}</span>
@@ -401,15 +410,21 @@ export class HydraxooCard extends LitElement {
       const sameDay = zonedParts(next, this._tz).dateKey === zonedParts(new Date(), this._tz).dateKey;
       const time = formatTime(next, this._tz, this._lang);
       const min = zone.next_run.adjusted_duration_min;
-      chips.push(html`<span class="chip"><ha-icon icon="mdi:clock-outline"></ha-icon>${sameDay
-        ? t("zone.next", { time, min })
-        : t("zone.next_day", { day: dayNames(this.hass).long[zonedParts(next, this._tz).weekday], time, min })}</span>`);
+      const day = dayNames(this.hass).long[zonedParts(next, this._tz).weekday];
+      // 0 min means the weather will skip it: say so instead of "0 min".
+      const key = `zone.${sameDay ? "next" : "next_day"}${min === 0 ? "_skipped" : ""}`;
+      chips.push(html`<span class="chip ${min === 0 ? "muted" : ""}"><ha-icon icon="mdi:clock-outline"></ha-icon>${t(key, { time, min, day })}</span>`);
     } else if (!zone.next_run && zone.enabled && !zone.running) {
       chips.push(html`<span class="chip muted">${t("zone.nothing")}</span>`);
     }
-    if (zone.exposure === "outdoor" && this._state!.settings.weather_entity && zone.weather.coefficient_pct !== 100) {
-      const delta = zone.weather.coefficient_pct - 100;
-      chips.push(html`<span class="chip warning">${t("zone.weather", { pct: delta > 0 ? `+${delta}` : `−${-delta}` })}</span>`);
+    if (this._state!.settings.weather_entity) {
+      const w = zone.weather;
+      if (w.skip || w.coefficient_pct === 0) {
+        chips.push(html`<span class="chip warning"><ha-icon icon="mdi:weather-rainy"></ha-icon>${t("zone.weather_skip")}</span>`);
+      } else if (w.coefficient_pct !== 100) {
+        // Shown as the share of the duration actually watered, never as a "−x %".
+        chips.push(html`<span class="chip warning">${t("zone.weather", { pct: w.coefficient_pct })}</span>`);
+      }
     }
     return chips;
   }
@@ -423,7 +438,8 @@ export class HydraxooCard extends LitElement {
       case "done":
         return html`<span class="status"><ha-icon icon="mdi:check"></ha-icon>${t("zone.status.done")}</span>`;
       case "skipped":
-        return html`<span class="status">${t(`zone.skip.${s.reason}`)}</span>`;
+        // A cross, like the tick for "done", so "not watered" reads at a glance.
+        return html`<span class="status skipped"><ha-icon icon="mdi:close"></ha-icon>${t(`zone.skip.${s.reason}`)}</span>`;
       case "disabled":
         return html`<span class="status">${t("zone.status.disabled")}</span>`;
       case "past":
@@ -441,13 +457,16 @@ export class HydraxooCard extends LitElement {
   private _zoneCard(zone: Zone, cycles: TodayCycle[]) {
     const t = this._t;
     const busy = zone.running || zone.queued;
-    const outdoor = zone.exposure === "outdoor";
     return html`<section class="tile" aria-labelledby="hx-zone-${zone.id}">
       <div class="row">
         <div class="badge-icon"><ha-icon .icon=${zone.icon}></ha-icon></div>
         <span class="stack grow">
           <span id="hx-zone-${zone.id}" class="strong" style="font-size:17px">${zone.name}</span>
-          <span class="small zone-sub">${outdoor ? t("zone.outdoor") : t("zone.sheltered")}</span>
+          <span class="small zone-sub"
+            >${t(zone.receives_rain ? "zone.rain" : "zone.no_rain")}${zone.weather_rules.heat_bonus_pct > 0
+              ? t("zone.heat")
+              : ""}</span
+          >
         </span>
         <button
           type="button"
@@ -463,12 +482,13 @@ export class HydraxooCard extends LitElement {
         ${cycles.length
           ? cycles.map((c) => {
               const muted = ["done", "past", "disabled", "skipped"].includes(c.status.kind);
-              const changed = outdoor && c.adjusted !== c.base && c.status.kind !== "skipped";
+              const changed = c.adjusted !== c.base && c.status.kind !== "skipped";
               return html`<div class="cycle-row ${muted ? "muted" : ""}">
                 <span class="time">${c.cycle.start_time}</span>
                 <span class="dur">
-                  ${changed ? html`<s>${c.base} min</s>` : nothing}
-                  <b>${c.status.kind === "skipped" ? `${c.base} min` : `${changed ? c.adjusted : c.base} min`}</b>
+                  ${c.status.kind === "skipped"
+                    ? html`<s>${c.base} min</s>`
+                    : html`${changed ? html`<s>${c.base} min</s>` : nothing}<b>${changed ? c.adjusted : c.base} min</b>`}
                 </span>
                 ${this._statusLabel(c)}
               </div>`;

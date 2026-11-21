@@ -21,7 +21,6 @@ from .const import (
     DEFAULT_RETRY_PULSE_S,
     DEFAULT_SKIP_MM,
     DEFAULT_THRESHOLD_W,
-    EXPOSURE_OUTDOOR,
 )
 
 
@@ -119,7 +118,7 @@ class SafetySettings:
 
 @dataclass
 class WeatherRules:
-    """How the weather adjusts an outdoor zone's watering time."""
+    """How the weather adjusts a zone's watering time."""
 
     skip_mm: float = DEFAULT_SKIP_MM
     past_window_h: int = DEFAULT_PAST_WINDOW_H
@@ -174,7 +173,7 @@ class Zone:
     power_entity: str | None = None  # optional; enables the closing check
     safety: SafetySettings = field(default_factory=SafetySettings)
     fault: bool = False  # closing check failed; blocks watering until acknowledged
-    exposure: str = EXPOSURE_OUTDOOR
+    receives_rain: bool = True  # False: sheltered, rain ignored (heat still counts)
     weather_rules: WeatherRules = field(default_factory=WeatherRules)
     id: str = field(default_factory=new_id)
 
@@ -201,7 +200,7 @@ class Zone:
             "power_entity": self.power_entity,
             "safety": self.safety.to_dict(),
             "fault": self.fault,
-            "exposure": self.exposure,
+            "receives_rain": self.receives_rain,
             "weather_rules": self.weather_rules.to_dict(),
             "cycles": [c.to_dict() for c in self.cycles],
         }
@@ -219,7 +218,10 @@ class Zone:
             power_entity=data.get("power_entity") or None,
             safety=SafetySettings.from_dict(data.get("safety")),
             fault=bool(data.get("fault", False)),
-            exposure=data.get("exposure", EXPOSURE_OUTDOOR),
+            # Before 0.0.6 this was "exposure": "outdoor" / "sheltered".
+            receives_rain=bool(
+                data.get("receives_rain", data.get("exposure", "outdoor") == "outdoor")
+            ),
             weather_rules=WeatherRules.from_dict(data.get("weather_rules")),
             cycles=[Cycle.from_dict(c) for c in data.get("cycles", [])],
         )

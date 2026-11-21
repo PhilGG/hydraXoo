@@ -119,6 +119,7 @@ class HydraxooEngine:
         sequential: bool = True,
         weather_entity: str | None = None,
         rain_sensor: str | None = None,
+        notify_services: list[str] | None = None,
     ) -> None:
         """Initialize the engine."""
         self.hass = hass
@@ -138,13 +139,15 @@ class HydraxooEngine:
             hass, weather_entity, rain_sensor, data.rain_history, data.rain_total
         )
         self.weather_results: dict[str, WeatherResult] = {}
+        # Phones (notify services) alerted when a valve cannot be closed
+        self.notify_services: list[str] = list(notify_services or [])
         self._pause_timer: CALLBACK_TYPE | None = None
         # Safety cut-off for valves switched on outside hydraXoo
         self._external_cutoff: dict[str, CALLBACK_TYPE] = {}
         self._listeners: list[Callable[[], None]] = []
         # Platforms register here to create the entities of new zones
         self._zone_added: list[Callable[[Zone], None]] = []
-        self._switch_unsub: CALLBACK_TYPE | None = None
+        self._entity_unsubs: list[CALLBACK_TYPE] = []
         # Recent waterings and skipped cycles (today and yesterday), for the card
         self.history: list[dict[str, Any]] = []
         self.entry_id: str | None = None
@@ -184,9 +187,8 @@ class HydraxooEngine:
         for notify_shutdown in list(self._shutdown_callbacks):
             notify_shutdown()
         self.queue.clear()
-        if self._switch_unsub is not None:
-            self._switch_unsub()
-            self._switch_unsub = None
+        while self._entity_unsubs:
+            self._entity_unsubs.pop()()
         self._cancel_pause_timer()
         while self._unsubs:
             unsub = self._unsubs.pop()
@@ -686,14 +688,41 @@ class HydraxooEngine:
 
     # ----------------------------------------------------------- safety check
 
+    @callback
+    def _async_power_changed(self, event: Event[EventStateChangedData]) -> None:
+        """Consumption watched at all times, not only after a watering.
+
+        Power above the threshold while hydraXoo is not watering the zone and
+        its switch is off means the valve is stuck open (or the plug came back
+        online drawing power, e.g. after a restart): run the closing check.
+        """
+        entity_id = event.data["entity_id"]
+        for zone in self.zones.values():
+            if zone.power_entity != entity_id or not self._draws_power(zone):
+                continue
+            if zone.id in self.runs or zone.id in self.checking or zone.fault:
+                continue
+            switch = self.hass.states.get(zone.switch_entity)
+            if switch is not None and switch.state == STATE_ON:
+                continue  # switched on on purpose; the safety cut-off applies
+            _LOGGER.warning(
+                "Zone %s draws power while closed, checking the valve", zone.name
+            )
+            self._start_check(zone)
+
     def _draws_power(self, zone: Zone) -> bool:
         if zone.power_entity is None:
             return False
         state = self.hass.states.get(zone.power_entity)
+        if state is None:
+            return False
         try:
-            return state is not None and float(state.state) > zone.safety.threshold_w
+            value = float(state.state)
         except ValueError:
             return False
+        if state.attributes.get("unit_of_measurement") == "kW":
+            value *= 1000
+        return value > zone.safety.threshold_w
 
     def _start_check(self, zone: Zone) -> None:
         """Start the closing check in the background (zones with a sensor)."""
@@ -782,6 +811,38 @@ class HydraxooEngine:
             title=title.format(zone=zone.name),
             notification_id=f"{DOMAIN}_fault_{zone.id}",
         )
+        await self._async_notify_phones(
+            {
+                "title": title.format(zone=zone.name),
+                "message": message.format(
+                    zone=zone.name,
+                    power=f"{result.power_w:.1f}",
+                    attempts=result.retries,
+                ),
+                "data": {
+                    "tag": f"{DOMAIN}_fault_{zone.id}",
+                    # Android: shown at once; iOS: breaks through focus modes
+                    "priority": "high",
+                    "ttl": 0,
+                    "channel": "hydraXoo",
+                    "push": {"interruption-level": "time-sensitive"},
+                },
+            }
+        )
+
+    async def _async_notify_phones(
+        self, payload: dict[str, Any], mobile_only: bool = False
+    ) -> None:
+        """Send to every chosen notify service; a failure never blocks safety."""
+        for service in self.notify_services:
+            if mobile_only and not service.startswith("mobile_app_"):
+                continue
+            try:
+                await self.hass.services.async_call(
+                    "notify", service, payload, blocking=True
+                )
+            except Exception:
+                _LOGGER.exception("Could not send the alert to notify.%s", service)
 
     async def async_acknowledge_fault(self, zone_id: str) -> None:
         """Clear a zone's fault so it can water again."""
@@ -789,6 +850,14 @@ class HydraxooEngine:
         zone.fault = False
         await self.async_save()
         persistent_notification.async_dismiss(self.hass, f"{DOMAIN}_fault_{zone.id}")
+        # Remove the alert from the phones (companion app only).
+        await self._async_notify_phones(
+            {
+                "message": "clear_notification",
+                "data": {"tag": f"{DOMAIN}_fault_{zone.id}"},
+            },
+            mobile_only=True,
+        )
         self._notify()
 
     async def async_zones_changed(self) -> None:
@@ -817,14 +886,24 @@ class HydraxooEngine:
     # ------------------------------------------------------ zone management
 
     def _subscribe_switches(self) -> None:
-        """(Re)listen to the valves of all zones."""
-        if self._switch_unsub is not None:
-            self._switch_unsub()
-            self._switch_unsub = None
+        """(Re)listen to the valves and power sensors of all zones."""
+        while self._entity_unsubs:
+            self._entity_unsubs.pop()()
         switches = sorted({z.switch_entity for z in self.zones.values()})
         if switches:
-            self._switch_unsub = async_track_state_change_event(
-                self.hass, switches, self._async_switch_changed
+            self._entity_unsubs.append(
+                async_track_state_change_event(
+                    self.hass, switches, self._async_switch_changed
+                )
+            )
+        sensors = sorted(
+            {z.power_entity for z in self.zones.values() if z.power_entity}
+        )
+        if sensors:
+            self._entity_unsubs.append(
+                async_track_state_change_event(
+                    self.hass, sensors, self._async_power_changed
+                )
             )
 
     @callback
@@ -880,7 +959,7 @@ class HydraxooEngine:
                 "max_runtime_min",
                 "power_entity",
                 "safety",
-                "exposure",
+                "receives_rain",
                 "weather_rules",
                 "cycles",
             ):

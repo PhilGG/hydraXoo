@@ -20,8 +20,6 @@ from .const import (
     DEFAULT_ICON,
     DEFAULT_MAX_RUNTIME,
     DOMAIN,
-    EXPOSURE_OUTDOOR,
-    EXPOSURE_SHELTERED,
     MAX_PAUSE_DAYS,
     MAX_RUNTIME_LIMIT,
 )
@@ -105,9 +103,7 @@ ZONE_SCHEMA = vol.Schema(
         vol.Optional("max_runtime_min", default=DEFAULT_MAX_RUNTIME): vol.All(
             vol.Coerce(int), vol.Range(min=1, max=MAX_RUNTIME_LIMIT)
         ),
-        vol.Optional("exposure", default=EXPOSURE_OUTDOOR): vol.In(
-            [EXPOSURE_OUTDOOR, EXPOSURE_SHELTERED]
-        ),
+        vol.Optional("receives_rain", default=True): cv.boolean,
         vol.Optional("safety", default={}): SAFETY_SCHEMA,
         vol.Optional("weather_rules", default={}): WEATHER_SCHEMA,
         vol.Optional("cycles", default=[]): [CYCLE_SCHEMA],

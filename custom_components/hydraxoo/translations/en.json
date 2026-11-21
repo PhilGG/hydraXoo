@@ -7,12 +7,14 @@
         "data": {
           "weather_entity": "Weather entity",
           "rain_sensor": "Rain sensor (optional)",
-          "sequence_mode": "Watering order"
+          "sequence_mode": "Watering order",
+          "notify_services": "Mobile notifications"
         },
         "data_description": {
           "weather_entity": "Optional for now. It will be used to adjust watering to rain and heat.",
           "rain_sensor": "Cumulative rain gauge in mm. Without it, the rain fallen is estimated from the hourly forecast.",
-          "sequence_mode": "With one zone at a time, a watering that comes up while another zone is watering waits its turn."
+          "sequence_mode": "With one zone at a time, a watering that comes up while another zone is watering waits its turn.",
+          "notify_services": "Phones (Home Assistant app) alerted with high priority when a valve stays open despite the retries. The alert is removed once acknowledged."
         }
       }
     },
@@ -36,12 +38,14 @@
         "data": {
           "weather_entity": "Weather entity",
           "sequence_mode": "Watering order",
-          "rain_sensor": "Rain sensor (optional)"
+          "rain_sensor": "Rain sensor (optional)",
+          "notify_services": "Mobile notifications"
         },
         "data_description": {
           "sequence_mode": "With one zone at a time, a watering that comes up while another zone is watering waits its turn.",
           "rain_sensor": "Cumulative rain gauge in mm. Without it, the rain fallen is estimated from the hourly forecast.",
-          "weather_entity": "Used to adjust outdoor zones to rain and heat. Any weather entity works; hourly forecasts give the best results."
+          "weather_entity": "Used to adjust outdoor zones to rain and heat. Any weather entity works; hourly forecasts give the best results.",
+          "notify_services": "Phones (Home Assistant app) alerted with high priority when a valve stays open despite the retries. The alert is removed once acknowledged."
         }
       },
       "add_zone": {
@@ -56,13 +60,13 @@
           "start_time": "Start time",
           "duration_min": "Duration",
           "weekdays": "Days",
-          "exposure": "Exposure"
+          "receives_rain": "Receives rain"
         },
         "data_description": {
           "switch_entity": "The plug or relay that opens the solenoid valve.",
           "max_runtime_min": "The valve is always closed after this time, whatever happens.",
           "power_entity": "Consumption of the plug, in W. When set, hydraXoo checks after each closing that the valve really closed.",
-          "exposure": "Outdoor zones are adjusted to the weather; sheltered zones (greenhouse, covered area) never are."
+          "receives_rain": "Turn off for a zone sheltered from rain (greenhouse, covered area): rain is ignored, the heat bonus still applies."
         },
         "sections": {
           "safety": {
@@ -81,20 +85,21 @@
           },
           "weather_rules": {
             "name": "Weather rule",
-            "description": "Coefficient = 1 − (rain fallen, weighted + rain expected) ÷ threshold, then the heat bonus, then the limits. Rain fallen in the last 24 h counts fully, before that half.",
+            "description": "Coefficient = 1 − (rain fallen, weighted + rain expected) ÷ threshold, then the heat bonus, then the limits. Rain fallen in the last 24 h counts fully, before that half. For a zone that does not receive rain, only the heat bonus counts.",
             "data": {
-              "skip_mm": "Skip threshold (rain expected)",
-              "past_window_h": "Rain fallen: window",
-              "forecast_window_h": "Rain expected: window",
-              "heat_threshold_c": "Heat bonus above",
-              "heat_bonus_pct": "Heat bonus",
+              "skip_mm": "Skip the cycle if rain expected reaches",
+              "past_window_h": "Rain fallen taken into account (hours)",
+              "forecast_window_h": "Rain expected taken into account (hours)",
+              "heat_threshold_c": "Hot day from",
+              "heat_bonus_pct": "Water more on hot days",
               "min_pct": "Minimum coefficient",
               "max_pct": "Maximum coefficient"
             },
             "data_description": {
               "skip_mm": "At or above this forecast the cycle is skipped. Also the amount of rain that replaces a full watering.",
-              "heat_bonus_pct": "0 disables the heat bonus.",
-              "min_pct": "Above 0, the zone is always watered a little, unless enough rain is expected."
+              "heat_bonus_pct": "Duration increased by this percentage on hot days. 0 = never.",
+              "min_pct": "Above 0, the zone is always watered a little, unless enough rain is expected.",
+              "heat_threshold_c": "Highest temperature expected during the day."
             }
           }
         }
@@ -124,13 +129,13 @@
           "switch_entity": "Valve switch",
           "max_runtime_min": "Safety cut-off",
           "power_entity": "Power sensor (optional)",
-          "exposure": "Exposure"
+          "receives_rain": "Receives rain"
         },
         "data_description": {
           "switch_entity": "The plug or relay that opens the solenoid valve.",
           "max_runtime_min": "The valve is always closed after this time, whatever happens.",
           "power_entity": "Consumption of the plug, in W. When set, hydraXoo checks after each closing that the valve really closed.",
-          "exposure": "Outdoor zones are adjusted to the weather; sheltered zones (greenhouse, covered area) never are."
+          "receives_rain": "Turn off for a zone sheltered from rain (greenhouse, covered area): rain is ignored, the heat bonus still applies."
         },
         "sections": {
           "safety": {
@@ -149,20 +154,21 @@
           },
           "weather_rules": {
             "name": "Weather rule",
-            "description": "Coefficient = 1 − (rain fallen, weighted + rain expected) ÷ threshold, then the heat bonus, then the limits. Rain fallen in the last 24 h counts fully, before that half.",
+            "description": "Coefficient = 1 − (rain fallen, weighted + rain expected) ÷ threshold, then the heat bonus, then the limits. Rain fallen in the last 24 h counts fully, before that half. For a zone that does not receive rain, only the heat bonus counts.",
             "data": {
-              "skip_mm": "Skip threshold (rain expected)",
-              "past_window_h": "Rain fallen: window",
-              "forecast_window_h": "Rain expected: window",
-              "heat_threshold_c": "Heat bonus above",
-              "heat_bonus_pct": "Heat bonus",
+              "skip_mm": "Skip the cycle if rain expected reaches",
+              "past_window_h": "Rain fallen taken into account (hours)",
+              "forecast_window_h": "Rain expected taken into account (hours)",
+              "heat_threshold_c": "Hot day from",
+              "heat_bonus_pct": "Water more on hot days",
               "min_pct": "Minimum coefficient",
               "max_pct": "Maximum coefficient"
             },
             "data_description": {
               "skip_mm": "At or above this forecast the cycle is skipped. Also the amount of rain that replaces a full watering.",
-              "heat_bonus_pct": "0 disables the heat bonus.",
-              "min_pct": "Above 0, the zone is always watered a little, unless enough rain is expected."
+              "heat_bonus_pct": "Duration increased by this percentage on hot days. 0 = never.",
+              "min_pct": "Above 0, the zone is always watered a little, unless enough rain is expected.",
+              "heat_threshold_c": "Highest temperature expected during the day."
             }
           }
         }
@@ -228,12 +234,6 @@
       "options": {
         "sequential": "One zone at a time",
         "parallel": "Zones in parallel"
-      }
-    },
-    "exposure": {
-      "options": {
-        "outdoor": "Outdoor",
-        "sheltered": "Sheltered"
       }
     }
   },

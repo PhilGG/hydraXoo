@@ -300,7 +300,7 @@ async def test_sheltered_zone_not_adjusted(
     """A sheltered zone waters its base duration whatever the weather."""
     provider.hourly = hours(MONDAY_0600, [3.0] * 24)
     started = async_capture_events(hass, EVENT_CYCLE_STARTED)
-    await _setup(hass, hass_storage, freezer, exposure="sheltered")
+    await _setup(hass, hass_storage, freezer, receives_rain=False)
     assert hass.states.get(COEF).attributes["reason"] == "sheltered"
     await _go_to(hass, freezer, MONDAY_0600)
     assert started[0].data["duration_min"] == 10
@@ -406,3 +406,46 @@ async def test_inches_converted(
     attrs = hass.states.get(COEF).attributes
     assert attrs["forecast_rain_mm"] == 1.0
     assert attrs["temperature_c"] == 30.0
+
+
+async def test_sheltered_zone_gets_heat_bonus(
+    hass: HomeAssistant,
+    hass_storage: dict[str, Any],
+    freezer: FrozenDateTimeFactory,
+    provider: FakeProvider,
+    valve: MockValve,
+) -> None:
+    """A greenhouse ignores the rain but still waters more on hot days."""
+    provider.hourly = hours(MONDAY_0600, [3.0] * 24, temperature=32.0)
+    started = async_capture_events(hass, EVENT_CYCLE_STARTED)
+    await _setup(
+        hass,
+        hass_storage,
+        freezer,
+        receives_rain=False,
+        weather_rules={"heat_bonus_pct": 30},
+    )
+    attrs = hass.states.get(COEF).attributes
+    assert hass.states.get(COEF).state == "130"
+    assert attrs["forecast_rain_mm"] is None
+    assert attrs["heat_bonus_pct"] == 30
+    await _go_to(hass, freezer, MONDAY_0600)
+    assert started[0].data["duration_min"] == 13
+
+
+async def test_old_exposure_setting_migrated(
+    hass: HomeAssistant,
+    hass_storage: dict[str, Any],
+    freezer: FrozenDateTimeFactory,
+    valve: MockValve,
+) -> None:
+    """Zones saved before 0.0.6 with "exposure" keep their meaning."""
+    freezer.move_to(MONDAY_0559)
+    old = zone_data(exposure="sheltered")
+    store_zones(hass_storage, [old])
+    entry = await setup_entry(hass)
+    assert entry.runtime_data.zones["zone1"].receives_rain is False
+    await entry.runtime_data.async_save()
+    saved = hass_storage["hydraxoo.zones"]["data"]["zones"][0]
+    assert saved["receives_rain"] is False
+    assert "exposure" not in saved

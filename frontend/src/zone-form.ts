@@ -1,6 +1,6 @@
 // Screens 2 and 3: zone settings (edit) and zone creation (new).
 import { LitElement, html, nothing, type TemplateResult } from "lit";
-import { dayNames, translator, type Translate } from "./i18n";
+import { dayNames, language, translator, type Translate } from "./i18n";
 import { daysSummary } from "./schedule";
 import { styles } from "./styles";
 import {
@@ -26,7 +26,7 @@ function emptyZone(): ZoneConfig {
     switch_entity: "",
     power_entity: null,
     max_runtime_min: 30,
-    exposure: "outdoor",
+    receives_rain: true,
     safety: { ...DEFAULT_SAFETY },
     weather_rules: { ...DEFAULT_WEATHER },
     cycles: [],
@@ -37,6 +37,11 @@ interface StepperOptions {
   min: number;
   max: number;
   step?: number;
+  /** Smaller step used below `fineBelow` (e.g. 0.1 W under 1 W). */
+  fine?: number;
+  fineBelow?: number;
+  /** Show "+" before positive values (bonus). */
+  signed?: boolean;
   unit: string;
   what: string; // for the screen reader labels
 }
@@ -73,11 +78,11 @@ export class HydraxooZoneForm extends LitElement {
   private _configOf(zone: Zone): ZoneConfig {
     const {
       id, name, icon, enabled, switch_entity, power_entity, max_runtime_min,
-      exposure, safety, weather_rules, cycles,
+      receives_rain, safety, weather_rules, cycles,
     } = zone;
     return {
       id, name, icon, enabled, switch_entity, power_entity, max_runtime_min,
-      exposure, safety, weather_rules, cycles,
+      receives_rain, safety, weather_rules, cycles,
     };
   }
 
@@ -99,6 +104,8 @@ export class HydraxooZoneForm extends LitElement {
   private _stepper(value: number, opts: StepperOptions, onChange: (v: number) => void) {
     const t = this._t;
     const step = opts.step ?? 1;
+    const down = opts.fine && value <= (opts.fineBelow ?? 0) ? opts.fine : step;
+    const up = opts.fine && value < (opts.fineBelow ?? 0) ? opts.fine : step;
     const round = (v: number) => Math.round(v * 10) / 10;
     const set = (v: number) => onChange(round(Math.min(opts.max, Math.max(opts.min, v))));
     return html`<span class="stepper">
@@ -106,14 +113,16 @@ export class HydraxooZoneForm extends LitElement {
         type="button"
         aria-label=${t("editor.decrease", { what: opts.what })}
         ?disabled=${value <= opts.min}
-        @click=${() => set(value - step)}
+        @click=${() => set(value - down)}
       >−</button>
-      <span class="value" aria-live="polite">${value} ${opts.unit}</span>
+      <span class="value" aria-live="polite"
+        >${opts.signed && value > 0 ? "+" : ""}${value.toLocaleString(language(this.hass))} ${opts.unit}</span
+      >
       <button
         type="button"
         aria-label=${t("editor.increase", { what: opts.what })}
         ?disabled=${value >= opts.max}
-        @click=${() => set(value + step)}
+        @click=${() => set(value + up)}
       >+</button>
     </span>`;
   }
@@ -168,7 +177,7 @@ export class HydraxooZoneForm extends LitElement {
 
   // -------------------------------------------------------------- sections
 
-  private _general() {
+  private _general(creating: boolean) {
     const t = this._t;
     const d = this._draft;
     return html`<section class="tile" aria-labelledby="hx-general">
@@ -196,22 +205,24 @@ export class HydraxooZoneForm extends LitElement {
           )}
         </div>
       </div>
-      <div class="stack" role="group" aria-label=${t("editor.exposure")}>
-        <span class="small strong">${t("editor.exposure")}</span>
-        <div class="exposure-grid">
-          ${(["outdoor", "sheltered"] as const).map(
-            (exp) => html`<button
-              type="button"
-              class="choice"
-              aria-pressed=${d.exposure === exp ? "true" : "false"}
-              @click=${() => this._set({ exposure: exp })}
-            >
-              <span class="strong">${t(`editor.${exp}`)}</span>
-              <span class="tiny">${t(`editor.${exp}_desc`)}</span>
-            </button>`,
-          )}
-        </div>
-      </div>
+      ${creating
+        ? html`<div class="stack" role="group" aria-label=${t("editor.rain_choice")}>
+            <span class="small strong">${t("editor.rain_choice")}</span>
+            <div class="choice-grid">
+              ${([true, false] as const).map(
+                (rain) => html`<button
+                  type="button"
+                  class="choice"
+                  aria-pressed=${d.receives_rain === rain ? "true" : "false"}
+                  @click=${() => this._set({ receives_rain: rain })}
+                >
+                  <span class="strong">${t(rain ? "editor.receives_rain" : "editor.no_rain")}</span>
+                  <span class="tiny">${t(rain ? "editor.receives_rain_desc" : "editor.no_rain_desc")}</span>
+                </button>`,
+              )}
+            </div>
+          </div>`
+        : nothing}
     </section>`;
   }
 
@@ -257,7 +268,7 @@ export class HydraxooZoneForm extends LitElement {
       ${full && checkOn
         ? html`<div>
             ${this._setting(t("editor.threshold"), t("editor.threshold_hint"),
-              this._stepper(s.threshold_w, { min: 0.5, max: 100, step: 0.5, unit: "W", what: t("editor.threshold") },
+              this._stepper(s.threshold_w, { min: 0.1, max: 100, step: 0.5, fine: 0.1, fineBelow: 1, unit: "W", what: t("editor.threshold") },
                 (v) => this._set({ safety: { ...s, threshold_w: v } })))}
             ${this._setting(t("editor.delay"), t("editor.delay_hint"),
               this._stepper(s.check_delay_s, { min: 1, max: 300, unit: "s", what: t("editor.delay") },
@@ -368,57 +379,67 @@ export class HydraxooZoneForm extends LitElement {
     this._set({ cycles: [...this._draft.cycles, cycle] });
   };
 
-  private _rain() {
+  private _weather() {
     const t = this._t;
     const d = this._draft;
-    const outdoor = d.exposure === "outdoor";
+    const rain = d.receives_rain;
     const w = d.weather_rules;
     const settings = this.state?.settings;
     const result = this.zone?.weather;
-    return html`<section class="tile" aria-labelledby="hx-rain">
-      <div class="row">
-        <span class="stack grow">
-          <h2 id="hx-rain">${t("editor.rain")}</h2>
-          <span class="tiny">${settings?.weather_entity
-            ? t("editor.rain_source", { name: settings.weather_name ?? settings.weather_entity })
-            : t("editor.rain_none")}</span>
-        </span>
-        ${this._switch(outdoor, t("editor.rain"), (v) =>
-          this._set({ exposure: v ? "outdoor" : "sheltered" }),
-        )}
-      </div>
-      ${outdoor && result && settings?.weather_entity
+    return html`<section class="tile" aria-labelledby="hx-weather">
+      <span class="stack">
+        <h2 id="hx-weather">${t("editor.weather_title")}</h2>
+        <span class="tiny">${settings?.weather_entity
+          ? t("editor.rain_source", { name: settings.weather_name ?? settings.weather_entity })
+          : t("editor.rain_none")}</span>
+      </span>
+      ${result && settings?.weather_entity
         ? html`<div class="stack">
             <div class="row">
               <span class="grow small">${t("editor.today")}</span>
               <span class="strong">${result.coefficient_pct} %</span>
             </div>
             <div class="meter" role="img" aria-label="${result.coefficient_pct} %">
-              <div style="width: ${Math.min(100, (result.coefficient_pct / 150) * 100)}%"></div>
+              <div style="width: ${Math.min(100, result.coefficient_pct)}%"></div>
             </div>
-            <span class="tiny">${t("editor.rain_detail", {
-              past: result.past_rain_mm ?? 0,
-              forecast: result.forecast_rain_mm ?? 0,
-            })}</span>
+            <span class="tiny">${rain
+              ? t("editor.rain_detail", {
+                  past: result.past_rain_mm ?? 0,
+                  forecast: result.forecast_rain_mm ?? 0,
+                })
+              : t("editor.no_rain_detail")}</span>
           </div>`
         : nothing}
-      ${outdoor
-        ? html`<div>
-            ${this._setting(t("editor.skip"), t("editor.skip_hint"),
+      <div>
+        <div class="setting">
+          <span class="stack"
+            ><span class="strong">${t("editor.rain")}</span
+            ><span class="tiny">${t(rain ? "editor.rain_hint" : "editor.no_rain_desc")}</span></span
+          >
+          ${this._switch(rain, t("editor.rain"), (v) => this._set({ receives_rain: v }))}
+        </div>
+        ${rain
+          ? html`${this._setting(t("editor.skip"), t("editor.skip_hint"),
               this._stepper(w.skip_mm, { min: 0.5, max: 50, step: 0.5, unit: "mm", what: t("editor.skip") },
                 (v) => this._set({ weather_rules: { ...w, skip_mm: v } })))}
             ${this._setting(t("editor.past"), t("editor.past_hint"),
               this._stepper(w.past_window_h, { min: 0, max: 96, step: 6, unit: "h", what: t("editor.past") },
-                (v) => this._set({ weather_rules: { ...w, past_window_h: v } })))}
-            ${this._setting(t("editor.heat"), t("editor.heat_hint", { t: w.heat_threshold_c }),
-              this._stepper(w.heat_bonus_pct, { min: 0, max: 100, step: 5, unit: "%", what: t("editor.heat") },
-                (v) => this._set({ weather_rules: { ...w, heat_bonus_pct: v } })))}
-            ${w.heat_bonus_pct > 0
-              ? this._setting(t("editor.heat_threshold"), t("editor.heat_threshold_hint"),
-                  this._stepper(w.heat_threshold_c, { min: 15, max: 45, step: 1, unit: "°C", what: t("editor.heat_threshold") },
-                    (v) => this._set({ weather_rules: { ...w, heat_threshold_c: v } })))
-              : nothing}
-          </div>`
+                (v) => this._set({ weather_rules: { ...w, past_window_h: v } })))}`
+          : nothing}
+        ${this._setting(t("editor.heat"), t("editor.heat_hint"),
+          this._stepper(w.heat_bonus_pct, { min: 0, max: 100, step: 5, signed: true, unit: "%", what: t("editor.heat") },
+            (v) => this._set({ weather_rules: { ...w, heat_bonus_pct: v } })))}
+        ${w.heat_bonus_pct > 0
+          ? this._setting(t("editor.heat_threshold"), t("editor.heat_threshold_hint"),
+              this._stepper(w.heat_threshold_c, { min: 15, max: 45, step: 1, unit: "°C", what: t("editor.heat_threshold") },
+                (v) => this._set({ weather_rules: { ...w, heat_threshold_c: v } })))
+          : nothing}
+      </div>
+      ${w.heat_bonus_pct > 0
+        ? html`<span class="tiny">${t("editor.heat_summary", {
+            t: w.heat_threshold_c.toLocaleString(language(this.hass)),
+            pct: w.heat_bonus_pct,
+          })}</span>`
         : nothing}
     </section>`;
   }
@@ -491,10 +512,10 @@ export class HydraxooZoneForm extends LitElement {
           </div>
         </div>
       </div>
-      ${this._general()}
+      ${this._general(creating)}
       ${this._hardware(!creating)}
       ${creating ? nothing : this._cycles()}
-      ${creating ? nothing : this._rain()}
+      ${creating ? nothing : this._weather()}
       ${this._error ? html`<div class="error-text" role="alert">${this._error}</div>` : nothing}
       <button type="button" class="btn primary" ?disabled=${this._saving} @click=${this._save}>
         ${this._saving ? t("editor.saving") : creating ? t("editor.create") : t("editor.save")}

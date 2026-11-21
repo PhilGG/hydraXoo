@@ -6,11 +6,11 @@
   "weather": {
     "rain": "Pluie : {past} mm tombés, {forecast} mm prévus",
     "rain_forecast": "Pluie : {forecast} mm prévus",
-    "adjusted": "Zones extérieures ajustées automatiquement",
-    "skipped": "Assez de pluie prévue : cycles extérieurs sautés",
+    "adjusted": "Durées ajustées automatiquement",
+    "skipped": "Assez de pluie prévue : cycles sautés pour les zones qui reçoivent la pluie",
     "of_durations": "des durées",
     "unavailable": "Météo indisponible",
-    "unavailable_detail": "Les zones extérieures arrosent leur durée complète",
+    "unavailable_detail": "Les zones arrosent leur durée complète",
     "no_data": "Le fournisseur météo ne donne pas de quantité de pluie",
     "heat": "Bonus chaleur +{bonus} % ({temp} °C)"
   },
@@ -36,20 +36,26 @@
   "timeline": {
     "title": "Aujourd'hui",
     "total": "{min} min d'arrosage",
+    "running": "En cours",
     "done": "Terminé",
+    "skipped": "Sauté",
     "upcoming": "À venir",
     "disabled": "Désactivé",
     "now": "Maintenant",
     "label": "{zone} : {count} cycles aujourd'hui"
   },
   "zone": {
-    "outdoor": "Extérieur · adapté à la pluie",
-    "sheltered": "Sous abri · durée fixe",
+    "rain": "Reçoit la pluie · durée ajustée",
+    "no_rain": "À l'abri de la pluie",
+    "heat": " · bonus chaleur",
     "enable": "Activer la zone {zone}",
     "next": "Prochain : {time} · {min} min",
     "next_day": "Prochain : {day} {time} · {min} min",
+    "next_skipped": "Prochain : {time} · sauté (pluie)",
+    "next_day_skipped": "Prochain : {day} {time} · sauté (pluie)",
     "nothing": "Aucun cycle programmé",
-    "weather": "Météo {pct} %",
+    "weather": "Météo : {pct} % de la durée",
+    "weather_skip": "Pluie : arrosage sauté",
     "running": "Arrosage · reste {left}",
     "queued": "En attente de son tour",
     "checking": "Contrôle de fermeture…",
@@ -72,11 +78,11 @@
       "tonight": "ce soir"
     },
     "skip": {
-      "weather": "Pluie",
-      "paused": "Pause",
-      "zone_disabled": "Zone inactive",
-      "fault": "Défaut",
-      "stopped": "Arrêté"
+      "weather": "Sauté · pluie",
+      "paused": "Sauté · pause",
+      "zone_disabled": "Sauté · zone inactive",
+      "fault": "Sauté · défaut",
+      "stopped": "Sauté · arrêté"
     }
   },
   "new_zone": "Nouvelle zone",
@@ -95,11 +101,6 @@
       "flower": "Fleurs",
       "drop": "Goutte"
     },
-    "exposure": "Exposition",
-    "outdoor": "Extérieur",
-    "outdoor_desc": "Reçoit la pluie, adapté à la météo",
-    "sheltered": "Sous abri",
-    "sheltered_desc": "Durées fixes, sans météo",
     "hardware": "Matériel",
     "valve": "Électrovanne",
     "switch": "Interrupteur de la vanne · obligatoire",
@@ -137,19 +138,20 @@
     "increase": "Augmenter {what}",
     "duration_of": "la durée du cycle {n}",
     "add_cycle": "Ajouter un cycle",
-    "rain": "Adapter selon la pluie",
+    "rain": "Reçoit la pluie",
     "rain_source": "Source : {name}",
     "rain_none": "Pas encore d'entité météo : choisissez-en une dans les réglages généraux de l'intégration.",
     "today": "Aujourd'hui",
     "rain_detail": "{past} mm tombés · {forecast} mm prévus",
-    "skip": "Annuler si pluie prévue ≥",
-    "skip_hint": "Le cycle est sauté",
-    "past": "Pluie passée prise en compte",
-    "past_hint": "Fenêtre glissante",
-    "heat": "Bonus forte chaleur",
-    "heat_hint": "Au-dessus de {t} °C · 0 = désactivé",
-    "heat_threshold": "Seuil du bonus chaleur",
-    "heat_threshold_hint": "Température maximale prévue",
+    "skip": "Sauter le cycle si la pluie prévue atteint",
+    "skip_hint": "Pluie attendue dans les 24 prochaines heures",
+    "past": "Pluie tombée prise en compte",
+    "past_hint": "Sur les dernières heures",
+    "heat": "Arroser plus les jours chauds",
+    "heat_hint": "Durée allongée de ce pourcentage · 0 % = jamais",
+    "heat_threshold": "Jour chaud à partir de",
+    "heat_threshold_hint": "Température maximale prévue dans la journée",
+    "heat_summary": "Si la journée doit atteindre {t} °C ou plus, la durée est allongée de {pct} %.",
     "save": "Enregistrer",
     "saving": "Enregistrement…",
     "create": "Créer et ajouter des cycles",
@@ -162,11 +164,35 @@
       "no_day": "Chaque cycle doit avoir au moins un jour.",
       "duration_exceeds_max": "Un cycle dure plus longtemps que la coupure de sécurité.",
       "generic": "Enregistrement impossible : {message}"
-    }
+    },
+    "rain_choice": "Pluie",
+    "receives_rain": "Reçoit la pluie",
+    "receives_rain_desc": "Durées ajustées selon la pluie",
+    "no_rain": "À l'abri de la pluie",
+    "no_rain_desc": "Serre, terrasse couverte : la pluie est ignorée",
+    "weather_title": "Météo",
+    "rain_hint": "Durée ajustée selon la pluie tombée et prévue",
+    "no_rain_detail": "Pluie ignorée : seule la chaleur peut changer la durée"
   },
   "days": {
-    "short": ["L", "M", "M", "J", "V", "S", "D"],
-    "long": ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+    "short": [
+      "L",
+      "M",
+      "M",
+      "J",
+      "V",
+      "S",
+      "D"
+    ],
+    "long": [
+      "Lundi",
+      "Mardi",
+      "Mercredi",
+      "Jeudi",
+      "Vendredi",
+      "Samedi",
+      "Dimanche"
+    ]
   },
   "card_editor": {
     "title": "Titre",
