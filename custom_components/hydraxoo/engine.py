@@ -45,13 +45,17 @@ from .const import (
     END_RESTART,
     END_UNLOAD,
     EVENT_CYCLE_FINISHED,
+    EVENT_CYCLE_SKIPPED,
     EVENT_CYCLE_STARTED,
     REMAINING_REFRESH_SECONDS,
+    SKIP_PAUSED,
+    SKIP_STOPPED,
+    SKIP_ZONE_DISABLED,
     SOURCE_MANUAL,
     SOURCE_SCHEDULE,
 )
 from .models import Cycle, Zone
-from .store import ZoneStore
+from .store import StoredData, ZoneStore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -76,17 +80,38 @@ class ZoneRun:
             self.unsubs.pop()()
 
 
+@dataclass
+class QueuedRun:
+    """A watering waiting for its turn."""
+
+    zone_id: str
+    duration_min: int
+    source: str
+    cycle_id: str | None
+    queued_at: datetime
+
+
 class HydraxooEngine:
     """Owns the zones and everything that happens to them at run time."""
 
     def __init__(
-        self, hass: HomeAssistant, store: ZoneStore, zones: list[Zone]
+        self,
+        hass: HomeAssistant,
+        store: ZoneStore,
+        data: StoredData,
+        sequential: bool = True,
     ) -> None:
         """Initialize the engine."""
         self.hass = hass
         self._store = store
-        self.zones: dict[str, Zone] = {z.id: z for z in zones}
+        self.zones: dict[str, Zone] = {z.id: z for z in data.zones}
+        self.paused = data.paused
+        self.pause_until = data.pause_until
+        # True: one zone at a time, others wait in the queue
+        self.sequential = sequential
         self.runs: dict[str, ZoneRun] = {}
+        self.queue: list[QueuedRun] = []
+        self._pause_timer: CALLBACK_TYPE | None = None
         # Safety cut-off for valves switched on outside hydraXoo
         self._external_cutoff: dict[str, CALLBACK_TYPE] = {}
         self._listeners: list[Callable[[], None]] = []
@@ -96,6 +121,11 @@ class HydraxooEngine:
 
     async def async_start(self) -> None:
         """Start listening to the clock and to the valves."""
+        if self.paused and self.pause_until is not None:
+            if self.pause_until <= dt_util.utcnow():
+                await self.async_resume()
+            else:
+                self._schedule_auto_resume()
         self._unsubs.append(
             async_track_time_change(self.hass, self._async_tick, second=0)
         )
@@ -122,6 +152,8 @@ class HydraxooEngine:
 
     async def async_shutdown(self) -> None:
         """Stop everything (integration unloaded or reloaded)."""
+        self.queue.clear()
+        self._cancel_pause_timer()
         while self._unsubs:
             unsub = self._unsubs.pop()
             # A listen_once that already fired cannot be removed twice.
@@ -131,15 +163,16 @@ class HydraxooEngine:
             cancel()
         self._external_cutoff.clear()
         for zone_id in list(self.runs):
-            await self.async_stop_zone(zone_id, END_UNLOAD)
+            await self._async_close_zone(zone_id, END_UNLOAD)
 
     async def _async_on_ha_started(self, _event: Event) -> None:
         await self._async_close_open_valves()
 
     async def _async_on_ha_stop(self, _event: Event) -> None:
         """Close valves we opened before Home Assistant stops."""
+        self.queue.clear()
         for zone_id in list(self.runs):
-            await self.async_stop_zone(zone_id, END_UNLOAD)
+            await self._async_close_zone(zone_id, END_UNLOAD)
 
     async def _async_close_open_valves(self) -> None:
         """At startup, any valve found open is closed: it was interrupted."""
@@ -189,8 +222,13 @@ class HydraxooEngine:
         return max(0, round((run.ends - dt_util.utcnow()).total_seconds()))
 
     def next_run(self, zone_id: str) -> tuple[datetime, Cycle] | None:
-        """Next scheduled start of a zone."""
-        return self.zones[zone_id].next_run(dt_util.now())
+        """Next scheduled start of a zone, taking the pause into account."""
+        after = dt_util.now()
+        if self.paused:
+            if self.pause_until is None:
+                return None
+            after = max(after, dt_util.as_local(self.pause_until))
+        return self.zones[zone_id].next_run(after)
 
     @staticmethod
     def base_duration(zone: Zone) -> int:
@@ -203,8 +241,112 @@ class HydraxooEngine:
     # -------------------------------------------------------------- commands
 
     async def async_save(self) -> None:
-        """Persist the zones."""
-        await self._store.async_save(list(self.zones.values()))
+        """Persist zones and pause state."""
+        await self._store.async_save(
+            StoredData(
+                zones=list(self.zones.values()),
+                paused=self.paused,
+                pause_until=self.pause_until,
+            )
+        )
+
+    async def async_pause(self, days: int | None = None) -> None:
+        """Stop starting cycles, for a number of days or until resumed.
+
+        A watering in progress is not interrupted; queued cycles are dropped.
+        """
+        self.paused = True
+        self.pause_until = (
+            dt_util.utcnow() + timedelta(days=days) if days is not None else None
+        )
+        self._cancel_pause_timer()
+        if self.pause_until is not None:
+            self._schedule_auto_resume()
+        for item in self.queue:
+            if item.source == SOURCE_SCHEDULE:
+                self._fire_skipped(item.zone_id, item.cycle_id, SKIP_PAUSED)
+        self.queue = [i for i in self.queue if i.source != SOURCE_SCHEDULE]
+        await self.async_save()
+        self._notify()
+
+    async def async_resume(self) -> None:
+        """End the pause."""
+        self.paused = False
+        self.pause_until = None
+        self._cancel_pause_timer()
+        await self.async_save()
+        self._notify()
+
+    def _schedule_auto_resume(self) -> None:
+        assert self.pause_until is not None
+
+        async def _async_auto_resume(_now: datetime) -> None:
+            self._pause_timer = None
+            await self.async_resume()
+
+        self._pause_timer = async_track_point_in_utc_time(
+            self.hass, _async_auto_resume, self.pause_until
+        )
+
+    def _cancel_pause_timer(self) -> None:
+        if self._pause_timer is not None:
+            self._pause_timer()
+            self._pause_timer = None
+
+    async def async_request_zone(
+        self,
+        zone_id: str,
+        duration_min: int | None = None,
+        source: str = SOURCE_MANUAL,
+        cycle_id: str | None = None,
+    ) -> None:
+        """Water a zone now, or queue it if it has to wait its turn.
+
+        - The zone is already watering: a manual request replaces the current
+          run; a scheduled cycle waits for the end of the current run.
+        - One zone at a time and another zone is watering: wait in the queue.
+        """
+        zone = self.zones[zone_id]
+        duration = (
+            duration_min if duration_min is not None else self.base_duration(zone)
+        )
+        if zone_id in self.runs:
+            must_wait = source == SOURCE_SCHEDULE
+        else:
+            must_wait = self.sequential and bool(self.runs)
+        if not must_wait:
+            await self.async_start_zone(zone_id, duration, source, cycle_id)
+            return
+        self.queue.append(
+            QueuedRun(zone_id, duration, source, cycle_id, dt_util.utcnow())
+        )
+        _LOGGER.info("Zone %s queued (%s min)", zone.name, duration)
+        self._notify()
+
+    async def _async_process_queue(self) -> None:
+        """Start the queued runs that may start now."""
+        index = 0
+        while index < len(self.queue):
+            item = self.queue[index]
+            zone = self.zones.get(item.zone_id)
+            if zone is None:
+                self.queue.pop(index)
+                continue
+            if self.sequential and self.runs:
+                return
+            if item.zone_id in self.runs:
+                index += 1
+                continue
+            self.queue.pop(index)
+            if item.source == SOURCE_SCHEDULE and not zone.enabled:
+                self._fire_skipped(zone.id, item.cycle_id, SKIP_ZONE_DISABLED)
+                continue
+            try:
+                await self.async_start_zone(
+                    zone.id, item.duration_min, item.source, item.cycle_id
+                )
+            except Exception:
+                _LOGGER.exception("Could not start zone %s", zone.name)
 
     async def async_set_zone_enabled(self, zone_id: str, enabled: bool) -> None:
         """Enable or disable scheduled watering for a zone."""
@@ -272,7 +414,14 @@ class HydraxooEngine:
     async def async_stop_zone(
         self, zone_id: str, reason: str = END_MANUAL_STOP
     ) -> None:
-        """Close a zone's valve."""
+        """Close a zone's valve and drop its queued runs (stop command)."""
+        if reason == END_MANUAL_STOP:
+            self._drop_queued(lambda item: item.zone_id == zone_id)
+        await self._async_close_zone(zone_id, reason)
+        await self._async_process_queue()
+
+    async def _async_close_zone(self, zone_id: str, reason: str) -> None:
+        """Close a zone's valve and end its run."""
         zone = self.zones.get(zone_id)
         if zone is None:
             return
@@ -289,9 +438,20 @@ class HydraxooEngine:
         self._notify()
 
     async def async_stop_all(self) -> None:
-        """Close every zone."""
+        """Close every zone and empty the queue."""
+        self._drop_queued(lambda item: True)
         for zone_id in list(self.zones):
-            await self.async_stop_zone(zone_id)
+            await self._async_close_zone(zone_id, END_MANUAL_STOP)
+        self._notify()
+
+    def _drop_queued(self, predicate: Callable[[QueuedRun], bool]) -> None:
+        kept: list[QueuedRun] = []
+        for item in self.queue:
+            if predicate(item):
+                self._fire_skipped(item.zone_id, item.cycle_id, SKIP_STOPPED)
+            else:
+                kept.append(item)
+        self.queue = kept
 
     # --------------------------------------------------------------- internals
 
@@ -311,11 +471,9 @@ class HydraxooEngine:
         self._notify()
 
     async def _async_tick(self, now: datetime) -> None:
-        """Every minute: start the cycles due now."""
+        """Every minute: start (or queue) the cycles due now."""
         local = dt_util.as_local(now).replace(second=0, microsecond=0)
-        for zone in self.zones.values():
-            if not zone.enabled:
-                continue
+        for zone in list(self.zones.values()):
             for cycle in zone.cycles:
                 if (
                     not cycle.enabled
@@ -323,15 +481,14 @@ class HydraxooEngine:
                     or cycle.start != local.time()
                 ):
                     continue
-                if self.is_running(zone.id):
-                    _LOGGER.info(
-                        "Zone %s already watering, cycle at %s not started",
-                        zone.name,
-                        cycle.start_time,
-                    )
+                if self.paused:
+                    self._fire_skipped(zone.id, cycle.id, SKIP_PAUSED)
+                    continue
+                if not zone.enabled:
+                    self._fire_skipped(zone.id, cycle.id, SKIP_ZONE_DISABLED)
                     continue
                 try:
-                    await self.async_start_zone(
+                    await self.async_request_zone(
                         zone.id, cycle.duration_min, SOURCE_SCHEDULE, cycle.id
                     )
                 except Exception:
@@ -360,6 +517,7 @@ class HydraxooEngine:
                     run.cancel_timers()
                     self._fire_finished(zone, run, END_EXTERNAL)
                     self._notify()
+                    await self._async_process_queue()
 
     def _start_external_cutoff(self, zone: Zone) -> None:
         """Valve opened by someone else: still close it after max_runtime."""
@@ -402,6 +560,11 @@ class HydraxooEngine:
             duration_min=run.duration_min,
             elapsed_min=round(elapsed / 60, 1),
         )
+
+    def _fire_skipped(self, zone_id: str, cycle_id: str | None, reason: str) -> None:
+        zone = self.zones.get(zone_id)
+        if zone is not None:
+            self._fire(EVENT_CYCLE_SKIPPED, zone, cycle_id=cycle_id, reason=reason)
 
     def _fire(self, event_type: str, zone: Zone, **data: Any) -> None:
         self.hass.bus.async_fire(

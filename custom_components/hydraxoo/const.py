@@ -8,6 +8,9 @@ DOMAIN: Final = "hydraxoo"
 
 # Global settings (stored in the config entry options)
 CONF_WEATHER_ENTITY: Final = "weather_entity"
+CONF_SEQUENCE_MODE: Final = "sequence_mode"
+MODE_SEQUENTIAL: Final = "sequential"  # one zone at a time (default)
+MODE_PARALLEL: Final = "parallel"
 
 # Zone fields
 CONF_ZONE_ID: Final = "id"
@@ -37,12 +40,25 @@ REMAINING_REFRESH_SECONDS: Final = 10
 SERVICE_RUN_ZONE: Final = "run_zone"
 SERVICE_STOP_ZONE: Final = "stop_zone"
 SERVICE_STOP_ALL: Final = "stop_all"
+SERVICE_PAUSE: Final = "pause"
+SERVICE_RESUME: Final = "resume"
 ATTR_ZONE: Final = "zone"
 ATTR_DURATION: Final = "duration"
+ATTR_DAYS: Final = "days"
+MAX_PAUSE_DAYS: Final = 365
+
+# Identifier of the device holding the global entities
+CONTROLLER_ID: Final = "controller"
 
 # Events
 EVENT_CYCLE_STARTED: Final = f"{DOMAIN}_cycle_started"
 EVENT_CYCLE_FINISHED: Final = f"{DOMAIN}_cycle_finished"
+EVENT_CYCLE_SKIPPED: Final = f"{DOMAIN}_cycle_skipped"
+
+# Why a cycle was skipped
+SKIP_PAUSED: Final = "paused"
+SKIP_ZONE_DISABLED: Final = "zone_disabled"
+SKIP_STOPPED: Final = "stopped"  # removed from the queue by a stop command
 
 # Why a run started
 SOURCE_SCHEDULE: Final = "schedule"

@@ -98,28 +98,116 @@ async def test_add_zone_errors(hass: HomeAssistant, valve: MockValve) -> None:
     }
 
 
-async def test_edit_zone(
-    hass: HomeAssistant, hass_storage: dict[str, Any], valve: MockValve
-) -> None:
-    """Editing a zone keeps its id and updates its cycle."""
-    store_zones(hass_storage, [zone_data()])
-    entry = await setup_entry(hass)
+ZONE_ONLY = {
+    k: ZONE_FORM[k] for k in ("name", "icon", "switch_entity", "max_runtime_min")
+}
+CYCLE_FORM = {
+    "cycle_enabled": True,
+    "start_time": "20:00:00",
+    "duration_min": 5,
+    "weekdays": ["5", "6"],
+}
 
-    result = await _open_menu(hass, entry.entry_id, "pick_zone")
+
+async def _zone_menu(hass: HomeAssistant, entry_id: str, choice: str) -> dict:
+    """Open the options, pick the zone, then a zone menu entry."""
+    result = await _open_menu(hass, entry_id, "pick_zone")
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"zone": ZONE_ID}
     )
-    assert result["step_id"] == "edit_zone"
+    assert result["type"] is FlowResultType.MENU
+    assert result["step_id"] == "zone_menu"
+    return await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": choice}
+    )
+
+
+async def test_edit_zone(
+    hass: HomeAssistant, hass_storage: dict[str, Any], valve: MockValve
+) -> None:
+    """Editing a zone keeps its id and its cycles."""
+    store_zones(hass_storage, [zone_data()])
+    entry = await setup_entry(hass)
+
+    result = await _zone_menu(hass, entry.entry_id, "edit_zone")
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], ZONE_FORM | {"name": "Lawn", "duration_min": 20}
+        result["flow_id"], ZONE_ONLY | {"name": "Front lawn", "max_runtime_min": 45}
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
 
     zone = hass_storage["hydraxoo.zones"]["data"]["zones"][0]
     assert zone["id"] == ZONE_ID
-    assert zone["cycles"][0]["duration_min"] == 20
+    assert zone["name"] == "Front lawn"
+    assert zone["max_runtime_min"] == 45
     assert zone["cycles"][0]["id"] == "cycle1"
+
+
+async def test_add_edit_remove_cycle(
+    hass: HomeAssistant, hass_storage: dict[str, Any], valve: MockValve
+) -> None:
+    """A zone can hold several cycles, each with its own days."""
+    store_zones(hass_storage, [zone_data()])
+    entry = await setup_entry(hass)
+
+    # Add a weekend evening cycle
+    result = await _zone_menu(hass, entry.entry_id, "add_cycle")
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], CYCLE_FORM
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    cycles = hass_storage["hydraxoo.zones"]["data"]["zones"][0]["cycles"]
+    assert len(cycles) == 2
+    new_id = cycles[1]["id"]
+    assert cycles[1] | {"id": None} == {
+        "id": None,
+        "enabled": True,
+        "start_time": "20:00",
+        "duration_min": 5,
+        "weekdays": [5, 6],
+    }
+
+    # Disable it
+    result = await _zone_menu(hass, entry.entry_id, "pick_cycle")
+    labels = [
+        o["label"] for o in result["data_schema"].schema["cycle"].config["options"]
+    ]
+    assert labels == ["06:00 · 10 min · Mo Th", "20:00 · 5 min · Sa Su"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"cycle": new_id}
+    )
+    assert result["step_id"] == "edit_cycle"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], CYCLE_FORM | {"cycle_enabled": False}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    cycles = hass_storage["hydraxoo.zones"]["data"]["zones"][0]["cycles"]
+    assert cycles[1]["enabled"] is False
+
+    # Remove the first one
+    result = await _zone_menu(hass, entry.entry_id, "remove_cycle")
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"cycle": "cycle1"}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    cycles = hass_storage["hydraxoo.zones"]["data"]["zones"][0]["cycles"]
+    assert [c["id"] for c in cycles] == [new_id]
+
+
+async def test_cycle_longer_than_cutoff_refused(
+    hass: HomeAssistant, hass_storage: dict[str, Any], valve: MockValve
+) -> None:
+    """A cycle cannot last longer than the zone's safety cut-off."""
+    store_zones(hass_storage, [zone_data()])
+    entry = await setup_entry(hass)
+    result = await _zone_menu(hass, entry.entry_id, "add_cycle")
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], CYCLE_FORM | {"duration_min": 31}
+    )
+    assert result["errors"] == {"duration_min": "duration_exceeds_max"}
 
 
 async def test_remove_zone(
@@ -150,12 +238,17 @@ async def test_remove_zone(
 
 
 async def test_settings(hass: HomeAssistant) -> None:
-    """General settings save the weather entity."""
+    """General settings save the weather entity and the watering order."""
     entry = await setup_entry(hass)
     result = await _open_menu(hass, entry.entry_id, "settings")
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"weather_entity": "weather.home"}
+        result["flow_id"],
+        {"weather_entity": "weather.home", "sequence_mode": "parallel"},
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
-    assert entry.options == {"weather_entity": "weather.home"}
+    assert entry.options == {
+        "weather_entity": "weather.home",
+        "sequence_mode": "parallel",
+    }
+    assert entry.runtime_data.sequential is False

@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import HydraxooConfigEntry
-from .entity import HydraxooZoneEntity
+from .entity import HydraxooControllerEntity, HydraxooZoneEntity
 
 
 async def async_setup_entry(
@@ -17,9 +17,11 @@ async def async_setup_entry(
     entry: HydraxooConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Create one switch per zone."""
+    """Create the pause switch and one switch per zone."""
     engine = entry.runtime_data
-    async_add_entities(ZoneEnabledSwitch(engine, z) for z in engine.zones.values())
+    entities: list[SwitchEntity] = [PauseSwitch(engine, entry.entry_id)]
+    entities += [ZoneEnabledSwitch(engine, z) for z in engine.zones.values()]
+    async_add_entities(entities)
 
 
 class ZoneEnabledSwitch(HydraxooZoneEntity, SwitchEntity):
@@ -41,3 +43,30 @@ class ZoneEnabledSwitch(HydraxooZoneEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Disable the zone."""
         await self.engine.async_set_zone_enabled(self.zone.id, False)
+
+
+class PauseSwitch(HydraxooControllerEntity, SwitchEntity):
+    """When on, no cycle is started (manual watering still works)."""
+
+    def __init__(self, engine, entry_id: str) -> None:
+        """Initialize."""
+        super().__init__(engine, entry_id, "pause")
+
+    @property
+    def is_on(self) -> bool:
+        """Return True while paused."""
+        return self.engine.paused
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """When the pause ends by itself (None: until switched off)."""
+        until = self.engine.pause_until
+        return {"until": until.isoformat() if until else None}
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Pause until switched off."""
+        await self.engine.async_pause()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Resume."""
+        await self.engine.async_resume()

@@ -157,10 +157,10 @@ async def test_no_start_when_zone_disabled(
     assert started.calls == []
 
 
-async def test_scheduled_cycle_skipped_if_already_watering(
+async def test_scheduled_cycle_waits_for_manual_run(
     hass: HomeAssistant, freezer: FrozenDateTimeFactory, started: MockValve
 ) -> None:
-    """A manual run in progress is not interrupted by the schedule."""
+    """A cycle due while the zone is watering manually starts right after."""
     await hass.services.async_call(
         DOMAIN,
         "run_zone",
@@ -171,6 +171,13 @@ async def test_scheduled_cycle_skipped_if_already_watering(
     state = hass.states.get(WATERING)
     assert state.attributes["source"] == "manual"
     assert state.attributes["duration_min"] == 20
+
+    # Manual run ends at 06:19:30, then the cycle starts for its 10 minutes.
+    await _go_to(hass, freezer, MONDAY_0559 + timedelta(minutes=20))
+    state = hass.states.get(WATERING)
+    assert state.state == STATE_ON
+    assert state.attributes["source"] == "schedule"
+    assert state.attributes["duration_min"] == 10
 
 
 # ------------------------------------------------------------- manual runs

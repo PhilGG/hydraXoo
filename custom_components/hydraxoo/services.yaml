@@ -23,3 +23,16 @@ stop_zone:
           integration: hydraxoo
 
 stop_all:
+
+pause:
+  fields:
+    days:
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 365
+          unit_of_measurement: d
+          mode: box
+
+resume:

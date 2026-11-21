@@ -1,9 +1,13 @@
-"""Persistent storage of zones and cycles."""
+"""Persistent storage of zones, cycles and the pause state."""
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+from datetime import datetime
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .models import Zone
@@ -12,23 +16,45 @@ STORAGE_VERSION = 1
 STORAGE_KEY = f"{DOMAIN}.zones"
 
 
+@dataclass
+class StoredData:
+    """Everything hydraXoo keeps between restarts."""
+
+    zones: list[Zone] = field(default_factory=list)
+    paused: bool = False
+    pause_until: datetime | None = None  # None with paused=True: until resumed
+
+
 class ZoneStore:
-    """Load and save zones in Home Assistant's .storage folder."""
+    """Load and save data in Home Assistant's .storage folder."""
 
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize the store."""
         self._store: Store[dict] = Store(hass, STORAGE_VERSION, STORAGE_KEY)
 
-    async def async_load(self) -> list[Zone]:
-        """Return the saved zones (empty list on first start)."""
+    async def async_load(self) -> StoredData:
+        """Return the saved data (empty on first start)."""
         data = await self._store.async_load()
         if not data:
-            return []
-        return [Zone.from_dict(z) for z in data.get("zones", [])]
+            return StoredData()
+        until = data.get("pause_until")
+        return StoredData(
+            zones=[Zone.from_dict(z) for z in data.get("zones", [])],
+            paused=bool(data.get("paused", False)),
+            pause_until=dt_util.parse_datetime(until) if until else None,
+        )
 
-    async def async_save(self, zones: list[Zone]) -> None:
-        """Save all zones."""
-        await self._store.async_save({"zones": [z.to_dict() for z in zones]})
+    async def async_save(self, data: StoredData) -> None:
+        """Save everything."""
+        await self._store.async_save(
+            {
+                "zones": [z.to_dict() for z in data.zones],
+                "paused": data.paused,
+                "pause_until": (
+                    data.pause_until.isoformat() if data.pause_until else None
+                ),
+            }
+        )
 
     async def async_remove(self) -> None:
         """Delete the storage file."""

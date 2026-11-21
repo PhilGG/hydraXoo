@@ -30,7 +30,11 @@
       "settings": {
         "title": "General settings",
         "data": {
-          "weather_entity": "Weather entity"
+          "weather_entity": "Weather entity",
+          "sequence_mode": "Watering order"
+        },
+        "data_description": {
+          "sequence_mode": "With one zone at a time, a watering that comes up while another zone is watering waits its turn."
         }
       },
       "add_zone": {
@@ -56,17 +60,22 @@
           "zone": "Zone"
         }
       },
+      "zone_menu": {
+        "title": "Zone {zone}",
+        "menu_options": {
+          "edit_zone": "Zone settings (name, valve, safety)",
+          "add_cycle": "Add a cycle",
+          "pick_cycle": "Edit a cycle",
+          "remove_cycle": "Delete a cycle"
+        }
+      },
       "edit_zone": {
         "title": "Zone {zone}",
         "data": {
           "name": "Name",
           "icon": "Icon",
           "switch_entity": "Valve switch",
-          "max_runtime_min": "Safety cut-off",
-          "cycle_enabled": "Cycle enabled",
-          "start_time": "Start time",
-          "duration_min": "Duration",
-          "weekdays": "Days"
+          "max_runtime_min": "Safety cut-off"
         },
         "data_description": {
           "switch_entity": "The plug or relay that opens the solenoid valve.",
@@ -78,6 +87,37 @@
         "description": "The zone, its cycles and its entities will be deleted.",
         "data": {
           "zone": "Zone"
+        }
+      },
+      "add_cycle": {
+        "title": "New cycle — {zone}",
+        "data": {
+          "cycle_enabled": "Cycle enabled",
+          "start_time": "Start time",
+          "duration_min": "Duration",
+          "weekdays": "Days"
+        }
+      },
+      "pick_cycle": {
+        "title": "Edit a cycle — {zone}",
+        "data": {
+          "cycle": "Cycle"
+        }
+      },
+      "edit_cycle": {
+        "title": "Edit cycle — {zone}",
+        "data": {
+          "cycle_enabled": "Cycle enabled",
+          "start_time": "Start time",
+          "duration_min": "Duration",
+          "weekdays": "Days"
+        }
+      },
+      "remove_cycle": {
+        "title": "Delete a cycle — {zone}",
+        "description": "The cycle will be deleted.",
+        "data": {
+          "cycle": "Cycle"
         }
       }
     },
@@ -98,6 +138,12 @@
         "5": "Saturday",
         "6": "Sunday"
       }
+    },
+    "sequence_mode": {
+      "options": {
+        "sequential": "One zone at a time",
+        "parallel": "Zones in parallel"
+      }
     }
   },
   "entity": {
@@ -112,11 +158,17 @@
       },
       "remaining": {
         "name": "Time remaining"
+      },
+      "queue": {
+        "name": "Queue"
       }
     },
     "switch": {
       "zone_enabled": {
         "name": "Zone enabled"
+      },
+      "pause": {
+        "name": "Watering paused"
       }
     }
   },
@@ -148,6 +200,20 @@
     "stop_all": {
       "name": "Stop all zones",
       "description": "Closes every valve managed by hydraXoo."
+    },
+    "pause": {
+      "name": "Pause watering",
+      "description": "No cycle is started during the pause. Manual watering still works and a watering in progress is not stopped.",
+      "fields": {
+        "days": {
+          "name": "Days",
+          "description": "Number of days. If empty, until resumed."
+        }
+      }
+    },
+    "resume": {
+      "name": "Resume watering",
+      "description": "Ends the pause."
     }
   },
   "exceptions": {

@@ -30,7 +30,11 @@
       "settings": {
         "title": "Réglages généraux",
         "data": {
-          "weather_entity": "Entité météo"
+          "weather_entity": "Entité météo",
+          "sequence_mode": "Enchaînement des zones"
+        },
+        "data_description": {
+          "sequence_mode": "En mode une zone à la fois, un arrosage qui tombe pendant qu'une autre zone arrose attend son tour."
         }
       },
       "add_zone": {
@@ -56,17 +60,22 @@
           "zone": "Zone"
         }
       },
+      "zone_menu": {
+        "title": "Zone {zone}",
+        "menu_options": {
+          "edit_zone": "Réglages de la zone (nom, vanne, sécurité)",
+          "add_cycle": "Ajouter un cycle",
+          "pick_cycle": "Modifier un cycle",
+          "remove_cycle": "Supprimer un cycle"
+        }
+      },
       "edit_zone": {
         "title": "Zone {zone}",
         "data": {
           "name": "Nom",
           "icon": "Icône",
           "switch_entity": "Interrupteur de l'électrovanne",
-          "max_runtime_min": "Coupure de sécurité",
-          "cycle_enabled": "Cycle actif",
-          "start_time": "Heure de départ",
-          "duration_min": "Durée",
-          "weekdays": "Jours"
+          "max_runtime_min": "Coupure de sécurité"
         },
         "data_description": {
           "switch_entity": "La prise ou le relais qui ouvre l'électrovanne.",
@@ -78,6 +87,37 @@
         "description": "La zone, ses cycles et ses entités seront supprimés.",
         "data": {
           "zone": "Zone"
+        }
+      },
+      "add_cycle": {
+        "title": "Nouveau cycle — {zone}",
+        "data": {
+          "cycle_enabled": "Cycle actif",
+          "start_time": "Heure de départ",
+          "duration_min": "Durée",
+          "weekdays": "Jours"
+        }
+      },
+      "pick_cycle": {
+        "title": "Modifier un cycle — {zone}",
+        "data": {
+          "cycle": "Cycle"
+        }
+      },
+      "edit_cycle": {
+        "title": "Modifier le cycle — {zone}",
+        "data": {
+          "cycle_enabled": "Cycle actif",
+          "start_time": "Heure de départ",
+          "duration_min": "Durée",
+          "weekdays": "Jours"
+        }
+      },
+      "remove_cycle": {
+        "title": "Supprimer un cycle — {zone}",
+        "description": "Le cycle sera supprimé.",
+        "data": {
+          "cycle": "Cycle"
         }
       }
     },
@@ -98,6 +138,12 @@
         "5": "Samedi",
         "6": "Dimanche"
       }
+    },
+    "sequence_mode": {
+      "options": {
+        "sequential": "Une zone à la fois",
+        "parallel": "Zones en parallèle"
+      }
     }
   },
   "entity": {
@@ -112,11 +158,17 @@
       },
       "remaining": {
         "name": "Temps restant"
+      },
+      "queue": {
+        "name": "File d'attente"
       }
     },
     "switch": {
       "zone_enabled": {
         "name": "Zone active"
+      },
+      "pause": {
+        "name": "Pause de l'arrosage"
       }
     }
   },
@@ -148,6 +200,20 @@
     "stop_all": {
       "name": "Tout arrêter",
       "description": "Ferme toutes les vannes gérées par hydraXoo."
+    },
+    "pause": {
+      "name": "Mettre l'arrosage en pause",
+      "description": "Aucun cycle n'est lancé pendant la pause. L'arrosage manuel reste possible et un arrosage en cours n'est pas arrêté.",
+      "fields": {
+        "days": {
+          "name": "Jours",
+          "description": "Nombre de jours. Si vide, jusqu'à la reprise."
+        }
+      }
+    },
+    "resume": {
+      "name": "Reprendre l'arrosage",
+      "description": "Met fin à la pause."
     }
   },
   "exceptions": {

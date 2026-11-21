@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import HydraxooConfigEntry
-from .entity import HydraxooZoneEntity
+from .entity import HydraxooControllerEntity, HydraxooZoneEntity
 
 
 async def async_setup_entry(
@@ -21,7 +21,7 @@ async def async_setup_entry(
 ) -> None:
     """Create the sensors of each zone."""
     engine = entry.runtime_data
-    entities: list[SensorEntity] = []
+    entities: list[SensorEntity] = [QueueSensor(engine, entry.entry_id)]
     for zone in engine.zones.values():
         entities += [NextRunSensor(engine, zone), RemainingSensor(engine, zone)]
     async_add_entities(entities)
@@ -65,3 +65,33 @@ class RemainingSensor(HydraxooZoneEntity, SensorEntity):
     def native_value(self) -> int:
         """Seconds left (0 when idle)."""
         return self.engine.remaining_seconds(self.zone.id)
+
+
+class QueueSensor(HydraxooControllerEntity, SensorEntity):
+    """Number of waterings waiting for their turn, listed in attributes."""
+
+    def __init__(self, engine, entry_id: str) -> None:
+        """Initialize."""
+        super().__init__(engine, entry_id, "queue")
+
+    @property
+    def native_value(self) -> int:
+        """Number of queued waterings."""
+        return len(self.engine.queue)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """The queue, in order."""
+        return {
+            "items": [
+                {
+                    "zone_id": item.zone_id,
+                    "zone_name": self.engine.zones[item.zone_id].name,
+                    "duration_min": item.duration_min,
+                    "source": item.source,
+                    "cycle_id": item.cycle_id,
+                }
+                for item in self.engine.queue
+                if item.zone_id in self.engine.zones
+            ]
+        }

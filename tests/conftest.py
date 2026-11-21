@@ -66,6 +66,16 @@ async def valve(hass: HomeAssistant) -> MockValve:
     return entity
 
 
+@pytest.fixture
+async def two_valves(hass: HomeAssistant) -> tuple[MockValve, MockValve]:
+    """Two closed valves: switch.valve and switch.valve_2."""
+    first, second = MockValve("Valve"), MockValve("Valve 2")
+    setup_test_component_platform(hass, "switch", [first, second])
+    assert await async_setup_component(hass, "switch", {"switch": {"platform": "test"}})
+    await hass.async_block_till_done()
+    return first, second
+
+
 def zone_data(**overrides: Any) -> dict[str, Any]:
     """A stored zone: Monday and Thursday at 06:00 for 10 minutes."""
     cycle = {
@@ -98,9 +108,11 @@ def store_zones(hass_storage: dict[str, Any], zones: list[dict[str, Any]]) -> No
     }
 
 
-async def setup_entry(hass: HomeAssistant) -> MockConfigEntry:
+async def setup_entry(
+    hass: HomeAssistant, options: dict[str, Any] | None = None
+) -> MockConfigEntry:
     """Install the integration."""
-    entry = MockConfigEntry(domain=DOMAIN, title="hydraXoo", options={})
+    entry = MockConfigEntry(domain=DOMAIN, title="hydraXoo", options=options or {})
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()

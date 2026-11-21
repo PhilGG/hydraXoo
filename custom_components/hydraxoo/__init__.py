@@ -12,10 +12,17 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
+    ATTR_DAYS,
     ATTR_DURATION,
     ATTR_ZONE,
+    CONF_SEQUENCE_MODE,
+    CONTROLLER_ID,
     DOMAIN,
+    MAX_PAUSE_DAYS,
     MAX_RUNTIME_LIMIT,
+    MODE_PARALLEL,
+    SERVICE_PAUSE,
+    SERVICE_RESUME,
     SERVICE_RUN_ZONE,
     SERVICE_STOP_ALL,
     SERVICE_STOP_ZONE,
@@ -38,6 +45,13 @@ RUN_ZONE_SCHEMA = vol.Schema(
     }
 )
 STOP_ZONE_SCHEMA = vol.Schema({vol.Required(ATTR_ZONE): cv.string})
+PAUSE_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_DAYS): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=MAX_PAUSE_DAYS)
+        )
+    }
+)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -63,7 +77,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     async def run_zone(call: ServiceCall) -> None:
         engine = _engine()
-        await engine.async_start_zone(
+        await engine.async_request_zone(
             _zone_id(engine, call.data[ATTR_ZONE]), call.data.get(ATTR_DURATION)
         )
 
@@ -74,16 +88,29 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async def stop_all(call: ServiceCall) -> None:
         await _engine().async_stop_all()
 
+    async def pause(call: ServiceCall) -> None:
+        await _engine().async_pause(call.data.get(ATTR_DAYS))
+
+    async def resume(call: ServiceCall) -> None:
+        await _engine().async_resume()
+
     hass.services.async_register(DOMAIN, SERVICE_RUN_ZONE, run_zone, RUN_ZONE_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_STOP_ZONE, stop_zone, STOP_ZONE_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_STOP_ALL, stop_all)
+    hass.services.async_register(DOMAIN, SERVICE_PAUSE, pause, PAUSE_SCHEMA)
+    hass.services.async_register(DOMAIN, SERVICE_RESUME, resume)
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: HydraxooConfigEntry) -> bool:
     """Load the zones and start the engine."""
     store = ZoneStore(hass)
-    engine = HydraxooEngine(hass, store, await store.async_load())
+    engine = HydraxooEngine(
+        hass,
+        store,
+        await store.async_load(),
+        sequential=entry.options.get(CONF_SEQUENCE_MODE) != MODE_PARALLEL,
+    )
     entry.runtime_data = engine
 
     _remove_orphan_devices(hass, entry, engine)
@@ -115,7 +142,8 @@ def _remove_orphan_devices(
     registry = dr.async_get(hass)
     for device in dr.async_entries_for_config_entry(registry, entry.entry_id):
         if not any(
-            domain == DOMAIN and identifier in engine.zones
+            domain == DOMAIN
+            and (identifier in engine.zones or identifier == CONTROLLER_ID)
             for domain, identifier in device.identifiers
         ):
             registry.async_remove_device(device.id)
