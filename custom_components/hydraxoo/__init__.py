@@ -11,6 +11,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.typing import ConfigType
 
+from . import websocket_api
 from .const import (
     ATTR_DAYS,
     ATTR_DURATION,
@@ -31,6 +32,7 @@ from .const import (
     SERVICE_STOP_ZONE,
 )
 from .engine import HydraxooEngine
+from .frontend_setup import async_setup_frontend
 from .store import ZoneStore
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.SWITCH]
@@ -101,6 +103,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         engine = _engine()
         await engine.async_acknowledge_fault(_zone_id(engine, call.data[ATTR_ZONE]))
 
+    websocket_api.async_register(hass)
+    await async_setup_frontend(hass)
+
     hass.services.async_register(DOMAIN, SERVICE_RUN_ZONE, run_zone, RUN_ZONE_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_STOP_ZONE, stop_zone, STOP_ZONE_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_STOP_ALL, stop_all)
@@ -123,6 +128,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: HydraxooConfigEntry) -> 
         weather_entity=entry.options.get(CONF_WEATHER_ENTITY) or None,
         rain_sensor=entry.options.get(CONF_RAIN_SENSOR) or None,
     )
+    engine.entry_id = entry.entry_id
     entry.runtime_data = engine
 
     _remove_orphan_devices(hass, entry, engine)

@@ -30,6 +30,7 @@ from homeassistant.core import (
     callback,
 )
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.event import (
     async_call_later,
     async_track_point_in_utc_time,
@@ -66,7 +67,7 @@ from .const import (
     SOURCE_MANUAL,
     SOURCE_SCHEDULE,
 )
-from .models import Cycle, Zone
+from .models import Cycle, WeatherRules, Zone
 from .safety import CheckResult, ClosingCheck
 from .store import StoredData, ZoneStore
 from .weather import WeatherResult, WeatherService
@@ -141,6 +142,13 @@ class HydraxooEngine:
         # Safety cut-off for valves switched on outside hydraXoo
         self._external_cutoff: dict[str, CALLBACK_TYPE] = {}
         self._listeners: list[Callable[[], None]] = []
+        # Platforms register here to create the entities of new zones
+        self._zone_added: list[Callable[[Zone], None]] = []
+        self._switch_unsub: CALLBACK_TYPE | None = None
+        # Recent waterings and skipped cycles (today and yesterday), for the card
+        self.history: list[dict[str, Any]] = []
+        self.entry_id: str | None = None
+        self._shutdown_callbacks: list[Callable[[], None]] = []
         self._unsubs: list[CALLBACK_TYPE] = []
 
     # ------------------------------------------------------------------ setup
@@ -155,13 +163,7 @@ class HydraxooEngine:
         self._unsubs.append(
             async_track_time_change(self.hass, self._async_tick, second=0)
         )
-        switches = sorted({z.switch_entity for z in self.zones.values()})
-        if switches:
-            self._unsubs.append(
-                async_track_state_change_event(
-                    self.hass, switches, self._async_switch_changed
-                )
-            )
+        self._subscribe_switches()
         self._unsubs.append(
             self.hass.bus.async_listen_once(
                 EVENT_HOMEASSISTANT_STOP, self._async_on_ha_stop
@@ -179,7 +181,12 @@ class HydraxooEngine:
 
     async def async_shutdown(self) -> None:
         """Stop everything (integration unloaded or reloaded)."""
+        for notify_shutdown in list(self._shutdown_callbacks):
+            notify_shutdown()
         self.queue.clear()
+        if self._switch_unsub is not None:
+            self._switch_unsub()
+            self._switch_unsub = None
         self._cancel_pause_timer()
         while self._unsubs:
             unsub = self._unsubs.pop()
@@ -656,6 +663,17 @@ class HydraxooEngine:
 
     def _fire_finished(self, zone: Zone, run: ZoneRun, reason: str) -> None:
         elapsed = (dt_util.utcnow() - run.started).total_seconds()
+        self._record(
+            zone.id,
+            kind="run",
+            cycle_id=run.cycle_id,
+            source=run.source,
+            started=run.started.isoformat(),
+            duration_min=run.duration_min,
+            elapsed_min=round(elapsed / 60, 1),
+            reason=reason,
+            **(run.weather or {}),
+        )
         self._fire(
             EVENT_CYCLE_FINISHED,
             zone,
@@ -796,11 +814,149 @@ class HydraxooEngine:
             result = self.weather.compute(self.zones[zone_id])
         return result
 
+    # ------------------------------------------------------ zone management
+
+    def _subscribe_switches(self) -> None:
+        """(Re)listen to the valves of all zones."""
+        if self._switch_unsub is not None:
+            self._switch_unsub()
+            self._switch_unsub = None
+        switches = sorted({z.switch_entity for z in self.zones.values()})
+        if switches:
+            self._switch_unsub = async_track_state_change_event(
+                self.hass, switches, self._async_switch_changed
+            )
+
+    @callback
+    def async_on_shutdown(self, notify: Callable[[], None]) -> CALLBACK_TYPE:
+        """Register a callback run when the engine stops (e.g. reload)."""
+        self._shutdown_callbacks.append(notify)
+
+        @callback
+        def remove() -> None:
+            if notify in self._shutdown_callbacks:
+                self._shutdown_callbacks.remove(notify)
+
+        return remove
+
+    @callback
+    def async_on_zone_added(self, add: Callable[[Zone], None]) -> CALLBACK_TYPE:
+        """Register a platform callback creating the entities of a new zone."""
+        self._zone_added.append(add)
+
+        @callback
+        def remove() -> None:
+            self._zone_added.remove(add)
+
+        return remove
+
+    async def async_save_zone(self, data: dict[str, Any]) -> Zone:
+        """Create or update a zone from the card, without reloading.
+
+        Existing objects are updated in place so entities keep their zone.
+        """
+        zone_id = data.get("id")
+        incoming = Zone.from_dict(
+            {"id": zone_id or "", "name": "", "switch_entity": ""} | data
+        )
+        zone = self.zones.get(zone_id) if zone_id else None
+        if zone is None:
+            if not zone_id:
+                incoming.id = Zone(name="", switch_entity="").id
+            zone = incoming
+            self.zones[zone.id] = zone
+            await self.async_save()
+            for add in list(self._zone_added):
+                add(zone)
+        else:
+            old_switch = zone.switch_entity
+            if old_switch != incoming.switch_entity and zone.id in self.runs:
+                await self._async_close_zone(zone.id, END_MANUAL_STOP)
+            for attr in (
+                "name",
+                "icon",
+                "enabled",
+                "switch_entity",
+                "max_runtime_min",
+                "power_entity",
+                "safety",
+                "exposure",
+                "weather_rules",
+                "cycles",
+            ):
+                setattr(zone, attr, getattr(incoming, attr))
+            await self.async_save()
+            self._rename_device(zone)
+        self._subscribe_switches()
+        self.weather_results[zone.id] = self.weather.compute(zone)
+        self._notify()
+        return zone
+
+    async def async_delete_zone(self, zone_id: str) -> None:
+        """Delete a zone, its device and its entities."""
+        if zone_id not in self.zones:
+            return
+        self._drop_queued(lambda item: item.zone_id == zone_id)
+        await self._async_close_zone(zone_id, END_MANUAL_STOP, check=False)
+        task = self.checking.pop(zone_id, None)
+        if task is not None:
+            task.cancel()
+        self.zones.pop(zone_id)
+        self.weather_results.pop(zone_id, None)
+        self.last_check.pop(zone_id, None)
+        await self.async_save()
+        registry = dr.async_get(self.hass)
+        device = self._zone_device(zone_id)
+        if device is not None:
+            registry.async_remove_device(device.id)
+        self._subscribe_switches()
+        self._notify()
+        await self._async_process_queue()
+
+    def _zone_device(self, zone_id: str) -> dr.DeviceEntry | None:
+        """The zone's device (works before and after HA 2026.10)."""
+        if self.entry_id is None:
+            return None
+        registry = dr.async_get(self.hass)
+        if hasattr(registry, "async_get_device_by_identifier"):
+            return registry.async_get_device_by_identifier(
+                (DOMAIN, zone_id), self.entry_id
+            )
+        return registry.async_get_device(identifiers={(DOMAIN, zone_id)})
+
+    def _rename_device(self, zone: Zone) -> None:
+        device = self._zone_device(zone.id)
+        if device is not None and device.name != zone.name:
+            dr.async_get(self.hass).async_update_device(device.id, name=zone.name)
+
+    def global_weather(self) -> WeatherResult:
+        """Coefficient with the default rule, for the card's weather banner."""
+        return self.weather.compute(
+            Zone(name="", switch_entity="", weather_rules=WeatherRules())
+        )
+
+    def _record(self, zone_id: str, **data: Any) -> None:
+        """Keep today's and yesterday's waterings and skipped cycles."""
+        self.history.append({"zone_id": zone_id, **data})
+        limit = dt_util.utcnow() - timedelta(hours=48)
+        self.history = [
+            h
+            for h in self.history
+            if (t := dt_util.parse_datetime(h.get("started", ""))) is None or t >= limit
+        ]
+
     def _fire_skipped(
         self, zone_id: str, cycle_id: str | None, reason: str, **extra: Any
     ) -> None:
         zone = self.zones.get(zone_id)
         if zone is not None:
+            self._record(
+                zone_id,
+                kind="skipped",
+                cycle_id=cycle_id,
+                started=dt_util.utcnow().isoformat(),
+                reason=reason,
+            )
             self._fire(
                 EVENT_CYCLE_SKIPPED, zone, cycle_id=cycle_id, reason=reason, **extra
             )

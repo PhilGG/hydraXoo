@@ -8,3 +8,15 @@ services:
     working_dir: /workspace
     environment:
       - PYTHONDONTWRITEBYTECODE=1
+
+  # Tooling for the Lovelace card. node_modules stays in a Docker volume,
+  # so nothing is installed in the project folder or on the host.
+  node:
+    image: node:22-bookworm-slim
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/frontend/node_modules
+    working_dir: /workspace/frontend
+
+volumes:
+  node_modules:

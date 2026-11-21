@@ -6,7 +6,7 @@
 
 Arrosage automatique par zones pour Home Assistant, libre et gratuit, entièrement configurable depuis l'interface — sans YAML.
 
-> **État : début du développement (0.0.x).** Les zones, les cycles, la file d'attente, la pause, l'arrosage manuel, la coupure de sécurité, le contrôle de fermeture et l'ajustement météo fonctionnent. La carte Lovelace arrive.
+> **État : début du développement (0.0.x).** Les zones, les cycles, la file d'attente, la pause, l'arrosage manuel, la coupure de sécurité, le contrôle de fermeture, l'ajustement météo et la carte Lovelace fonctionnent. D'autres langues et la première version publique arrivent.
 
 ## Ce que fait hydraXoo
 
@@ -29,6 +29,25 @@ Nécessite Home Assistant 2026.3 ou plus récent.
 3. Ouvrez hydraXoo dans le Marketplace, installez-le, puis redémarrez Home Assistant.
 4. hydraXoo est en général proposé automatiquement après le redémarrage. Sinon, allez dans **Paramètres › Appareils et services › Ajouter une intégration** et choisissez **hydraXoo**.
 5. Utilisez le bouton **Configurer** de l'intégration pour ajouter zones et cycles, et choisir l'enchaînement des zones.
+
+## La carte
+
+hydraXoo fournit sa propre carte de tableau de bord : rien d'autre à installer. Après une installation ou une mise à jour, rafraîchissez votre navigateur.
+
+Ajoutez-la depuis l'éditeur du tableau de bord (**Ajouter une carte › hydraXoo**) ou en YAML :
+
+```yaml
+type: custom:hydraxoo-card
+title: Arrosage        # facultatif
+compact: false         # facultatif : masque la frise et les listes de cycles
+zones: []              # facultatif : identifiants des zones affichées, toutes si vide
+```
+
+- **Tableau de bord** : bandeau météo (coefficient du jour et raison), dernier contrôle de fermeture, frise de 24 h, une carte par zone (interrupteur, prochain passage, cycles du jour avec durée de base et durée ajustée, **Arroser maintenant** avec une durée choisie, **Modifier**).
+- **Réglages d'une zone** : électrovanne et contrôle de fermeture, cycles (activation, heure, durée −/+, jours, ajout, suppression), règle météo, **Enregistrer**. Les modifications s'appliquent immédiatement.
+- **Nouvelle zone** : nom, icône, exposition, interrupteur de la vanne et capteur de consommation, puis les cycles.
+
+La modification est réservée aux administrateurs. Les thèmes clair et sombre suivent Home Assistant.
 
 ## Entités
 
@@ -104,7 +123,10 @@ Tout tourne dans Docker ; rien d'autre n'est nécessaire sur votre machine.
 ./dev build   # construire l'image de développement
 ./dev test    # lancer les tests
 ./dev lint    # vérifier le style du code
+./dev card    # vérifier, tester et compiler la carte Lovelace (Node tourne aussi dans Docker)
 ```
+
+Les sources de la carte sont dans `frontend/` (TypeScript + Lit). `custom_components/hydraxoo/frontend/hydraxoo-card.js` est généré par `./dev card` : ne pas le modifier à la main.
 
 ## Licence
 

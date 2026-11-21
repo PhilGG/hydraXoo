@@ -22,6 +22,11 @@ async def async_setup_entry(
     entities: list[SwitchEntity] = [PauseSwitch(engine, entry.entry_id)]
     entities += [ZoneEnabledSwitch(engine, z) for z in engine.zones.values()]
     async_add_entities(entities)
+    entry.async_on_unload(
+        engine.async_on_zone_added(
+            lambda zone: async_add_entities([ZoneEnabledSwitch(engine, zone)])
+        )
+    )
 
 
 class ZoneEnabledSwitch(HydraxooZoneEntity, SwitchEntity):

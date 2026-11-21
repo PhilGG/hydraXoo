@@ -25,14 +25,21 @@ async def async_setup_entry(
 ) -> None:
     """Create the sensors of each zone."""
     engine = entry.runtime_data
-    entities: list[SensorEntity] = [QueueSensor(engine, entry.entry_id)]
-    for zone in engine.zones.values():
-        entities += [
+
+    def zone_entities(zone) -> list[SensorEntity]:
+        return [
             NextRunSensor(engine, zone),
             RemainingSensor(engine, zone),
             WeatherCoefficientSensor(engine, zone),
         ]
+
+    entities: list[SensorEntity] = [QueueSensor(engine, entry.entry_id)]
+    for zone in engine.zones.values():
+        entities += zone_entities(zone)
     async_add_entities(entities)
+    entry.async_on_unload(
+        engine.async_on_zone_added(lambda zone: async_add_entities(zone_entities(zone)))
+    )
 
 
 class NextRunSensor(HydraxooZoneEntity, SensorEntity):

@@ -1,13 +1,23 @@
 {
   "domain": "hydraxoo",
   "name": "hydraXoo",
-  "codeowners": ["@PhilGG"],
+  "after_dependencies": [
+    "frontend",
+    "lovelace"
+  ],
+  "codeowners": [
+    "@PhilGG"
+  ],
   "config_flow": true,
+  "dependencies": [
+    "http",
+    "websocket_api"
+  ],
   "documentation": "https://github.com/PhilGG/hydraXoo",
   "integration_type": "service",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/PhilGG/hydraXoo/issues",
   "requirements": [],
   "single_config_entry": true,
-  "version": "0.0.4"
+  "version": "0.0.5"
 }

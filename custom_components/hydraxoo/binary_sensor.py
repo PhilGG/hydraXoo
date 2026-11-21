@@ -22,13 +22,17 @@ async def async_setup_entry(
 ) -> None:
     """Create the binary sensors of each zone."""
     engine = entry.runtime_data
+
+    def zone_entities(zone) -> list[BinarySensorEntity]:
+        return [WateringBinarySensor(engine, zone), FaultBinarySensor(engine, zone)]
+
     entities: list[BinarySensorEntity] = []
     for zone in engine.zones.values():
-        entities += [
-            WateringBinarySensor(engine, zone),
-            FaultBinarySensor(engine, zone),
-        ]
+        entities += zone_entities(zone)
     async_add_entities(entities)
+    entry.async_on_unload(
+        engine.async_on_zone_added(lambda zone: async_add_entities(zone_entities(zone)))
+    )
 
 
 class WateringBinarySensor(HydraxooZoneEntity, BinarySensorEntity):
