@@ -97,7 +97,7 @@
             },
             "data_description": {
               "skip_mm": "At or above this forecast the cycle is skipped. Also the amount of rain that replaces a full watering.",
-              "heat_bonus_pct": "Duration increased by this percentage on hot days. 0 = never.",
+              "heat_bonus_pct": "Duration increased by this percentage on hot days. 0 = normal duration, never increased.",
               "min_pct": "Above 0, the zone is always watered a little, unless enough rain is expected.",
               "heat_threshold_c": "Highest temperature expected during the day."
             }
@@ -166,7 +166,7 @@
             },
             "data_description": {
               "skip_mm": "At or above this forecast the cycle is skipped. Also the amount of rain that replaces a full watering.",
-              "heat_bonus_pct": "Duration increased by this percentage on hot days. 0 = never.",
+              "heat_bonus_pct": "Duration increased by this percentage on hot days. 0 = normal duration, never increased.",
               "min_pct": "Above 0, the zone is always watered a little, unless enough rain is expected.",
               "heat_threshold_c": "Highest temperature expected during the day."
             }

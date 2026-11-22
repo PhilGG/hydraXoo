@@ -18,7 +18,7 @@ import "./zone-form";
 
 type View = { name: "dashboard" } | { name: "zone"; id: string } | { name: "new" };
 
-const VERSION = "0.0.6";
+const VERSION = "0.0.7";
 
 export class HydraxooCard extends LitElement {
   static properties = {

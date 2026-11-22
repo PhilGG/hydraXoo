@@ -148,7 +148,7 @@
     "past": "Rain fallen taken into account",
     "past_hint": "Over the last hours",
     "heat": "Water more on hot days",
-    "heat_hint": "Duration increased by this percentage · 0 % = never",
+    "heat_hint": "Duration increased by this percentage · 0 % = normal duration",
     "heat_threshold": "Hot day from",
     "heat_threshold_hint": "Highest temperature expected during the day",
     "heat_summary": "If the day is expected to reach {t} °C or more, the duration is increased by {pct} %.",

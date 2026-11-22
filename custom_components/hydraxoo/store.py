@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
@@ -25,6 +26,8 @@ class StoredData:
     pause_until: datetime | None = None  # None with paused=True: until resumed
     rain_history: dict[str, float] = field(default_factory=dict)  # hour -> mm
     rain_total: float | None = None  # last value of the rain sensor
+    # Waterings and skipped cycles of the last 48 h (shown by the card)
+    history: list[dict[str, Any]] = field(default_factory=list)
 
 
 class ZoneStore:
@@ -48,6 +51,7 @@ class ZoneStore:
                 k: float(v) for k, v in (data.get("rain_history") or {}).items()
             },
             rain_total=data.get("rain_total"),
+            history=list(data.get("history") or []),
         )
 
     async def async_save(self, data: StoredData) -> None:
@@ -61,6 +65,7 @@ class ZoneStore:
                 ),
                 "rain_history": data.rain_history,
                 "rain_total": data.rain_total,
+                "history": data.history,
             }
         )
 

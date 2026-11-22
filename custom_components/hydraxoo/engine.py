@@ -149,7 +149,7 @@ class HydraxooEngine:
         self._zone_added: list[Callable[[Zone], None]] = []
         self._entity_unsubs: list[CALLBACK_TYPE] = []
         # Recent waterings and skipped cycles (today and yesterday), for the card
-        self.history: list[dict[str, Any]] = []
+        self.history: list[dict[str, Any]] = list(data.history)
         self.entry_id: str | None = None
         self._shutdown_callbacks: list[Callable[[], None]] = []
         self._unsubs: list[CALLBACK_TYPE] = []
@@ -311,6 +311,7 @@ class HydraxooEngine:
                 pause_until=self.pause_until,
                 rain_history=self.weather.history,
                 rain_total=self.weather.rain_total,
+                history=self.history,
             )
         )
 
@@ -1023,6 +1024,8 @@ class HydraxooEngine:
             for h in self.history
             if (t := dt_util.parse_datetime(h.get("started", ""))) is None or t >= limit
         ]
+        # Saved so that "done" / "skipped" survive a restart.
+        self.hass.async_create_task(self.async_save())
 
     def _fire_skipped(
         self, zone_id: str, cycle_id: str | None, reason: str, **extra: Any

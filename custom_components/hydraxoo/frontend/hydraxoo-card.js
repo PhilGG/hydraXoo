@@ -657,7 +657,7 @@ var q = {
 		past: "Rain fallen taken into account",
 		past_hint: "Over the last hours",
 		heat: "Water more on hot days",
-		heat_hint: "Duration increased by this percentage · 0 % = never",
+		heat_hint: "Duration increased by this percentage · 0 % = normal duration",
 		heat_threshold: "Hot day from",
 		heat_threshold_hint: "Highest temperature expected during the day",
 		heat_summary: "If the day is expected to reach {t} °C or more, the duration is increased by {pct} %.",
@@ -860,7 +860,7 @@ var q = {
 			past: "Pluie tombée prise en compte",
 			past_hint: "Sur les dernières heures",
 			heat: "Arroser plus les jours chauds",
-			heat_hint: "Durée allongée de ce pourcentage · 0 % = jamais",
+			heat_hint: "Durée allongée de ce pourcentage · 0 % = durée normale",
 			heat_threshold: "Jour chaud à partir de",
 			heat_threshold_hint: "Température maximale prévue dans la journée",
 			heat_summary: "Si la journée doit atteindre {t} °C ou plus, la durée est allongée de {pct} %.",
@@ -2174,7 +2174,7 @@ var Le = class extends K {
 };
 customElements.get("hydraxoo-zone-form") || customElements.define("hydraxoo-zone-form", Le);
 // src/hydraxoo-card.ts
-var Re = "0.0.6", ze = class extends K {
+var Re = "0.0.7", ze = class extends K {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:hydraxoo-card" }, this._state = null, this._view = { name: "dashboard" }, this._error = "", this._runFor = null, this._runMinutes = 10, this._subscribing = !1;
 	}

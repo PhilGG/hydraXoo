@@ -216,3 +216,25 @@ async def test_history_records_runs(
     assert history[-1]["kind"] == "run"
     assert history[-1]["reason"] == "manual_stop"
     assert history[-1]["zone_id"] == ZONE_ID
+
+
+async def test_history_survives_restart(
+    hass: HomeAssistant,
+    hass_storage: dict[str, Any],
+    hass_ws_client,
+    valve: MockValve,
+) -> None:
+    """Done and skipped cycles are kept when Home Assistant restarts."""
+    store_zones(hass_storage, [zone_data()])
+    entry = await setup_entry(hass)
+    _, call = await _client(hass, hass_ws_client)
+    await call("zone/run", zone_id=ZONE_ID, duration=2)
+    await call("zone/stop", zone_id=ZONE_ID)
+    await hass.async_block_till_done()
+    assert hass_storage["hydraxoo.zones"]["data"]["history"][-1]["kind"] == "run"
+
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    history = entry.runtime_data.history
+    assert history[-1]["kind"] == "run"
+    assert history[-1]["zone_id"] == ZONE_ID

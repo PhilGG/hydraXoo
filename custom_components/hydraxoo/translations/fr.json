@@ -97,7 +97,7 @@
             },
             "data_description": {
               "skip_mm": "À partir de cette prévision, le cycle est sauté. C'est aussi la quantité de pluie qui remplace un arrosage complet.",
-              "heat_bonus_pct": "Durée allongée de ce pourcentage les jours chauds. 0 = jamais.",
+              "heat_bonus_pct": "Durée allongée de ce pourcentage les jours chauds. 0 = durée normale, sans allongement.",
               "min_pct": "Au-dessus de 0, la zone est toujours un peu arrosée, sauf si assez de pluie est prévue.",
               "heat_threshold_c": "Température maximale prévue dans la journée."
             }
@@ -166,7 +166,7 @@
             },
             "data_description": {
               "skip_mm": "À partir de cette prévision, le cycle est sauté. C'est aussi la quantité de pluie qui remplace un arrosage complet.",
-              "heat_bonus_pct": "Durée allongée de ce pourcentage les jours chauds. 0 = jamais.",
+              "heat_bonus_pct": "Durée allongée de ce pourcentage les jours chauds. 0 = durée normale, sans allongement.",
               "min_pct": "Au-dessus de 0, la zone est toujours un peu arrosée, sauf si assez de pluie est prévue.",
               "heat_threshold_c": "Température maximale prévue dans la journée."
             }

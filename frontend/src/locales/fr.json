@@ -148,7 +148,7 @@
     "past": "Pluie tombée prise en compte",
     "past_hint": "Sur les dernières heures",
     "heat": "Arroser plus les jours chauds",
-    "heat_hint": "Durée allongée de ce pourcentage · 0 % = jamais",
+    "heat_hint": "Durée allongée de ce pourcentage · 0 % = durée normale",
     "heat_threshold": "Jour chaud à partir de",
     "heat_threshold_hint": "Température maximale prévue dans la journée",
     "heat_summary": "Si la journée doit atteindre {t} °C ou plus, la durée est allongée de {pct} %.",
