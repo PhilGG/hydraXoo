@@ -31,7 +31,7 @@ for (const lang of ["en", "fr"]) {
     deviceScaleFactor: 2,
     locale: tag,
   });
-  for (const view of ["dashboard", "zone", "new"]) {
+  for (const view of ["dashboard", "zone", "new", "settings"]) {
     await page.goto(`http://localhost:8800/shots.html?lang=${lang}&view=${view}`);
     await page.waitForSelector("body[data-ready='1']");
     await page.locator("#shot").screenshot({ path: `${OUT}/${view}-${lang}.png` });

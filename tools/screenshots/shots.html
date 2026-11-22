@@ -83,7 +83,9 @@
   ];
   const state = {
     now: new RealDate(FIXED).toISOString(),
-    settings: { weather_entity: "weather.home", weather_name: L.weather, rain_sensor: null, sequential: true, paused: false, pause_until: null },
+    settings: { weather_entity: "weather.home", weather_name: L.weather, rain_sensor: null, rain_name: null, sequential: true, paused: false, pause_until: null,
+      notify_services: ["mobile_app_phone"],
+      notify_options: [{ value: "mobile_app_phone", label: lang === "fr" ? "iPhone de Camille" : "Camille's iPhone" }, { value: "mobile_app_tablet", label: lang === "fr" ? "Tablette du salon" : "Living room tablet" }] },
     weather: weather(60),
     last_check: { zone_id: "ter", zone_name: L.terrace, result: "confirmed", retries: 1, power_w: 0, time: at("07:10") },
     queue: [], zones,
@@ -100,6 +102,7 @@
       "switch.valve_lawn": { entity_id: "switch.valve_lawn", state: "on", attributes: {} },
       "switch.valve_terrace": { entity_id: "switch.valve_terrace", state: "off", attributes: {} },
       "switch.valve_roses": { entity_id: "switch.valve_roses", state: "off", attributes: { friendly_name: lang === "fr" ? "Vanne rosiers" : "Rose bed valve" } },
+      "weather.home": { entity_id: "weather.home", state: "sunny", attributes: { friendly_name: L.weather } },
       "sensor.valve_vegetables_power": { entity_id: "sensor.valve_vegetables_power", state: "0", attributes: { device_class: "power", friendly_name: lang === "fr" ? "Consommation vanne potager" : "Vegetable garden valve power" } },
     },
     connection: { subscribeMessage: async (cb) => { cb(state); return () => {}; } },
@@ -112,6 +115,7 @@
   await card.updateComplete;
   if (view === "zone") card._view = { name: "zone", id: "veg" };
   if (view === "new") card._view = { name: "new" };
+  if (view === "settings") card._view = { name: "settings" };
   await card.updateComplete;
   if (view === "new") {
     const form = card.shadowRoot.querySelector("hydraxoo-zone-form");

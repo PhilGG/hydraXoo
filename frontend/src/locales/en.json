@@ -198,5 +198,30 @@
     "title": "Title",
     "compact": "Compact display",
     "zones": "Zones shown (all when empty)"
+  },
+  "settings_screen": {
+    "weather": "Weather",
+    "weather_entity": "Weather entity",
+    "weather_hint": "Used to adjust watering to rain and heat. Hourly forecasts give the best results.",
+    "rain_sensor": "Rain gauge (optional)",
+    "rain_hint": "Cumulative, in mm. Without it, the rain fallen is estimated from the forecast.",
+    "none": "None",
+    "order": "Watering order",
+    "sequential": "One zone at a time",
+    "sequential_desc": "The others wait their turn",
+    "parallel": "Zones in parallel",
+    "parallel_desc": "Each zone starts at its own time",
+    "pause": "Pause",
+    "pause_off": "Watering is active. Pause it for:",
+    "pause_day": "1 day",
+    "pause_days": "{n} days",
+    "pause_until_resumed": "Until resumed",
+    "alerts": "Alerts",
+    "alerts_hint": "Phones alerted with high priority if a valve stays open despite the retries.",
+    "no_phone": "No phone with the Home Assistant app was found.",
+    "test": "Send a test notification",
+    "test_sent": "Test notification sent.",
+    "test_failed": "Could not send to: {names}",
+    "advanced": "Advanced settings of the integration"
   }
 }

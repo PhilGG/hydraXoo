@@ -13,14 +13,16 @@ Arrosage automatique par zones pour Home Assistant, libre et gratuit. Tout se r�
 
 <table>
   <tr>
-    <td><img src="docs/images/dashboard-fr.png" width="260" alt="Tableau de bord : bandeau météo, dernier contrôle de fermeture, frise du jour et une carte par zone"></td>
-    <td><img src="docs/images/zone-fr.png" width="260" alt="Réglages d'une zone : électrovanne et contrôle de fermeture, cycles et jours, règle météo"></td>
-    <td><img src="docs/images/new-fr.png" width="260" alt="Nouvelle zone : nom, icône, pluie, interrupteur de la vanne et capteur de consommation"></td>
+    <td><img src="docs/images/dashboard-fr.png" width="200" alt="Tableau de bord : bandeau météo, dernier contrôle de fermeture, frise du jour et une carte par zone"></td>
+    <td><img src="docs/images/zone-fr.png" width="200" alt="Réglages d'une zone : électrovanne et contrôle de fermeture, cycles et jours, règle météo"></td>
+    <td><img src="docs/images/new-fr.png" width="200" alt="Nouvelle zone : nom, icône, pluie, interrupteur de la vanne et capteur de consommation"></td>
+    <td><img src="docs/images/settings-fr.png" width="200" alt="Réglages généraux : météo, enchaînement, pause, alertes sur téléphone avec bouton de test"></td>
   </tr>
   <tr>
     <td align="center">Tableau de bord</td>
     <td align="center">Réglages d'une zone</td>
     <td align="center">Nouvelle zone</td>
+    <td align="center">Réglages généraux</td>
   </tr>
 </table>
 
@@ -66,7 +68,7 @@ Copiez `custom_components/hydraxoo` depuis la [dernière version](https://github
 
 ## Premiers pas
 
-1. À l'installation, choisissez (tout est facultatif et modifiable ensuite dans **Configurer › Réglages généraux**) :
+1. À l'installation, choisissez (tout est facultatif et modifiable ensuite avec le bouton ⚙ de la carte ou dans **Configurer › Réglages généraux**) :
    - l'**entité météo** ;
    - un **capteur de pluie** (pluviomètre cumulatif en mm) ;
    - l'**enchaînement des zones** : *une zone à la fois* (par défaut) ou *zones en parallèle* ;
@@ -99,6 +101,8 @@ Ces options existent aussi dans l'éditeur visuel de la carte.
 **Réglages d'une zone** : électrovanne et contrôle de fermeture, coupure de sécurité, cycles (activation, heure, durée −/+, jours, ajout, suppression), météo (reçoit la pluie, règles pluie, bonus chaleur), **Enregistrer**, **Supprimer cette zone**. Les modifications s'appliquent immédiatement, sans rien redémarrer.
 
 **Nouvelle zone** : nom, cinq icônes, reçoit la pluie ou non, interrupteur de la vanne, capteur de consommation.
+
+**Réglages généraux** (bouton ⚙) : entité météo et pluviomètre, enchaînement des zones, pause pendant 1, 3 ou 7 jours ou jusqu'à la reprise, téléphones à prévenir — affichés par leur nom — avec un bouton **Envoyer une notification de test**. Ils s'appliquent immédiatement, sans couper un arrosage en cours. **Réglages avancés de l'intégration** ouvre les écrans de Home Assistant.
 
 La modification et les réglages sont réservés aux administrateurs ; les autres utilisateurs peuvent arroser, arrêter et activer les zones.
 
@@ -152,7 +156,7 @@ Une zone qui **ne reçoit pas la pluie** ignore les étapes 1 et 2 : seul le bon
 3. au-dessus : rallume la vanne pendant la durée de **relance** (5 s), l'éteint, et revient à l'étape 1 ;
 4. après le **nombre maximal de relances** (5) : la zone passe en **défaut**.
 
-Une zone en défaut n'arrose plus jusqu'à l'acquittement (bouton de la carte ou `hydraxoo.acknowledge_fault`). Une notification s'affiche dans Home Assistant et, si des téléphones sont choisis dans **Réglages généraux › Notifications sur mobile**, une alerte en priorité haute leur est envoyée (retirée à l'acquittement).
+Une zone en défaut n'arrose plus jusqu'à l'acquittement (bouton de la carte ou `hydraxoo.acknowledge_fault`). Une notification s'affiche dans Home Assistant et, si des téléphones sont choisis dans les **Réglages généraux › Alertes** de la carte (ou **Configurer › Réglages généraux › Notifications sur mobile**), une alerte en priorité haute leur est envoyée (retirée à l'acquittement).
 
 Le contrôle a lieu après chaque fermeture (fin d'arrosage, Arrêter, coupure, vanne éteinte à la main), au démarrage, et **à tout moment** si une prise éteinte se met à consommer — vanne bloquée, ou prise revenue en ligne après un redémarrage. Une prise allumée exprès n'est pas touchée (la coupure de sécurité s'applique toujours).
 

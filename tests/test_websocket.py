@@ -7,6 +7,10 @@ from typing import Any
 from homeassistant.const import STATE_ON
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_mock_service,
+)
 
 from custom_components.hydraxoo.const import DOMAIN
 
@@ -238,3 +242,96 @@ async def test_history_survives_restart(
     history = entry.runtime_data.history
     assert history[-1]["kind"] == "run"
     assert history[-1]["zone_id"] == ZONE_ID
+
+
+async def test_save_settings_live_without_reload(
+    hass: HomeAssistant,
+    hass_storage: dict[str, Any],
+    hass_ws_client,
+    valve: MockValve,
+) -> None:
+    """General settings from the card apply at once; watering goes on."""
+    store_zones(hass_storage, [zone_data()])
+    entry = await setup_entry(hass)
+    engine = entry.runtime_data
+    _, call = await _client(hass, hass_ws_client)
+    await call("zone/run", zone_id=ZONE_ID, duration=5)
+
+    result = await call(
+        "settings/save",
+        weather_entity="weather.home",
+        sequential=False,
+        notify_services=["mobile_app_pixel"],
+    )
+    assert result["success"], result
+    await hass.async_block_till_done()
+    assert entry.runtime_data is engine  # not reloaded
+    assert ZONE_ID in engine.runs  # watering not interrupted
+    assert engine.sequential is False
+    assert engine.weather.weather_entity == "weather.home"
+    assert engine.notify_services == ["mobile_app_pixel"]
+    assert entry.options == {
+        "weather_entity": "weather.home",
+        "sequence_mode": "parallel",
+        "notify_services": ["mobile_app_pixel"],
+    }
+
+    # Clearing the weather entity removes it from the options
+    result = await call("settings/save", weather_entity=None)
+    assert result["success"]
+    assert "weather_entity" not in entry.options
+    assert engine.weather.weather_entity is None
+
+
+async def test_settings_from_ha_screens_still_reload(
+    hass: HomeAssistant, hass_storage: dict[str, Any], valve: MockValve
+) -> None:
+    """Options changed elsewhere (not applied live) still reload."""
+    entry = await setup_entry(hass)
+    engine = entry.runtime_data
+    hass.config_entries.async_update_entry(entry, options={"sequence_mode": "parallel"})
+    await hass.async_block_till_done()
+    assert entry.runtime_data is not engine
+    assert entry.runtime_data.sequential is False
+
+
+async def test_test_notification(
+    hass: HomeAssistant,
+    hass_storage: dict[str, Any],
+    hass_ws_client,
+    valve: MockValve,
+) -> None:
+    """The test button sends a translated, high-priority alert."""
+    phone = async_mock_service(hass, "notify", "mobile_app_pixel")
+    await setup_entry(hass)
+    _, call = await _client(hass, hass_ws_client)
+    result = await call("notify/test", services=["mobile_app_pixel", "mobile_app_gone"])
+    assert result["result"] == {
+        "sent": ["mobile_app_pixel"],
+        "failed": ["mobile_app_gone"],
+    }
+    assert phone[0].data["title"] == "hydraXoo: test notification"
+    assert phone[0].data["data"]["priority"] == "high"
+
+
+async def test_state_lists_phones_by_name(
+    hass: HomeAssistant,
+    hass_storage: dict[str, Any],
+    hass_ws_client,
+    valve: MockValve,
+) -> None:
+    """The card gets the phones with their names."""
+    MockConfigEntry(
+        domain="mobile_app",
+        title="iPhone de Phil",
+        data={"device_name": "iPhone de Phil"},
+    ).add_to_hass(hass)
+    hass.services.async_register("notify", "mobile_app_iphone_de_phil", lambda c: None)
+    await setup_entry(hass, {"notify_services": ["mobile_app_iphone_de_phil"]})
+    client, call = await _client(hass, hass_ws_client)
+    await call("subscribe")
+    settings = (await client.receive_json())["event"]["settings"]
+    assert settings["notify_options"] == [
+        {"value": "mobile_app_iphone_de_phil", "label": "iPhone de Phil"}
+    ]
+    assert settings["notify_services"] == ["mobile_app_iphone_de_phil"]

@@ -13,14 +13,16 @@ Free and open-source zone-based irrigation for Home Assistant. Everything is set
 
 <table>
   <tr>
-    <td><img src="docs/images/dashboard-en.png" width="260" alt="Dashboard: weather banner, last closing check, today's timeline and one card per zone"></td>
-    <td><img src="docs/images/zone-en.png" width="260" alt="Zone settings: valve and closing check, cycles with days, weather rule"></td>
-    <td><img src="docs/images/new-en.png" width="260" alt="New zone: name, icon, rain exposure, valve switch and power sensor"></td>
+    <td><img src="docs/images/dashboard-en.png" width="200" alt="Dashboard: weather banner, last closing check, today's timeline and one card per zone"></td>
+    <td><img src="docs/images/zone-en.png" width="200" alt="Zone settings: valve and closing check, cycles with days, weather rule"></td>
+    <td><img src="docs/images/new-en.png" width="200" alt="New zone: name, icon, rain exposure, valve switch and power sensor"></td>
+    <td><img src="docs/images/settings-en.png" width="200" alt="General settings: weather, watering order, pause, phone alerts with a test button"></td>
   </tr>
   <tr>
     <td align="center">Dashboard</td>
     <td align="center">Zone settings</td>
     <td align="center">New zone</td>
+    <td align="center">General settings</td>
   </tr>
 </table>
 
@@ -66,7 +68,7 @@ Copy `custom_components/hydraxoo` from the [latest release](https://github.com/P
 
 ## Getting started
 
-1. During setup, choose (all optional, changeable later in **Configure › General settings**):
+1. During setup, choose (all optional, changeable later from the card's ⚙ button or in **Configure › General settings**):
    - the **weather entity**;
    - a **rain sensor** (cumulative rain gauge in mm);
    - the **watering order**: *one zone at a time* (default) or *zones in parallel*;
@@ -99,6 +101,8 @@ These options are also available in the card's visual editor.
 **Zone settings**: valve and closing check, safety cut-off, cycles (on/off, time, duration −/+, days, add, delete), weather (receives rain, rain rules, heat bonus), **Save**, **Delete this zone**. Changes apply at once, without restarting anything.
 
 **New zone**: name, five icons, receives rain or not, valve switch, power sensor.
+
+**General settings** (⚙ button): weather entity and rain gauge, watering order, pause for 1, 3 or 7 days or until resumed, phones to alert — listed by name — with a **Send a test notification** button. They apply at once, without interrupting a watering. **Advanced settings of the integration** opens the Home Assistant screens.
 
 Editing and settings are reserved to administrators; other users can water, stop and enable zones.
 
@@ -152,7 +156,7 @@ A zone that **does not receive rain** ignores steps 1 and 2: only the heat bonus
 3. above: switches the valve on for the **retry** time (5 s), off again, and goes back to step 1;
 4. after the **maximum retries** (5): the zone is put in **fault**.
 
-A zone in fault no longer waters until the fault is acknowledged (card button or `hydraxoo.acknowledge_fault`). A notification is shown in Home Assistant and, if phones are chosen in **General settings › Mobile notifications**, a high-priority alert is sent to them (removed once acknowledged).
+A zone in fault no longer waters until the fault is acknowledged (card button or `hydraxoo.acknowledge_fault`). A notification is shown in Home Assistant and, if phones are chosen in the card's **General settings › Alerts** (or **Configure › General settings › Mobile notifications**), a high-priority alert is sent to them (removed once acknowledged).
 
 The check runs after every closing (end of watering, Stop, cut-off, valve switched off by hand), at startup, and **at any time** if a plug that is switched off starts drawing power — a stuck valve, or a plug coming back online after a restart. A plug switched on on purpose is left alone (the cut-off still applies).
 

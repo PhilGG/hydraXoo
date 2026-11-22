@@ -198,5 +198,30 @@
     "title": "Titel",
     "compact": "Kompakte Anzeige",
     "zones": "Angezeigte Zonen (alle, wenn leer)"
+  },
+  "settings_screen": {
+    "weather": "Wetter",
+    "weather_entity": "Wetter-Entität",
+    "weather_hint": "Dient zur Anpassung der Bewässerung an Regen und Hitze. Stündliche Vorhersagen liefern die besten Ergebnisse.",
+    "rain_sensor": "Regenmesser (optional)",
+    "rain_hint": "Kumulativ, in mm. Ohne ihn wird der gefallene Regen aus der Vorhersage geschätzt.",
+    "none": "Keine",
+    "order": "Bewässerungsreihenfolge",
+    "sequential": "Eine Zone nach der anderen",
+    "sequential_desc": "Die anderen warten, bis sie an der Reihe sind",
+    "parallel": "Zonen parallel",
+    "parallel_desc": "Jede Zone startet zu ihrer Zeit",
+    "pause": "Pause",
+    "pause_off": "Die Bewässerung ist aktiv. Pausieren für:",
+    "pause_day": "1 Tag",
+    "pause_days": "{n} Tage",
+    "pause_until_resumed": "Bis zur Fortsetzung",
+    "alerts": "Alarme",
+    "alerts_hint": "Telefone, die mit hoher Priorität alarmiert werden, wenn ein Ventil trotz der Versuche offen bleibt.",
+    "no_phone": "Kein Telefon mit der Home-Assistant-App gefunden.",
+    "test": "Testbenachrichtigung senden",
+    "test_sent": "Testbenachrichtigung gesendet.",
+    "test_failed": "Senden fehlgeschlagen an: {names}",
+    "advanced": "Erweiterte Einstellungen der Integration"
   }
 }

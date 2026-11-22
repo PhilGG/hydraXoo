@@ -2,6 +2,11 @@
 
 All notable changes to hydraXoo. Versions follow [Semantic Versioning](https://semver.org/).
 
+## 0.1.2
+
+- Card: new **General settings** screen (⚙ button): weather entity and rain gauge, watering order, pause for 1, 3 or 7 days, phones to alert with a **Send a test notification** button. Settings apply at once, without reloading or interrupting a watering.
+- Phones are listed by their name ("iPhone de Phil") instead of the technical service name, in the card and in Configure › General settings.
+
 ## 0.1.1
 
 - Card follows the profile's time format (12 or 24 hours) and first day of the week.

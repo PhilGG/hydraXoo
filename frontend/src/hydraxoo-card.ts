@@ -17,11 +17,16 @@ import {
 import { fullLanguage, uses12h } from "./locale";
 import { styles } from "./styles";
 import type { CardConfig, Hass, HydraxooState, Zone } from "./types";
+import "./settings-form";
 import "./zone-form";
 
-type View = { name: "dashboard" } | { name: "zone"; id: string } | { name: "new" };
+type View =
+  | { name: "dashboard" }
+  | { name: "zone"; id: string }
+  | { name: "new" }
+  | { name: "settings" };
 
-const VERSION = "0.1.1";
+const VERSION = "0.1.2";
 
 export class HydraxooCard extends LitElement {
   static properties = {
@@ -163,8 +168,7 @@ export class HydraxooCard extends LitElement {
   }
 
   private _openSettings(): void {
-    history.pushState(null, "", "/config/integrations/integration/hydraxoo");
-    window.dispatchEvent(new CustomEvent("location-changed"));
+    this._view = { name: "settings" };
   }
 
   // ------------------------------------------------------------ render
@@ -192,6 +196,15 @@ export class HydraxooCard extends LitElement {
           ></hydraxoo-zone-form>
         </ha-card>`;
       }
+    }
+    if (view.name === "settings") {
+      return html`<ha-card>
+        <hydraxoo-settings-form
+          .hass=${this.hass}
+          .state=${this._state}
+          @close=${() => (this._view = { name: "dashboard" })}
+        ></hydraxoo-settings-form>
+      </ha-card>`;
     }
     if (view.name === "new") {
       return html`<ha-card>

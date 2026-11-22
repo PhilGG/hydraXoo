@@ -338,6 +338,12 @@
     },
     "safety_failed": {
       "message": "The valve of zone {zone} still draws {power} W after {attempts} retries. Watering of this zone is blocked. Check the valve and its plug, then acknowledge the fault (service hydraxoo.acknowledge_fault)."
+    },
+    "test_notification_title": {
+      "message": "hydraXoo: test notification"
+    },
+    "test_notification": {
+      "message": "Valve alerts will arrive like this one."
     }
   }
 }

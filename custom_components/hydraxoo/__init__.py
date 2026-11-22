@@ -152,6 +152,10 @@ async def async_remove_entry(hass: HomeAssistant, entry: HydraxooConfigEntry) ->
 
 
 async def _async_reload(hass: HomeAssistant, entry: HydraxooConfigEntry) -> None:
+    # Settings changed from the card are already applied live: no reload,
+    # so a watering in progress is not interrupted.
+    if entry.runtime_data.matches_options(entry.options):
+        return
     await hass.config_entries.async_reload(entry.entry_id)
 
 

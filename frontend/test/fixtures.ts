@@ -55,6 +55,12 @@ export function makeState(overrides: Partial<HydraxooState> = {}): HydraxooState
       weather_entity: "weather.maison",
       weather_name: "Maison",
       rain_sensor: null,
+      rain_name: null,
+      notify_services: ["mobile_app_iphone_de_phil"],
+      notify_options: [
+        { value: "mobile_app_iphone_de_phil", label: "iPhone de Phil" },
+        { value: "mobile_app_ipad_de_philippe", label: "iPad de Philippe" },
+      ],
       sequential: true,
       paused: false,
       pause_until: null,

@@ -477,6 +477,20 @@ export const styles = css`
     font-size: 18px;
     font-weight: 600;
   }
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .check-row input {
+    width: 22px;
+    height: 22px;
+    accent-color: var(--hx-primary);
+    margin: 0;
+  }
   .icon-grid {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));

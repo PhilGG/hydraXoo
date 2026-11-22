@@ -340,16 +340,28 @@ async def test_settings(hass: HomeAssistant) -> None:
 
 async def test_settings_offer_phones(hass: HomeAssistant) -> None:
     """Phones of the companion app are offered first for the alerts."""
-    hass.services.async_register("notify", "mobile_app_pixel", lambda call: None)
-    hass.services.async_register("notify", "email_me", lambda call: None)
+    MockConfigEntry(
+        domain="mobile_app",
+        title="iPhone de Phil",
+        data={"device_name": "iPhone de Phil"},
+    ).add_to_hass(hass)
+    for service in ("email_me", "mobile_app_iphone_de_phil", "mobile_app_pixel"):
+        hass.services.async_register("notify", service, lambda call: None)
     entry = await setup_entry(hass)
     result = await _open_menu(hass, entry.entry_id, "settings")
     options = result["data_schema"].schema["notify_services"].config["options"]
-    assert [o["value"] for o in options] == ["mobile_app_pixel", "email_me"]
+    assert options == [
+        {"value": "mobile_app_iphone_de_phil", "label": "iPhone de Phil"},
+        {"value": "mobile_app_pixel", "label": "notify.mobile_app_pixel"},
+        {"value": "email_me", "label": "notify.email_me"},
+    ]
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
-        {"sequence_mode": "sequential", "notify_services": ["mobile_app_pixel"]},
+        {
+            "sequence_mode": "sequential",
+            "notify_services": ["mobile_app_iphone_de_phil"],
+        },
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
-    assert entry.runtime_data.notify_services == ["mobile_app_pixel"]
+    assert entry.runtime_data.notify_services == ["mobile_app_iphone_de_phil"]

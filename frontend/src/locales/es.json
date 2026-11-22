@@ -198,5 +198,30 @@
     "title": "Título",
     "compact": "Vista compacta",
     "zones": "Zonas mostradas (todas si está vacío)"
+  },
+  "settings_screen": {
+    "weather": "Meteorología",
+    "weather_entity": "Entidad meteorológica",
+    "weather_hint": "Sirve para adaptar el riego a la lluvia y al calor. Las previsiones horarias dan los mejores resultados.",
+    "rain_sensor": "Pluviómetro (opcional)",
+    "rain_hint": "Acumulativo, en mm. Sin él, la lluvia caída se estima a partir de la previsión.",
+    "none": "Ninguno",
+    "order": "Orden de riego",
+    "sequential": "Una zona a la vez",
+    "sequential_desc": "Las demás esperan su turno",
+    "parallel": "Zonas en paralelo",
+    "parallel_desc": "Cada zona empieza a su hora",
+    "pause": "Pausa",
+    "pause_off": "El riego está activo. Pausar durante:",
+    "pause_day": "1 día",
+    "pause_days": "{n} días",
+    "pause_until_resumed": "Hasta reanudar",
+    "alerts": "Avisos",
+    "alerts_hint": "Teléfonos avisados con prioridad alta si una válvula sigue abierta pese a los reintentos.",
+    "no_phone": "No se encontró ningún teléfono con la app Home Assistant.",
+    "test": "Enviar una notificación de prueba",
+    "test_sent": "Notificación de prueba enviada.",
+    "test_failed": "No se pudo enviar a: {names}",
+    "advanced": "Ajustes avanzados de la integración"
   }
 }

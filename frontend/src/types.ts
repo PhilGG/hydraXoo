@@ -109,6 +109,9 @@ export interface HydraxooState {
     weather_entity: string | null;
     weather_name: string | null;
     rain_sensor: string | null;
+    rain_name: string | null;
+    notify_services: string[];
+    notify_options: { value: string; label: string }[];
     sequential: boolean;
     paused: boolean;
     pause_until: string | null;

@@ -338,6 +338,12 @@
     },
     "safety_failed": {
       "message": "La válvula de la zona {zone} sigue consumiendo {power} W tras {attempts} reintentos. El riego de esta zona está bloqueado. Compruebe la válvula y su enchufe y luego confirme el fallo (servicio hydraxoo.acknowledge_fault)."
+    },
+    "test_notification_title": {
+      "message": "hydraXoo: notificación de prueba"
+    },
+    "test_notification": {
+      "message": "Los avisos de válvula llegarán como este."
     }
   }
 }

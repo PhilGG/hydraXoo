@@ -437,6 +437,68 @@ describe("new zone", () => {
   });
 });
 
+describe("general settings", () => {
+  async function openSettings(hass: FakeHass) {
+    const card = await mount(hass);
+    (root(card).querySelector('[aria-label="Réglages généraux"]') as HTMLButtonElement).click();
+    await card.updateComplete;
+    const el = root(card).querySelector("hydraxoo-settings-form") as any;
+    await el.updateComplete;
+    return { card, el, scope: el.shadowRoot as ShadowRoot };
+  }
+
+  it("shows weather, order, pause and phones by name", async () => {
+    const { scope } = await openSettings(makeHass(makeState()));
+    const t = scope.textContent!.replace(/\s+/g, " ");
+    expect(t).toContain("Météo");
+    expect(t).toContain("Une zone à la fois");
+    expect(t).toContain("Mettre en pause pendant");
+    expect(t).toContain("iPhone de Phil");
+    expect(t).toContain("iPad de Philippe");
+    const boxes = [...scope.querySelectorAll('input[type="checkbox"]')] as HTMLInputElement[];
+    expect(boxes.map((b) => b.checked)).toEqual([true, false]);
+  });
+
+  it("saves the changes", async () => {
+    const hass = makeHass(makeState());
+    const { scope, el } = await openSettings(hass);
+    buttonByText(scope, "Zones en parallèle").click();
+    (scope.querySelectorAll('input[type="checkbox"]')[1] as HTMLInputElement).dispatchEvent(new Event("change"));
+    await el.updateComplete;
+    buttonByText(scope, "Enregistrer").click();
+    await vi.waitFor(() => expect(hass.callWS).toHaveBeenCalled());
+    expect(hass.callWS.mock.calls[0][0]).toEqual({
+      type: "hydraxoo/settings/save",
+      weather_entity: "weather.maison",
+      rain_sensor: null,
+      sequential: false,
+      notify_services: ["mobile_app_iphone_de_phil", "mobile_app_ipad_de_philippe"],
+    });
+  });
+
+  it("sends a test notification to the checked phones", async () => {
+    const hass = makeHass(makeState());
+    hass.callWS.mockResolvedValueOnce({ sent: ["mobile_app_iphone_de_phil"], failed: [] });
+    const { scope, el } = await openSettings(hass);
+    buttonByText(scope, "Envoyer une notification de test").click();
+    await vi.waitFor(() =>
+      expect(hass.callWS).toHaveBeenCalledWith({
+        type: "hydraxoo/notify/test",
+        services: ["mobile_app_iphone_de_phil"],
+      }),
+    );
+    await el.updateComplete;
+    await vi.waitFor(() => expect(scope.textContent).toContain("Notification de test envoyée."));
+  });
+
+  it("pauses for 3 days at once", async () => {
+    const hass = makeHass(makeState());
+    const { scope } = await openSettings(hass);
+    buttonByText(scope, "3 jours").click();
+    expect(hass.callWS).toHaveBeenCalledWith({ type: "hydraxoo/pause", days: 3 });
+  });
+});
+
 describe("card editor", () => {
   it("offers title, compact display and the zones", async () => {
     const hass = makeHass(makeState());

@@ -338,6 +338,12 @@
     },
     "safety_failed": {
       "message": "Das Ventil der Zone {zone} verbraucht nach {attempts} Versuchen noch {power} W. Die Bewässerung dieser Zone ist gesperrt. Prüfen Sie das Ventil und seine Steckdose und quittieren Sie dann die Störung (Dienst hydraxoo.acknowledge_fault)."
+    },
+    "test_notification_title": {
+      "message": "hydraXoo: Testbenachrichtigung"
+    },
+    "test_notification": {
+      "message": "Ventilalarme kommen so an wie diese Nachricht."
     }
   }
 }

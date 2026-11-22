@@ -52,6 +52,7 @@ from .const import (
     MODE_PARALLEL,
     MODE_SEQUENTIAL,
 )
+from .helpers import notify_options
 from .models import Cycle, SafetySettings, WeatherRules, Zone
 
 if TYPE_CHECKING:
@@ -70,17 +71,14 @@ WEEKDAY_SHORT = {
 }
 
 
-def _notify_options(hass) -> list[str]:
-    """notify services, phones of the companion app first."""
-    names = [
-        name
-        for name in hass.services.async_services_for_domain("notify")
-        if name not in ("persistent_notification", "send_message")
-    ]
-    return sorted(names, key=lambda n: (not n.startswith("mobile_app_"), n))
+def _notify_options(hass) -> list[selector.SelectOptionDict]:
+    """Phones by name first, then the other notify services."""
+    return [selector.SelectOptionDict(**o) for o in notify_options(hass)]
 
 
-def _settings_schema(defaults: dict[str, Any], notify: list[str]) -> vol.Schema:
+def _settings_schema(
+    defaults: dict[str, Any], notify: list[selector.SelectOptionDict]
+) -> vol.Schema:
     weather = defaults.get(CONF_WEATHER_ENTITY)
     key = (
         vol.Optional(CONF_WEATHER_ENTITY, description={"suggested_value": weather})
@@ -113,14 +111,13 @@ def _settings_schema(defaults: dict[str, Any], notify: list[str]) -> vol.Schema:
             vol.Optional(
                 CONF_NOTIFY_SERVICES,
                 default=[
-                    s for s in defaults.get(CONF_NOTIFY_SERVICES, []) if s in notify
+                    s
+                    for s in defaults.get(CONF_NOTIFY_SERVICES, [])
+                    if s in {o["value"] for o in notify}
                 ],
             ): selector.SelectSelector(
                 selector.SelectSelectorConfig(
-                    options=[
-                        selector.SelectOptionDict(value=n, label=f"notify.{n}")
-                        for n in notify
-                    ],
+                    options=notify,
                     multiple=True,
                     mode=selector.SelectSelectorMode.LIST,
                 )

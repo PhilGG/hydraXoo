@@ -338,6 +338,12 @@
     },
     "safety_failed": {
       "message": "La vanne de la zone {zone} consomme encore {power} W après {attempts} relances. L'arrosage de cette zone est bloqué. Vérifiez la vanne et sa prise, puis acquittez le défaut (service hydraxoo.acknowledge_fault)."
+    },
+    "test_notification_title": {
+      "message": "hydraXoo : notification de test"
+    },
+    "test_notification": {
+      "message": "Les alertes de vanne arriveront comme celle-ci."
     }
   }
 }

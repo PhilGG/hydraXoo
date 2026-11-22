@@ -45,6 +45,10 @@ from .const import (
     CHECK_CONFIRMED,
     CHECK_FAILED,
     CHECK_SENSOR_UNAVAILABLE,
+    CONF_NOTIFY_SERVICES,
+    CONF_RAIN_SENSOR,
+    CONF_SEQUENCE_MODE,
+    CONF_WEATHER_ENTITY,
     DEFAULT_DURATION,
     DOMAIN,
     END_COMPLETED,
@@ -58,6 +62,8 @@ from .const import (
     EVENT_CYCLE_STARTED,
     EVENT_SAFETY_FAILED,
     EVENT_SAFETY_RETRY,
+    MODE_PARALLEL,
+    MODE_SEQUENTIAL,
     REMAINING_REFRESH_SECONDS,
     SKIP_FAULT,
     SKIP_PAUSED,
@@ -865,6 +871,74 @@ class HydraxooEngine:
         """Save and refresh after zones or cycles were edited in place."""
         await self.async_save()
         self._notify()
+
+    # ------------------------------------------------------- general settings
+
+    def settings_options(self) -> dict[str, Any]:
+        """Current general settings, in the config entry's options format."""
+        return {
+            CONF_WEATHER_ENTITY: self.weather.weather_entity,
+            CONF_RAIN_SENSOR: self.weather.rain_sensor,
+            CONF_SEQUENCE_MODE: MODE_SEQUENTIAL if self.sequential else MODE_PARALLEL,
+            CONF_NOTIFY_SERVICES: list(self.notify_services),
+        }
+
+    def matches_options(self, options: dict[str, Any]) -> bool:
+        """True if the engine already runs with these options (no reload needed)."""
+        wanted = {
+            CONF_WEATHER_ENTITY: options.get(CONF_WEATHER_ENTITY) or None,
+            CONF_RAIN_SENSOR: options.get(CONF_RAIN_SENSOR) or None,
+            CONF_SEQUENCE_MODE: (
+                MODE_PARALLEL
+                if options.get(CONF_SEQUENCE_MODE) == MODE_PARALLEL
+                else MODE_SEQUENTIAL
+            ),
+            CONF_NOTIFY_SERVICES: list(options.get(CONF_NOTIFY_SERVICES) or []),
+        }
+        return wanted == self.settings_options()
+
+    async def async_apply_settings(self, options: dict[str, Any]) -> None:
+        """Apply general settings live (from the card): nothing is reloaded."""
+        self.sequential = options.get(CONF_SEQUENCE_MODE) != MODE_PARALLEL
+        rain_sensor = options.get(CONF_RAIN_SENSOR) or None
+        if rain_sensor != self.weather.rain_sensor:
+            self.weather.rain_total = None
+        self.weather.rain_sensor = rain_sensor
+        self.weather.weather_entity = options.get(CONF_WEATHER_ENTITY) or None
+        self.notify_services = list(options.get(CONF_NOTIFY_SERVICES) or [])
+        await self.async_update_weather(force=True)
+        await self._async_process_queue()
+
+    async def async_send_test_notification(self, services: list[str]) -> list[str]:
+        """Send a test alert; return the services that failed."""
+        texts = await async_get_translations(
+            self.hass, self.hass.config.language, "exceptions", [DOMAIN]
+        )
+        prefix = f"component.{DOMAIN}.exceptions"
+        payload = {
+            "title": texts.get(f"{prefix}.test_notification_title.message", "hydraXoo"),
+            "message": texts.get(
+                f"{prefix}.test_notification.message",
+                "Test notification: valve alerts will arrive like this.",
+            ),
+            "data": {
+                "tag": f"{DOMAIN}_test",
+                "priority": "high",
+                "ttl": 0,
+                "channel": "hydraXoo",
+                "push": {"interruption-level": "time-sensitive"},
+            },
+        }
+        failed = []
+        for service in services:
+            try:
+                await self.hass.services.async_call(
+                    "notify", service, payload, blocking=True
+                )
+            except Exception:
+                _LOGGER.exception("Test notification to notify.%s failed", service)
+                failed.append(service)
+        return failed
 
     async def async_update_weather(self, force: bool = False) -> None:
         """Refresh forecasts and every zone's coefficient."""

@@ -17,13 +17,20 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    CONF_NOTIFY_SERVICES,
+    CONF_RAIN_SENSOR,
+    CONF_SEQUENCE_MODE,
+    CONF_WEATHER_ENTITY,
     DEFAULT_ICON,
     DEFAULT_MAX_RUNTIME,
     DOMAIN,
     MAX_PAUSE_DAYS,
     MAX_RUNTIME_LIMIT,
+    MODE_PARALLEL,
+    MODE_SEQUENTIAL,
 )
 from .engine import HydraxooEngine
+from .helpers import notify_options
 from .models import new_id
 
 TIME_RE = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
@@ -126,6 +133,8 @@ def async_register(hass: HomeAssistant) -> None:
         ws_stop_all,
         ws_pause,
         ws_resume,
+        ws_save_settings,
+        ws_test_notification,
     ):
         websocket_api.async_register_command(hass, command)
 
@@ -206,6 +215,9 @@ def serialize(hass: HomeAssistant, engine: HydraxooEngine) -> dict[str, Any]:
             "weather_entity": engine.weather.weather_entity,
             "weather_name": (friendly(engine.weather.weather_entity) or {}).get("name"),
             "rain_sensor": engine.weather.rain_sensor,
+            "rain_name": (friendly(engine.weather.rain_sensor) or {}).get("name"),
+            "notify_services": list(engine.notify_services),
+            "notify_options": notify_options(hass),
             "sequential": engine.sequential,
             "paused": engine.paused,
             "pause_until": engine.pause_until.isoformat()
@@ -428,3 +440,61 @@ async def ws_resume(hass, connection, msg) -> None:
         return
     await engine.async_resume()
     connection.send_result(msg["id"])
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/settings/save",
+        vol.Optional("weather_entity"): vol.Any(None, cv.entity_domain("weather")),
+        vol.Optional("rain_sensor"): vol.Any(None, cv.entity_domain("sensor")),
+        vol.Optional("sequential"): cv.boolean,
+        vol.Optional("notify_services"): [cv.string],
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_save_settings(hass, connection, msg) -> None:
+    """Save the general settings; they apply at once, without a reload."""
+    entries = hass.config_entries.async_loaded_entries(DOMAIN)
+    if not entries:
+        _not_loaded(connection, msg)
+        return
+    entry = entries[0]
+    engine: HydraxooEngine = entry.runtime_data
+    options = dict(entry.options)
+    if "weather_entity" in msg:
+        options[CONF_WEATHER_ENTITY] = msg["weather_entity"]
+    if "rain_sensor" in msg:
+        options[CONF_RAIN_SENSOR] = msg["rain_sensor"]
+    if "sequential" in msg:
+        options[CONF_SEQUENCE_MODE] = (
+            MODE_SEQUENTIAL if msg["sequential"] else MODE_PARALLEL
+        )
+    if "notify_services" in msg:
+        options[CONF_NOTIFY_SERVICES] = msg["notify_services"]
+    options = {k: v for k, v in options.items() if v is not None}
+    # Engine first: the entry's update listener then sees nothing to reload.
+    await engine.async_apply_settings(options)
+    hass.config_entries.async_update_entry(entry, options=options)
+    connection.send_result(msg["id"])
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/notify/test",
+        vol.Required("services"): vol.All([cv.string], vol.Length(min=1)),
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_test_notification(hass, connection, msg) -> None:
+    """Send a test alert to the given notify services."""
+    engine = _engine(hass)
+    if engine is None:
+        _not_loaded(connection, msg)
+        return
+    failed = await engine.async_send_test_notification(msg["services"])
+    connection.send_result(
+        msg["id"],
+        {"sent": [s for s in msg["services"] if s not in failed], "failed": failed},
+    )

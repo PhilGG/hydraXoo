@@ -338,6 +338,12 @@
     },
     "safety_failed": {
       "message": "La valvola della zona {zone} consuma ancora {power} W dopo {attempts} tentativi. L'irrigazione di questa zona è bloccata. Controllare la valvola e la sua presa, poi confermare il guasto (servizio hydraxoo.acknowledge_fault)."
+    },
+    "test_notification_title": {
+      "message": "hydraXoo: notifica di prova"
+    },
+    "test_notification": {
+      "message": "Gli avvisi delle valvole arriveranno come questo."
     }
   }
 }

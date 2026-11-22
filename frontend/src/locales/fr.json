@@ -198,5 +198,30 @@
     "title": "Titre",
     "compact": "Affichage compact",
     "zones": "Zones affichées (toutes si vide)"
+  },
+  "settings_screen": {
+    "weather": "Météo",
+    "weather_entity": "Entité météo",
+    "weather_hint": "Sert à adapter l'arrosage à la pluie et à la chaleur. Les prévisions horaires donnent les meilleurs résultats.",
+    "rain_sensor": "Pluviomètre (facultatif)",
+    "rain_hint": "Cumulatif, en mm. Sans lui, la pluie tombée est estimée à partir des prévisions.",
+    "none": "Aucun",
+    "order": "Enchaînement des zones",
+    "sequential": "Une zone à la fois",
+    "sequential_desc": "Les autres attendent leur tour",
+    "parallel": "Zones en parallèle",
+    "parallel_desc": "Chaque zone démarre à son heure",
+    "pause": "Pause",
+    "pause_off": "L'arrosage est actif. Mettre en pause pendant :",
+    "pause_day": "1 jour",
+    "pause_days": "{n} jours",
+    "pause_until_resumed": "Jusqu'à la reprise",
+    "alerts": "Alertes",
+    "alerts_hint": "Téléphones prévenus en priorité haute si une vanne ne se referme pas malgré les relances.",
+    "no_phone": "Aucun téléphone avec l'application Home Assistant n'a été trouvé.",
+    "test": "Envoyer une notification de test",
+    "test_sent": "Notification de test envoyée.",
+    "test_failed": "Envoi impossible vers : {names}",
+    "advanced": "Réglages avancés de l'intégration"
   }
 }
