@@ -9,14 +9,20 @@
           "rain_sensor": "Regensensor (optional)",
           "sequence_mode": "Bewässerungsreihenfolge",
           "notify_services": "Mobile Benachrichtigungen",
-          "external_open": "Wenn ein Ventil außerhalb von hydraXoo eingeschaltet wird"
+          "external_open": "Wenn ein Ventil außerhalb von hydraXoo eingeschaltet wird",
+          "frost_alert": "Frostwarnung",
+          "frost_threshold_c": "Frostschwelle",
+          "frost_thaw_notice": "Meldung bei Frostende"
         },
         "data_description": {
           "weather_entity": "Optional. Dient zur Anpassung der Bewässerung an Regen und Hitze; stündliche Vorhersagen liefern die besten Ergebnisse.",
           "rain_sensor": "Kumulativer Regenmesser in mm. Ohne ihn wird der gefallene Regen aus der stündlichen Vorhersage geschätzt.",
           "sequence_mode": "Bei einer Zone nach der anderen wartet eine Bewässerung, die fällig wird, während eine andere Zone läuft, bis sie an der Reihe ist.",
           "notify_services": "Telefone (Home-Assistant-App), die mit hoher Priorität alarmiert werden, wenn ein Ventil trotz der Versuche offen bleibt. Der Alarm verschwindet nach dem Quittieren.",
-          "external_open": "Ventile sollten nur von hydraXoo geöffnet werden: Standardmäßig wird eine solche Öffnung sofort geschlossen und gemeldet."
+          "external_open": "Ventile sollten nur von hydraXoo geöffnet werden: Standardmäßig wird eine solche Öffnung sofort geschlossen und gemeldet.",
+          "frost_alert": "Alarmiert die Telefone, wenn Frost vorhergesagt ist und Zyklen geplant sind, damit die Außenwasserleitungen abgesperrt werden.",
+          "frost_threshold_c": "Niedrigste vorhergesagte Temperatur der nächsten 24 Stunden.",
+          "frost_thaw_notice": "Auch melden, wenn der Frost vorbei ist."
         }
       }
     },
@@ -42,14 +48,20 @@
           "sequence_mode": "Bewässerungsreihenfolge",
           "rain_sensor": "Regensensor (optional)",
           "notify_services": "Mobile Benachrichtigungen",
-          "external_open": "Wenn ein Ventil außerhalb von hydraXoo eingeschaltet wird"
+          "external_open": "Wenn ein Ventil außerhalb von hydraXoo eingeschaltet wird",
+          "frost_alert": "Frostwarnung",
+          "frost_threshold_c": "Frostschwelle",
+          "frost_thaw_notice": "Meldung bei Frostende"
         },
         "data_description": {
           "sequence_mode": "Bei einer Zone nach der anderen wartet eine Bewässerung, die fällig wird, während eine andere Zone läuft, bis sie an der Reihe ist.",
           "rain_sensor": "Kumulativer Regenmesser in mm. Ohne ihn wird der gefallene Regen aus der stündlichen Vorhersage geschätzt.",
           "weather_entity": "Optional. Dient zur Anpassung der Bewässerung an Regen und Hitze; stündliche Vorhersagen liefern die besten Ergebnisse.",
           "notify_services": "Telefone (Home-Assistant-App), die mit hoher Priorität alarmiert werden, wenn ein Ventil trotz der Versuche offen bleibt. Der Alarm verschwindet nach dem Quittieren.",
-          "external_open": "Ventile sollten nur von hydraXoo geöffnet werden: Standardmäßig wird eine solche Öffnung sofort geschlossen und gemeldet."
+          "external_open": "Ventile sollten nur von hydraXoo geöffnet werden: Standardmäßig wird eine solche Öffnung sofort geschlossen und gemeldet.",
+          "frost_alert": "Alarmiert die Telefone, wenn Frost vorhergesagt ist und Zyklen geplant sind, damit die Außenwasserleitungen abgesperrt werden.",
+          "frost_threshold_c": "Niedrigste vorhergesagte Temperatur der nächsten 24 Stunden.",
+          "frost_thaw_notice": "Auch melden, wenn der Frost vorbei ist."
         }
       },
       "add_zone": {
@@ -64,14 +76,16 @@
           "start_time": "Startzeit",
           "duration_min": "Dauer",
           "weekdays": "Tage",
-          "receives_rain": "Bekommt Regen"
+          "receives_rain": "Bekommt Regen",
+          "frost_alert": "Frostwarnung"
         },
         "data_description": {
           "switch_entity": "Die Steckdose oder das Relais, das das Magnetventil öffnet.",
           "max_runtime_min": "Das Ventil wird nach dieser Zeit in jedem Fall geschlossen.",
           "power_entity": "Verbrauch der Steckdose in W. Wenn gesetzt, prüft hydraXoo nach jedem Schließen, ob das Ventil wirklich geschlossen ist.",
           "receives_rain": "Für eine regengeschützte Zone (Gewächshaus, überdachter Bereich) ausschalten: Regen wird ignoriert, der Hitzebonus gilt weiterhin.",
-          "duration_min": "Ist sie länger als die Sicherheitsabschaltung, endet die Bewässerung bei der Abschaltung."
+          "duration_min": "Ist sie länger als die Sicherheitsabschaltung, endet die Bewässerung bei der Abschaltung.",
+          "frost_alert": "Für eine frostgeschützte Zone (beheiztes Gewächshaus) ausschalten: Sie löst keine Frostwarnung mehr aus."
         },
         "sections": {
           "safety": {
@@ -134,13 +148,15 @@
           "switch_entity": "Ventilschalter",
           "max_runtime_min": "Sicherheitsabschaltung",
           "power_entity": "Leistungssensor (optional)",
-          "receives_rain": "Bekommt Regen"
+          "receives_rain": "Bekommt Regen",
+          "frost_alert": "Frostwarnung"
         },
         "data_description": {
           "switch_entity": "Die Steckdose oder das Relais, das das Magnetventil öffnet.",
           "max_runtime_min": "Das Ventil wird nach dieser Zeit in jedem Fall geschlossen.",
           "power_entity": "Verbrauch der Steckdose in W. Wenn gesetzt, prüft hydraXoo nach jedem Schließen, ob das Ventil wirklich geschlossen ist.",
-          "receives_rain": "Für eine regengeschützte Zone (Gewächshaus, überdachter Bereich) ausschalten: Regen wird ignoriert, der Hitzebonus gilt weiterhin."
+          "receives_rain": "Für eine regengeschützte Zone (Gewächshaus, überdachter Bereich) ausschalten: Regen wird ignoriert, der Hitzebonus gilt weiterhin.",
+          "frost_alert": "Für eine frostgeschützte Zone (beheiztes Gewächshaus) ausschalten: Sie löst keine Frostwarnung mehr aus."
         },
         "sections": {
           "safety": {
@@ -367,6 +383,30 @@
     },
     "unexpected_open": {
       "message": "Zone {zone}: Das Ventil wurde außerhalb von hydraXoo eingeschaltet und wieder geschlossen. Prüfen Sie, was die Steckdose eingeschaltet hat."
+    },
+    "frost_title": {
+      "message": "hydraXoo: Frost vorhergesagt"
+    },
+    "frost_alert": {
+      "message": "Frost vorhergesagt: {temp} gegen {time}. Denken Sie daran, die Außenwasserleitungen abzusperren."
+    },
+    "frost_reminder": {
+      "message": "Erinnerung: Frost in etwa 3 Stunden ({temp} gegen {time}). Sind die Außenwasserleitungen abgesperrt?"
+    },
+    "frost_thaw_title": {
+      "message": "hydraXoo: Frostende"
+    },
+    "frost_thaw": {
+      "message": "Frostende vorhergesagt: Die Außenwasserleitungen können wieder geöffnet werden."
+    },
+    "action_done": {
+      "message": "Erledigt"
+    },
+    "action_pause": {
+      "message": "Bewässerung pausieren"
+    },
+    "action_resume": {
+      "message": "Bewässerung fortsetzen"
     }
   }
 }

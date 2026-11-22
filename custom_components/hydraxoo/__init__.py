@@ -17,11 +17,15 @@ from .const import (
     ATTR_DURATION,
     ATTR_ZONE,
     CONF_EXTERNAL_OPEN,
+    CONF_FROST_ALERT,
+    CONF_FROST_THAW_NOTICE,
+    CONF_FROST_THRESHOLD,
     CONF_NOTIFY_SERVICES,
     CONF_RAIN_SENSOR,
     CONF_SEQUENCE_MODE,
     CONF_WEATHER_ENTITY,
     CONTROLLER_ID,
+    DEFAULT_FROST_THRESHOLD,
     DOMAIN,
     EXTERNAL_CLOSE,
     MAX_PAUSE_DAYS,
@@ -36,6 +40,7 @@ from .const import (
 )
 from .engine import HydraxooEngine
 from .frontend_setup import async_setup_frontend
+from .frost import FrostSettings
 from .store import ZoneStore
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.SWITCH]
@@ -132,6 +137,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: HydraxooConfigEntry) -> 
         rain_sensor=entry.options.get(CONF_RAIN_SENSOR) or None,
         notify_services=list(entry.options.get(CONF_NOTIFY_SERVICES) or []),
         external_open=entry.options.get(CONF_EXTERNAL_OPEN, EXTERNAL_CLOSE),
+        frost=FrostSettings(
+            enabled=bool(entry.options.get(CONF_FROST_ALERT, True)),
+            threshold_c=float(
+                entry.options.get(CONF_FROST_THRESHOLD, DEFAULT_FROST_THRESHOLD)
+            ),
+            thaw_notice=bool(entry.options.get(CONF_FROST_THAW_NOTICE, False)),
+        ),
     )
     engine.entry_id = entry.entry_id
     entry.runtime_data = engine

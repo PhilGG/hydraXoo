@@ -28,6 +28,7 @@ function emptyZone(): ZoneConfig {
     power_entity: null,
     max_runtime_min: 5,
     receives_rain: true,
+    frost_alert: true,
     safety: { ...DEFAULT_SAFETY },
     weather_rules: { ...DEFAULT_WEATHER },
     cycles: [],
@@ -79,11 +80,11 @@ export class HydraxooZoneForm extends LitElement {
   private _configOf(zone: Zone): ZoneConfig {
     const {
       id, name, icon, enabled, switch_entity, power_entity, max_runtime_min,
-      receives_rain, safety, weather_rules, cycles,
+      receives_rain, frost_alert, safety, weather_rules, cycles,
     } = zone;
     return {
       id, name, icon, enabled, switch_entity, power_entity, max_runtime_min,
-      receives_rain, safety, weather_rules, cycles,
+      receives_rain, frost_alert: frost_alert ?? true, safety, weather_rules, cycles,
     };
   }
 
@@ -435,6 +436,13 @@ export class HydraxooZoneForm extends LitElement {
             ><span class="tiny">${t(rain ? "editor.rain_hint" : "editor.no_rain_desc")}</span></span
           >
           ${this._switch(rain, t("editor.rain"), (v) => this._set({ receives_rain: v }))}
+        </div>
+        <div class="setting">
+          <span class="stack"
+            ><span class="strong">${t("editor.frost")}</span
+            ><span class="tiny">${t("editor.frost_hint")}</span></span
+          >
+          ${this._switch(d.frost_alert, t("editor.frost"), (v) => this._set({ frost_alert: v }))}
         </div>
         ${rain
           ? html`${this._setting(t("editor.skip"), t("editor.skip_hint"),

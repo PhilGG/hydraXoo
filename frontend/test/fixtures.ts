@@ -12,6 +12,7 @@ export function makeZone(overrides: Partial<Zone> = {}): Zone {
     power_entity: "sensor.vanne_potager_power",
     max_runtime_min: 30,
     receives_rain: true,
+    frost_alert: true,
     safety: { ...DEFAULT_SAFETY },
     weather_rules: { ...DEFAULT_WEATHER },
     cycles: [
@@ -59,6 +60,9 @@ export function makeState(overrides: Partial<HydraxooState> = {}): HydraxooState
       rain_name: null,
       notify_services: ["mobile_app_iphone_de_phil"],
       external_open: "close",
+      frost_alert: true,
+      frost_threshold_c: 2,
+      frost_thaw_notice: false,
       notify_options: [
         { value: "mobile_app_iphone_de_phil", label: "iPhone de Phil" },
         { value: "mobile_app_ipad_de_philippe", label: "iPad de Philippe" },
@@ -77,6 +81,7 @@ export function makeState(overrides: Partial<HydraxooState> = {}): HydraxooState
       heat_bonus_pct: 0,
       warnings: [],
     },
+    frost: { active: false, acknowledged: false, alerted: false, min_c: null, frost_at: null },
     last_check: {
       zone_id: "z2",
       zone_name: "Terrasse",

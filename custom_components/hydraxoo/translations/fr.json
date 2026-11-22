@@ -9,14 +9,20 @@
           "rain_sensor": "Capteur de pluie (facultatif)",
           "sequence_mode": "Enchaînement des zones",
           "notify_services": "Notifications sur mobile",
-          "external_open": "Ouverture d'une vanne hors hydraXoo"
+          "external_open": "Ouverture d'une vanne hors hydraXoo",
+          "frost_alert": "Alerte gel",
+          "frost_threshold_c": "Seuil de gel",
+          "frost_thaw_notice": "Message de fin de gel"
         },
         "data_description": {
           "weather_entity": "Facultative. Sert à adapter l'arrosage à la pluie et à la chaleur ; les prévisions horaires donnent les meilleurs résultats.",
           "rain_sensor": "Pluviomètre cumulatif en mm. Sans lui, la pluie tombée est estimée à partir des prévisions horaires.",
           "sequence_mode": "En mode une zone à la fois, un arrosage qui tombe pendant qu'une autre zone arrose attend son tour.",
           "notify_services": "Téléphones (application Home Assistant) prévenus en priorité haute si une vanne ne se referme pas malgré les relances. La notification disparaît à l'acquittement.",
-          "external_open": "Les vannes ne devraient être ouvertes que par hydraXoo : par défaut, une telle ouverture est refermée immédiatement et signalée."
+          "external_open": "Les vannes ne devraient être ouvertes que par hydraXoo : par défaut, une telle ouverture est refermée immédiatement et signalée.",
+          "frost_alert": "Prévient les téléphones quand du gel est prévu alors que des cycles sont programmés, pour penser à couper les circuits d'eau extérieurs.",
+          "frost_threshold_c": "Température minimale prévue sur les 24 prochaines heures.",
+          "frost_thaw_notice": "Prévenir aussi quand le gel est terminé."
         }
       }
     },
@@ -42,14 +48,20 @@
           "sequence_mode": "Enchaînement des zones",
           "rain_sensor": "Capteur de pluie (facultatif)",
           "notify_services": "Notifications sur mobile",
-          "external_open": "Ouverture d'une vanne hors hydraXoo"
+          "external_open": "Ouverture d'une vanne hors hydraXoo",
+          "frost_alert": "Alerte gel",
+          "frost_threshold_c": "Seuil de gel",
+          "frost_thaw_notice": "Message de fin de gel"
         },
         "data_description": {
           "sequence_mode": "En mode une zone à la fois, un arrosage qui tombe pendant qu'une autre zone arrose attend son tour.",
           "rain_sensor": "Pluviomètre cumulatif en mm. Sans lui, la pluie tombée est estimée à partir des prévisions horaires.",
           "weather_entity": "Facultative. Sert à adapter l'arrosage à la pluie et à la chaleur ; les prévisions horaires donnent les meilleurs résultats.",
           "notify_services": "Téléphones (application Home Assistant) prévenus en priorité haute si une vanne ne se referme pas malgré les relances. La notification disparaît à l'acquittement.",
-          "external_open": "Les vannes ne devraient être ouvertes que par hydraXoo : par défaut, une telle ouverture est refermée immédiatement et signalée."
+          "external_open": "Les vannes ne devraient être ouvertes que par hydraXoo : par défaut, une telle ouverture est refermée immédiatement et signalée.",
+          "frost_alert": "Prévient les téléphones quand du gel est prévu alors que des cycles sont programmés, pour penser à couper les circuits d'eau extérieurs.",
+          "frost_threshold_c": "Température minimale prévue sur les 24 prochaines heures.",
+          "frost_thaw_notice": "Prévenir aussi quand le gel est terminé."
         }
       },
       "add_zone": {
@@ -64,14 +76,16 @@
           "start_time": "Heure de départ",
           "duration_min": "Durée",
           "weekdays": "Jours",
-          "receives_rain": "Reçoit la pluie"
+          "receives_rain": "Reçoit la pluie",
+          "frost_alert": "Alerte gel"
         },
         "data_description": {
           "switch_entity": "La prise ou le relais qui ouvre l'électrovanne.",
           "max_runtime_min": "La vanne est toujours fermée après ce délai, quoi qu'il arrive.",
           "power_entity": "Consommation de la prise, en W. S'il est renseigné, hydraXoo vérifie après chaque fermeture que la vanne s'est bien refermée.",
           "receives_rain": "Désactivé pour une zone à l'abri (serre, terrasse couverte) : la pluie est ignorée, mais le bonus chaleur s'applique toujours.",
-          "duration_min": "Si elle dépasse la coupure de sécurité, l'arrosage s'arrête à la coupure."
+          "duration_min": "Si elle dépasse la coupure de sécurité, l'arrosage s'arrête à la coupure.",
+          "frost_alert": "Désactivez-la pour une zone protégée du gel (serre chauffée) : elle ne déclenche plus l'alerte gel."
         },
         "sections": {
           "safety": {
@@ -134,13 +148,15 @@
           "switch_entity": "Interrupteur de l'électrovanne",
           "max_runtime_min": "Coupure de sécurité",
           "power_entity": "Capteur de consommation (facultatif)",
-          "receives_rain": "Reçoit la pluie"
+          "receives_rain": "Reçoit la pluie",
+          "frost_alert": "Alerte gel"
         },
         "data_description": {
           "switch_entity": "La prise ou le relais qui ouvre l'électrovanne.",
           "max_runtime_min": "La vanne est toujours fermée après ce délai, quoi qu'il arrive.",
           "power_entity": "Consommation de la prise, en W. S'il est renseigné, hydraXoo vérifie après chaque fermeture que la vanne s'est bien refermée.",
-          "receives_rain": "Désactivé pour une zone à l'abri (serre, terrasse couverte) : la pluie est ignorée, mais le bonus chaleur s'applique toujours."
+          "receives_rain": "Désactivé pour une zone à l'abri (serre, terrasse couverte) : la pluie est ignorée, mais le bonus chaleur s'applique toujours.",
+          "frost_alert": "Désactivez-la pour une zone protégée du gel (serre chauffée) : elle ne déclenche plus l'alerte gel."
         },
         "sections": {
           "safety": {
@@ -367,6 +383,30 @@
     },
     "unexpected_open": {
       "message": "Zone {zone} : la vanne a été allumée en dehors de hydraXoo et a été refermée. Vérifiez ce qui a allumé la prise."
+    },
+    "frost_title": {
+      "message": "hydraXoo : gel prévu"
+    },
+    "frost_alert": {
+      "message": "Gel prévu : {temp} vers {time}. Pensez à couper les circuits d'eau extérieurs."
+    },
+    "frost_reminder": {
+      "message": "Rappel : gel dans 3 heures environ ({temp} vers {time}). Les circuits d'eau extérieurs sont-ils coupés ?"
+    },
+    "frost_thaw_title": {
+      "message": "hydraXoo : fin du gel"
+    },
+    "frost_thaw": {
+      "message": "Fin du gel annoncée : vous pouvez rouvrir les circuits d'eau extérieurs."
+    },
+    "action_done": {
+      "message": "C'est fait"
+    },
+    "action_pause": {
+      "message": "Mettre l'arrosage en pause"
+    },
+    "action_resume": {
+      "message": "Reprendre l'arrosage"
     }
   }
 }

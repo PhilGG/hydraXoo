@@ -378,3 +378,16 @@ async def test_cycle_longer_than_cutoff_saved_and_capped(
     state = (await client.receive_json())["event"]
     assert state["zones"][0]["next_run"]["duration_min"] == 15
     assert state["zones"][0]["next_run"]["adjusted_duration_min"] == 5
+
+
+async def test_card_acknowledges_frost(
+    hass: HomeAssistant, hass_storage: dict[str, Any], hass_ws_client, valve: MockValve
+) -> None:
+    """The card's "Done" button confirms the frost episode."""
+    entry = await setup_entry(hass)
+    engine = entry.runtime_data
+    engine.frost.active = True
+    engine.frost.alerted = True
+    _, call = await _client(hass, hass_ws_client)
+    assert (await call("frost/acknowledge"))["success"]
+    assert engine.frost.acknowledged is True

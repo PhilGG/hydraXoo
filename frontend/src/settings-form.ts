@@ -1,7 +1,7 @@
 // Screen 4: general settings (weather, watering order, pause, alerts).
 import { LitElement, html, nothing } from "lit";
 import { translator, type Translate } from "./i18n";
-import { fullLanguage, uses12h } from "./locale";
+import { fullLanguage, usesFahrenheit, uses12h } from "./locale";
 import { formatDate, formatTime } from "./schedule";
 import { styles } from "./styles";
 import type { Hass, HydraxooState } from "./types";
@@ -12,6 +12,9 @@ interface Draft {
   sequential: boolean;
   notify_services: string[];
   external_open: "close" | "allow";
+  frost_alert: boolean;
+  frost_threshold_c: number;
+  frost_thaw_notice: boolean;
 }
 
 export class HydraxooSettingsForm extends LitElement {
@@ -42,6 +45,9 @@ export class HydraxooSettingsForm extends LitElement {
         sequential: s.sequential,
         notify_services: [...s.notify_services],
         external_open: s.external_open ?? "close",
+        frost_alert: s.frost_alert ?? true,
+        frost_threshold_c: s.frost_threshold_c ?? 2,
+        frost_thaw_notice: s.frost_thaw_notice ?? false,
       };
     }
   }
@@ -165,6 +171,60 @@ export class HydraxooSettingsForm extends LitElement {
     </section>`;
   }
 
+  private _toggle(checked: boolean, label: string, hint: string, onChange: (v: boolean) => void) {
+    return html`<div class="setting">
+      <span class="stack"><span class="strong">${label}</span><span class="tiny">${hint}</span></span>
+      <button
+        type="button"
+        class="switch"
+        role="switch"
+        aria-checked=${checked ? "true" : "false"}
+        aria-label=${label}
+        @click=${() => onChange(!checked)}
+      ></button>
+    </div>`;
+  }
+
+  private _frost() {
+    const t = this._t;
+    const d = this._draft!;
+    const fahrenheit = usesFahrenheit(this.hass);
+    // Stored in °C; shown and stepped in the user's unit.
+    const shown = fahrenheit ? Math.round((d.frost_threshold_c * 9) / 5 + 32) : d.frost_threshold_c;
+    const set = (v: number) => {
+      const celsius = fahrenheit ? Math.round((((v - 32) * 5) / 9) * 10) / 10 : v;
+      this._set({ frost_threshold_c: Math.min(10, Math.max(-5, celsius)) });
+    };
+    const step = fahrenheit ? 1 : 0.5;
+    const unit = fahrenheit ? "°F" : "°C";
+    const weather = !!this.state!.settings.weather_entity;
+    return html`<section class="tile" aria-labelledby="hx-s-frost">
+      <h2 id="hx-s-frost">${t("settings_screen.frost")}</h2>
+      <span class="tiny">${weather ? t("settings_screen.frost_hint") : t("settings_screen.frost_no_weather")}</span>
+      <div>
+        ${this._toggle(d.frost_alert, t("settings_screen.frost_alert"), t("settings_screen.frost_alert_hint"),
+          (v) => this._set({ frost_alert: v }))}
+        ${d.frost_alert
+          ? html`<div class="setting">
+              <span class="stack">
+                <span class="strong">${t("settings_screen.frost_threshold")}</span>
+                <span class="tiny">${t("settings_screen.frost_threshold_hint")}</span>
+              </span>
+              <span class="stepper">
+                <button type="button" aria-label=${t("editor.decrease", { what: t("settings_screen.frost_threshold") })}
+                  @click=${() => set(shown - step)}>−</button>
+                <span class="value" aria-live="polite">${shown.toLocaleString(fullLanguage(this.hass))} ${unit}</span>
+                <button type="button" aria-label=${t("editor.increase", { what: t("settings_screen.frost_threshold") })}
+                  @click=${() => set(shown + step)}>+</button>
+              </span>
+            </div>
+            ${this._toggle(d.frost_thaw_notice, t("settings_screen.frost_thaw"), t("settings_screen.frost_thaw_hint"),
+              (v) => this._set({ frost_thaw_notice: v }))}`
+          : nothing}
+      </div>
+    </section>`;
+  }
+
   private _safety() {
     const t = this._t;
     const d = this._draft!;
@@ -276,7 +336,7 @@ export class HydraxooSettingsForm extends LitElement {
           <h1>${t("settings")}</h1>
         </div>
       </div>
-      ${this._weather()} ${this._order()} ${this._pause()} ${this._safety()} ${this._alerts()}
+      ${this._weather()} ${this._order()} ${this._pause()} ${this._safety()} ${this._alerts()} ${this._frost()}
       ${this._message ? html`<div class="small" role="status">${this._message}</div>` : nothing}
       ${this._error ? html`<div class="error-text" role="alert">${this._error}</div>` : nothing}
       <button type="button" class="btn primary" ?disabled=${this._saving} @click=${this._save}>

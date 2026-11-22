@@ -9,14 +9,20 @@
           "rain_sensor": "Sensore di pioggia (facoltativo)",
           "sequence_mode": "Ordine di irrigazione",
           "notify_services": "Notifiche sul cellulare",
-          "external_open": "Quando una valvola viene accesa fuori da hydraXoo"
+          "external_open": "Quando una valvola viene accesa fuori da hydraXoo",
+          "frost_alert": "Avviso gelo",
+          "frost_threshold_c": "Soglia di gelo",
+          "frost_thaw_notice": "Avviso di fine gelo"
         },
         "data_description": {
           "weather_entity": "Facoltativa. Serve ad adattare l'irrigazione a pioggia e caldo; le previsioni orarie danno i risultati migliori.",
           "rain_sensor": "Pluviometro cumulativo in mm. Senza di esso, la pioggia caduta viene stimata dalla previsione oraria.",
           "sequence_mode": "Con una zona alla volta, un'irrigazione che arriva mentre un'altra zona irriga aspetta il suo turno.",
           "notify_services": "Telefoni (app Home Assistant) avvisati con priorità alta se una valvola resta aperta nonostante i tentativi. L'avviso sparisce dopo la conferma.",
-          "external_open": "Le valvole dovrebbero essere aperte solo da hydraXoo: per impostazione predefinita un'apertura del genere viene chiusa subito e segnalata."
+          "external_open": "Le valvole dovrebbero essere aperte solo da hydraXoo: per impostazione predefinita un'apertura del genere viene chiusa subito e segnalata.",
+          "frost_alert": "Avvisa i telefoni quando è previsto gelo e ci sono cicli programmati, per chiudere i circuiti d'acqua esterni.",
+          "frost_threshold_c": "Temperatura minima prevista nelle prossime 24 ore.",
+          "frost_thaw_notice": "Avvisare anche quando il gelo è finito."
         }
       }
     },
@@ -42,14 +48,20 @@
           "sequence_mode": "Ordine di irrigazione",
           "rain_sensor": "Sensore di pioggia (facoltativo)",
           "notify_services": "Notifiche sul cellulare",
-          "external_open": "Quando una valvola viene accesa fuori da hydraXoo"
+          "external_open": "Quando una valvola viene accesa fuori da hydraXoo",
+          "frost_alert": "Avviso gelo",
+          "frost_threshold_c": "Soglia di gelo",
+          "frost_thaw_notice": "Avviso di fine gelo"
         },
         "data_description": {
           "sequence_mode": "Con una zona alla volta, un'irrigazione che arriva mentre un'altra zona irriga aspetta il suo turno.",
           "rain_sensor": "Pluviometro cumulativo in mm. Senza di esso, la pioggia caduta viene stimata dalla previsione oraria.",
           "weather_entity": "Facoltativa. Serve ad adattare l'irrigazione a pioggia e caldo; le previsioni orarie danno i risultati migliori.",
           "notify_services": "Telefoni (app Home Assistant) avvisati con priorità alta se una valvola resta aperta nonostante i tentativi. L'avviso sparisce dopo la conferma.",
-          "external_open": "Le valvole dovrebbero essere aperte solo da hydraXoo: per impostazione predefinita un'apertura del genere viene chiusa subito e segnalata."
+          "external_open": "Le valvole dovrebbero essere aperte solo da hydraXoo: per impostazione predefinita un'apertura del genere viene chiusa subito e segnalata.",
+          "frost_alert": "Avvisa i telefoni quando è previsto gelo e ci sono cicli programmati, per chiudere i circuiti d'acqua esterni.",
+          "frost_threshold_c": "Temperatura minima prevista nelle prossime 24 ore.",
+          "frost_thaw_notice": "Avvisare anche quando il gelo è finito."
         }
       },
       "add_zone": {
@@ -64,14 +76,16 @@
           "start_time": "Ora di inizio",
           "duration_min": "Durata",
           "weekdays": "Giorni",
-          "receives_rain": "Riceve la pioggia"
+          "receives_rain": "Riceve la pioggia",
+          "frost_alert": "Avviso gelo"
         },
         "data_description": {
           "switch_entity": "La presa o il relè che apre l'elettrovalvola.",
           "max_runtime_min": "La valvola viene sempre chiusa dopo questo tempo, qualunque cosa accada.",
           "power_entity": "Consumo della presa, in W. Se impostato, hydraXoo controlla dopo ogni chiusura che la valvola sia davvero chiusa.",
           "receives_rain": "Disattivare per una zona al riparo dalla pioggia (serra, zona coperta): la pioggia viene ignorata, il bonus caldo resta valido.",
-          "duration_min": "Se supera lo spegnimento di sicurezza, l'irrigazione si ferma allo spegnimento."
+          "duration_min": "Se supera lo spegnimento di sicurezza, l'irrigazione si ferma allo spegnimento.",
+          "frost_alert": "Disattivare per una zona protetta dal gelo (serra riscaldata): non attiva più l'avviso gelo."
         },
         "sections": {
           "safety": {
@@ -134,13 +148,15 @@
           "switch_entity": "Interruttore della valvola",
           "max_runtime_min": "Spegnimento di sicurezza",
           "power_entity": "Sensore di consumo (facoltativo)",
-          "receives_rain": "Riceve la pioggia"
+          "receives_rain": "Riceve la pioggia",
+          "frost_alert": "Avviso gelo"
         },
         "data_description": {
           "switch_entity": "La presa o il relè che apre l'elettrovalvola.",
           "max_runtime_min": "La valvola viene sempre chiusa dopo questo tempo, qualunque cosa accada.",
           "power_entity": "Consumo della presa, in W. Se impostato, hydraXoo controlla dopo ogni chiusura che la valvola sia davvero chiusa.",
-          "receives_rain": "Disattivare per una zona al riparo dalla pioggia (serra, zona coperta): la pioggia viene ignorata, il bonus caldo resta valido."
+          "receives_rain": "Disattivare per una zona al riparo dalla pioggia (serra, zona coperta): la pioggia viene ignorata, il bonus caldo resta valido.",
+          "frost_alert": "Disattivare per una zona protetta dal gelo (serra riscaldata): non attiva più l'avviso gelo."
         },
         "sections": {
           "safety": {
@@ -367,6 +383,30 @@
     },
     "unexpected_open": {
       "message": "Zona {zone}: la valvola è stata accesa fuori da hydraXoo ed è stata chiusa. Verificare cosa ha acceso la presa."
+    },
+    "frost_title": {
+      "message": "hydraXoo: gelo previsto"
+    },
+    "frost_alert": {
+      "message": "Gelo previsto: {temp} verso le {time}. Ricordati di chiudere i circuiti d'acqua esterni."
+    },
+    "frost_reminder": {
+      "message": "Promemoria: gelo tra circa 3 ore ({temp} verso le {time}). I circuiti d'acqua esterni sono chiusi?"
+    },
+    "frost_thaw_title": {
+      "message": "hydraXoo: fine del gelo"
+    },
+    "frost_thaw": {
+      "message": "Fine del gelo prevista: puoi riaprire i circuiti d'acqua esterni."
+    },
+    "action_done": {
+      "message": "Fatto"
+    },
+    "action_pause": {
+      "message": "Metti in pausa l'irrigazione"
+    },
+    "action_resume": {
+      "message": "Riprendi l'irrigazione"
     }
   }
 }

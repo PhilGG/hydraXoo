@@ -21,6 +21,9 @@ from .const import (
     CONF_DURATION,
     CONF_EXTERNAL_OPEN,
     CONF_FORECAST_WINDOW_H,
+    CONF_FROST_ALERT,
+    CONF_FROST_THAW_NOTICE,
+    CONF_FROST_THRESHOLD,
     CONF_HEAT_BONUS_PCT,
     CONF_HEAT_THRESHOLD_C,
     CONF_ICON,
@@ -45,6 +48,7 @@ from .const import (
     CONF_WEATHER_RULES,
     CONF_WEEKDAYS,
     DEFAULT_DURATION,
+    DEFAULT_FROST_THRESHOLD,
     DEFAULT_ICON,
     DEFAULT_MAX_RUNTIME,
     DEFAULT_START_TIME,
@@ -126,6 +130,17 @@ def _settings_schema(
                 )
             ),
             vol.Required(
+                CONF_FROST_ALERT, default=defaults.get(CONF_FROST_ALERT, True)
+            ): selector.BooleanSelector(),
+            vol.Required(
+                CONF_FROST_THRESHOLD,
+                default=defaults.get(CONF_FROST_THRESHOLD, DEFAULT_FROST_THRESHOLD),
+            ): _number(-5, 10, 0.5, "°C"),
+            vol.Required(
+                CONF_FROST_THAW_NOTICE,
+                default=defaults.get(CONF_FROST_THAW_NOTICE, False),
+            ): selector.BooleanSelector(),
+            vol.Required(
                 CONF_EXTERNAL_OPEN,
                 default=defaults.get(CONF_EXTERNAL_OPEN, EXTERNAL_CLOSE),
             ): selector.SelectSelector(
@@ -183,6 +198,9 @@ def _zone_fields(defaults: dict[str, Any], exclude: list[str]) -> dict:
         ),
         vol.Required(
             CONF_RECEIVES_RAIN, default=defaults.get(CONF_RECEIVES_RAIN, True)
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_FROST_ALERT, default=defaults.get(CONF_FROST_ALERT, True)
         ): selector.BooleanSelector(),
         vol.Required(CONF_WEATHER_RULES): section(
             vol.Schema(_weather_fields(defaults.get(CONF_WEATHER_RULES) or {})),
@@ -289,6 +307,7 @@ def _zone_to_form(zone: Zone) -> dict[str, Any]:
         CONF_POWER_ENTITY: zone.power_entity,
         CONF_SAFETY: zone.safety.to_dict(),
         CONF_RECEIVES_RAIN: zone.receives_rain,
+        CONF_FROST_ALERT: zone.frost_alert,
         CONF_WEATHER_RULES: zone.weather_rules.to_dict(),
     }
 
@@ -310,6 +329,7 @@ def _apply_zone(zone: Zone, user_input: dict[str, Any]) -> None:
     zone.power_entity = user_input.get(CONF_POWER_ENTITY) or None
     zone.safety = SafetySettings.from_dict(user_input.get(CONF_SAFETY))
     zone.receives_rain = bool(user_input.get(CONF_RECEIVES_RAIN, True))
+    zone.frost_alert = bool(user_input.get(CONF_FROST_ALERT, True))
     zone.weather_rules = WeatherRules.from_dict(user_input.get(CONF_WEATHER_RULES))
 
 

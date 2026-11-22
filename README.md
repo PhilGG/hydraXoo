@@ -35,6 +35,7 @@ Free and open-source zone-based irrigation for Home Assistant. Everything is set
 - [Scheduling](#scheduling)
 - [Weather adjustment](#weather-adjustment)
 - [Safety](#safety)
+- [Frost warning](#frost-warning)
 - [Entities, services and events](#entities-services-and-events)
 - [Automation examples](#automation-examples)
 - [Troubleshooting](#troubleshooting)
@@ -170,6 +171,19 @@ The check runs after every closing (end of watering, Stop, cut-off, valve switch
 
 If the power sensor is unavailable, the closing is not checked (no retry) and a warning is logged.
 
+## Frost warning
+
+Outdoor pipes can burst when they freeze. When the forecast for the next 24 hours drops to **2 °C or below** (threshold adjustable; °F handled) while cycles are scheduled, hydraXoo reminds you to shut the outdoor water circuits — without nagging:
+
+- A **frost episode** starts with the first frosty forecast and ends only when the forecast warms up clearly again (threshold + 2 °C), so a forecast hovering around the threshold does not re-trigger.
+- **At most two phone notifications per episode**: the alert when frost is first forecast (deferred to 7:00 if detected at night and frost is not expected before 10:00), then **one reminder about 3 hours before the frost** if nobody confirmed — and only if it comes at least 2 hours after the alert.
+- **Confirm** with the notification's **Done** or **Pause watering** buttons, or from the card's frost banner. Pausing watering, or having no enabled cycle left in frost-alerted zones, also counts as confirmed. Then nothing more until the thaw.
+- The episode is saved: a restart never sends the alert again. Event `hydraxoo_frost_warning` (`kind`: `alert`, `reminder`, `thaw`).
+- Optional **end-of-frost notice** (off by default), with a **Resume watering** button if watering is paused.
+- Per zone, **Frost warning** can be turned off (e.g. a heated greenhouse): that zone no longer counts.
+
+Settings: card **⚙ › Frost** (or **Configure › General settings**). Requires a weather entity; alerts go to the phones chosen under **Alerts**.
+
 ## Entities, services and events
 
 General entities (device **hydraXoo**):
@@ -211,6 +225,7 @@ Events:
 | `hydraxoo_safety_retry` | `zone_id`, `zone_name`, `attempt`, `max_attempts`, `power_w` |
 | `hydraxoo_safety_failed` | `zone_id`, `zone_name`, `attempts`, `power_w` |
 | `hydraxoo_unexpected_open` | `zone_id`, `zone_name` |
+| `hydraxoo_frost_warning` | `kind` (`alert`, `reminder`, `thaw`), `min_temp_c`, `frost_at` |
 
 ## Automation examples
 

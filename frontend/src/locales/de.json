@@ -176,7 +176,9 @@
     "rain_hint": "Dauer an gefallenen und erwarteten Regen angepasst",
     "no_rain_detail": "Regen ignoriert: Nur Hitze kann die Dauer ändern",
     "cutoff_warning": "Dieser Zyklus wird nach {cutoff} Min. von der Sicherheitsabschaltung gestoppt. Damit er {min} Min. dauert, erhöhen Sie die Sicherheitsabschaltung.",
-    "raise_cutoff": "Abschaltung auf {min} Min. setzen"
+    "raise_cutoff": "Abschaltung auf {min} Min. setzen",
+    "frost": "Frostwarnung",
+    "frost_hint": "Für eine frostgeschützte Zone (beheiztes Gewächshaus) ausschalten"
   },
   "days": {
     "short": [
@@ -231,10 +233,26 @@
     "external_close": "Sofort schließen",
     "external_close_desc": "Als Störung behandelt und gemeldet",
     "external_allow": "Offen lassen",
-    "external_allow_desc": "Durch die Sicherheitsabschaltung geschlossen"
+    "external_allow_desc": "Durch die Sicherheitsabschaltung geschlossen",
+    "frost": "Frost",
+    "frost_hint": "Alarmiert die gewählten Telefone, wenn Frost vorhergesagt ist und Zyklen geplant sind.",
+    "frost_no_weather": "Benötigt eine Wetter-Entität.",
+    "frost_alert": "Frostwarnung",
+    "frost_alert_hint": "Ein Alarm, dann eine Erinnerung etwa 3 Std. vor dem Frost, falls niemand bestätigt hat.",
+    "frost_threshold": "Frostschwelle",
+    "frost_threshold_hint": "Niedrigste vorhergesagte Temperatur über 24 Std.",
+    "frost_thaw": "Meldung bei Frostende",
+    "frost_thaw_hint": "Auch melden, wenn der Frost vorbei ist"
   },
   "unexpected": {
     "title": "{zone}: unerwartete Öffnung um {time}",
     "detail": "Das Ventil wurde außerhalb von hydraXoo eingeschaltet und wieder geschlossen."
+  },
+  "frost": {
+    "title": "Frost vorhergesagt: {temp} gegen {time}",
+    "detail": "Denken Sie daran, die Außenwasserleitungen abzusperren.",
+    "done": "Erledigt",
+    "pause": "Bewässerung pausieren",
+    "confirmed": "Außenleitungen als abgesperrt gemeldet"
   }
 }

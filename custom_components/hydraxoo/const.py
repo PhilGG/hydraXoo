@@ -16,6 +16,15 @@ CONF_NOTIFY_SERVICES: Final = "notify_services"
 CONF_EXTERNAL_OPEN: Final = "external_open"
 EXTERNAL_CLOSE: Final = "close"  # close at once: it is a fault (default)
 EXTERNAL_ALLOW: Final = "allow"  # leave it, the safety cut-off applies
+# Frost warning (remind to shut outdoor water circuits)
+CONF_FROST_ALERT: Final = "frost_alert"  # general switch, and per zone
+CONF_FROST_THRESHOLD: Final = "frost_threshold_c"
+CONF_FROST_THAW_NOTICE: Final = "frost_thaw_notice"
+DEFAULT_FROST_THRESHOLD: Final = 2.0
+# Actions of the frost notification buttons (companion app)
+ACTION_FROST_DONE: Final = "HYDRAXOO_FROST_DONE"
+ACTION_FROST_PAUSE: Final = "HYDRAXOO_FROST_PAUSE"
+ACTION_RESUME: Final = "HYDRAXOO_RESUME"
 # At most one "unexpected opening" phone alert per zone in this time
 UNEXPECTED_NOTIFY_MINUTES: Final = 10
 MODE_SEQUENTIAL: Final = "sequential"  # one zone at a time (default)
@@ -105,6 +114,7 @@ EVENT_CYCLE_SKIPPED: Final = f"{DOMAIN}_cycle_skipped"
 EVENT_SAFETY_RETRY: Final = f"{DOMAIN}_safety_retry"
 EVENT_SAFETY_FAILED: Final = f"{DOMAIN}_safety_failed"
 EVENT_UNEXPECTED_OPEN: Final = f"{DOMAIN}_unexpected_open"
+EVENT_FROST_WARNING: Final = f"{DOMAIN}_frost_warning"
 
 # Result of a closing check
 CHECK_CONFIRMED: Final = "confirmed"  # closed (possibly after retries)

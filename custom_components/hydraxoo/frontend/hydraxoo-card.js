@@ -29,7 +29,7 @@ var e = globalThis, t = e.ShadowRoot && (e.ShadyCSS === void 0 || e.ShadyCSS.nat
 	let t = "";
 	for (let n of e.cssRules) t += n.cssText;
 	return a(t);
-})(e) : e, { is: l, defineProperty: u, getOwnPropertyDescriptor: d, getOwnPropertyNames: ee, getOwnPropertySymbols: te, getPrototypeOf: ne } = Object, f = globalThis, p = f.trustedTypes, re = p ? p.emptyScript : "", ie = f.reactiveElementPolyfillSupport, m = (e, t) => e, h = {
+})(e) : e, { is: l, defineProperty: u, getOwnPropertyDescriptor: d, getOwnPropertyNames: f, getOwnPropertySymbols: ee, getPrototypeOf: te } = Object, p = globalThis, ne = p.trustedTypes, re = ne ? ne.emptyScript : "", ie = p.reactiveElementPolyfillSupport, m = (e, t) => e, h = {
 	toAttribute(e, t) {
 		switch (t) {
 			case Boolean:
@@ -66,7 +66,7 @@ var e = globalThis, t = e.ShadowRoot && (e.ShadyCSS === void 0 || e.ShadyCSS.nat
 	useDefault: !1,
 	hasChanged: g
 };
-Symbol.metadata ??= Symbol("metadata"), f.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
+Symbol.metadata ??= Symbol("metadata"), p.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
 var _ = class extends HTMLElement {
 	static addInitializer(e) {
 		this._$Ei(), (this.l ??= []).push(e);
@@ -104,13 +104,13 @@ var _ = class extends HTMLElement {
 	}
 	static _$Ei() {
 		if (this.hasOwnProperty(m("elementProperties"))) return;
-		let e = ne(this);
+		let e = te(this);
 		e.finalize(), e.l !== void 0 && (this.l = [...e.l]), this.elementProperties = new Map(e.elementProperties);
 	}
 	static finalize() {
 		if (this.hasOwnProperty(m("finalized"))) return;
 		if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(m("properties"))) {
-			let e = this.properties, t = [...ee(e), ...te(e)];
+			let e = this.properties, t = [...f(e), ...ee(e)];
 			for (let n of t) this.createProperty(n, e[n]);
 		}
 		let e = this[Symbol.metadata];
@@ -251,7 +251,7 @@ var _ = class extends HTMLElement {
 	updated(e) {}
 	firstUpdated(e) {}
 };
-_.elementStyles = [], _.shadowRootOptions = { mode: "open" }, _[m("elementProperties")] = /* @__PURE__ */ new Map(), _[m("finalized")] = /* @__PURE__ */ new Map(), ie?.({ ReactiveElement: _ }), (f.reactiveElementVersions ??= []).push("2.1.2");
+_.elementStyles = [], _.shadowRootOptions = { mode: "open" }, _[m("elementProperties")] = /* @__PURE__ */ new Map(), _[m("finalized")] = /* @__PURE__ */ new Map(), ie?.({ ReactiveElement: _ }), (p.reactiveElementVersions ??= []).push("2.1.2");
 // node_modules/lit-html/lit-html.js
 var v = globalThis, y = (e) => e, b = v.trustedTypes, x = b ? b.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, S = "$lit$", C = `lit$${Math.random().toFixed(9).slice(2)}$`, oe = "?" + C, se = `<${oe}>`, w = document, T = () => w.createComment(""), E = (e) => e === null || typeof e != "object" && typeof e != "function", D = Array.isArray, ce = (e) => D(e) || typeof e?.[Symbol.iterator] == "function", O = "[ 	\n\f\r]", k = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, A = /-->/g, j = />/g, M = RegExp(`>|${O}(?:([^\\s"'>=/]+)(${O}*=${O}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), le = /'/g, ue = /"/g, de = /^(?:script|style|textarea|title)$/i, N = ((e) => (t, ...n) => ({
 	_$litType$: e,
@@ -685,7 +685,9 @@ var xe = {
 		rain_hint: "Dauer an gefallenen und erwarteten Regen angepasst",
 		no_rain_detail: "Regen ignoriert: Nur Hitze kann die Dauer ändern",
 		cutoff_warning: "Dieser Zyklus wird nach {cutoff} Min. von der Sicherheitsabschaltung gestoppt. Damit er {min} Min. dauert, erhöhen Sie die Sicherheitsabschaltung.",
-		raise_cutoff: "Abschaltung auf {min} Min. setzen"
+		raise_cutoff: "Abschaltung auf {min} Min. setzen",
+		frost: "Frostwarnung",
+		frost_hint: "Für eine frostgeschützte Zone (beheiztes Gewächshaus) ausschalten"
 	},
 	days: {
 		short: [
@@ -740,11 +742,27 @@ var xe = {
 		external_close: "Sofort schließen",
 		external_close_desc: "Als Störung behandelt und gemeldet",
 		external_allow: "Offen lassen",
-		external_allow_desc: "Durch die Sicherheitsabschaltung geschlossen"
+		external_allow_desc: "Durch die Sicherheitsabschaltung geschlossen",
+		frost: "Frost",
+		frost_hint: "Alarmiert die gewählten Telefone, wenn Frost vorhergesagt ist und Zyklen geplant sind.",
+		frost_no_weather: "Benötigt eine Wetter-Entität.",
+		frost_alert: "Frostwarnung",
+		frost_alert_hint: "Ein Alarm, dann eine Erinnerung etwa 3 Std. vor dem Frost, falls niemand bestätigt hat.",
+		frost_threshold: "Frostschwelle",
+		frost_threshold_hint: "Niedrigste vorhergesagte Temperatur über 24 Std.",
+		frost_thaw: "Meldung bei Frostende",
+		frost_thaw_hint: "Auch melden, wenn der Frost vorbei ist"
 	},
 	unexpected: {
 		title: "{zone}: unerwartete Öffnung um {time}",
 		detail: "Das Ventil wurde außerhalb von hydraXoo eingeschaltet und wieder geschlossen."
+	},
+	frost: {
+		title: "Frost vorhergesagt: {temp} gegen {time}",
+		detail: "Denken Sie daran, die Außenwasserleitungen abzusperren.",
+		done: "Erledigt",
+		pause: "Bewässerung pausieren",
+		confirmed: "Außenleitungen als abgesperrt gemeldet"
 	}
 }, G = {
 	title: "Watering",
@@ -924,7 +942,9 @@ var xe = {
 		rain_hint: "Duration adjusted to the rain fallen and expected",
 		no_rain_detail: "Rain ignored: only heat can change the duration",
 		cutoff_warning: "This cycle will be stopped after {cutoff} min by the safety cut-off. For it to last {min} min, raise the safety cut-off.",
-		raise_cutoff: "Set the cut-off to {min} min"
+		raise_cutoff: "Set the cut-off to {min} min",
+		frost: "Frost warning",
+		frost_hint: "Turn off for a zone protected from frost (heated greenhouse)"
 	},
 	days: {
 		short: [
@@ -979,11 +999,27 @@ var xe = {
 		external_close: "Close it at once",
 		external_close_desc: "Treated as a fault and reported",
 		external_allow: "Leave it open",
-		external_allow_desc: "Closed by the safety cut-off"
+		external_allow_desc: "Closed by the safety cut-off",
+		frost: "Frost",
+		frost_hint: "Alerts the chosen phones when frost is forecast while cycles are scheduled.",
+		frost_no_weather: "Needs a weather entity.",
+		frost_alert: "Frost warning",
+		frost_alert_hint: "One alert, then one reminder about 3 h before the frost if nobody confirmed.",
+		frost_threshold: "Frost threshold",
+		frost_threshold_hint: "Lowest temperature forecast over 24 h",
+		frost_thaw: "End-of-frost notice",
+		frost_thaw_hint: "Also tell when the frost is over"
 	},
 	unexpected: {
 		title: "{zone}: unexpected opening at {time}",
 		detail: "The valve was switched on outside hydraXoo and has been closed."
+	},
+	frost: {
+		title: "Frost forecast: {temp} around {time}",
+		detail: "Remember to shut the outdoor water circuits.",
+		done: "Done",
+		pause: "Pause watering",
+		confirmed: "Outdoor circuits reported shut"
 	}
 }, Se = {
 	de: xe,
@@ -1166,7 +1202,9 @@ var xe = {
 			rain_hint: "Duración ajustada a la lluvia caída y prevista",
 			no_rain_detail: "Lluvia ignorada: solo el calor puede cambiar la duración",
 			cutoff_warning: "Este ciclo se detendrá a los {cutoff} min por el corte de seguridad. Para que dure {min} min, aumente el corte de seguridad.",
-			raise_cutoff: "Poner el corte en {min} min"
+			raise_cutoff: "Poner el corte en {min} min",
+			frost: "Aviso de helada",
+			frost_hint: "Desactívelo para una zona protegida de la helada (invernadero calefactado)"
 		},
 		days: {
 			short: [
@@ -1221,11 +1259,27 @@ var xe = {
 			external_close: "Cerrarla al instante",
 			external_close_desc: "Tratado como fallo y avisado",
 			external_allow: "Dejarla abierta",
-			external_allow_desc: "La cierra el corte de seguridad"
+			external_allow_desc: "La cierra el corte de seguridad",
+			frost: "Helada",
+			frost_hint: "Avisa a los teléfonos elegidos cuando se prevé helada y hay ciclos programados.",
+			frost_no_weather: "Necesita una entidad meteorológica.",
+			frost_alert: "Aviso de helada",
+			frost_alert_hint: "Un aviso y luego un solo recordatorio unas 3 h antes de la helada si nadie confirmó.",
+			frost_threshold: "Umbral de helada",
+			frost_threshold_hint: "Temperatura mínima prevista en 24 h",
+			frost_thaw: "Aviso de fin de helada",
+			frost_thaw_hint: "Avisar también cuando termine la helada"
 		},
 		unexpected: {
 			title: "{zone}: apertura no ordenada a las {time}",
 			detail: "La válvula se encendió fuera de hydraXoo y se ha cerrado."
+		},
+		frost: {
+			title: "Helada prevista: {temp} hacia las {time}",
+			detail: "Acuérdese de cortar los circuitos de agua exteriores.",
+			done: "Hecho",
+			pause: "Pausar el riego",
+			confirmed: "Circuitos exteriores indicados como cortados"
 		}
 	},
 	fr: {
@@ -1406,7 +1460,9 @@ var xe = {
 			rain_hint: "Durée ajustée selon la pluie tombée et prévue",
 			no_rain_detail: "Pluie ignorée : seule la chaleur peut changer la durée",
 			cutoff_warning: "Ce cycle sera arrêté au bout de {cutoff} min par la coupure de sécurité. Pour qu'il dure {min} min, augmentez la coupure de sécurité.",
-			raise_cutoff: "Passer la coupure à {min} min"
+			raise_cutoff: "Passer la coupure à {min} min",
+			frost: "Alerte gel",
+			frost_hint: "Désactivez-la pour une zone protégée du gel (serre chauffée)"
 		},
 		days: {
 			short: [
@@ -1461,11 +1517,27 @@ var xe = {
 			external_close: "La refermer immédiatement",
 			external_close_desc: "Traité comme un défaut et signalé",
 			external_allow: "La laisser ouverte",
-			external_allow_desc: "Refermée par la coupure de sécurité"
+			external_allow_desc: "Refermée par la coupure de sécurité",
+			frost: "Gel",
+			frost_hint: "Prévient les téléphones choisis quand du gel est prévu alors que des cycles sont programmés.",
+			frost_no_weather: "Nécessite une entité météo.",
+			frost_alert: "Alerte gel",
+			frost_alert_hint: "Une alerte, puis un seul rappel environ 3 h avant le gel si personne n'a confirmé.",
+			frost_threshold: "Seuil de gel",
+			frost_threshold_hint: "Température minimale prévue sur 24 h",
+			frost_thaw: "Message de fin de gel",
+			frost_thaw_hint: "Prévenir aussi quand le gel est terminé"
 		},
 		unexpected: {
 			title: "{zone} : ouverture non commandée à {time}",
 			detail: "La vanne a été allumée en dehors de hydraXoo et a été refermée."
+		},
+		frost: {
+			title: "Gel prévu : {temp} vers {time}",
+			detail: "Pensez à couper les circuits d'eau extérieurs.",
+			done: "C'est fait",
+			pause: "Mettre l'arrosage en pause",
+			confirmed: "Circuits extérieurs signalés coupés"
 		}
 	},
 	it: {
@@ -1646,7 +1718,9 @@ var xe = {
 			rain_hint: "Durata adattata alla pioggia caduta e prevista",
 			no_rain_detail: "Pioggia ignorata: solo il caldo può cambiare la durata",
 			cutoff_warning: "Questo ciclo verrà fermato dopo {cutoff} min dallo spegnimento di sicurezza. Perché duri {min} min, aumentare lo spegnimento di sicurezza.",
-			raise_cutoff: "Porta lo spegnimento a {min} min"
+			raise_cutoff: "Porta lo spegnimento a {min} min",
+			frost: "Avviso gelo",
+			frost_hint: "Disattivare per una zona protetta dal gelo (serra riscaldata)"
 		},
 		days: {
 			short: [
@@ -1701,11 +1775,27 @@ var xe = {
 			external_close: "Chiuderla subito",
 			external_close_desc: "Trattato come guasto e segnalato",
 			external_allow: "Lasciarla aperta",
-			external_allow_desc: "Chiusa dallo spegnimento di sicurezza"
+			external_allow_desc: "Chiusa dallo spegnimento di sicurezza",
+			frost: "Gelo",
+			frost_hint: "Avvisa i telefoni scelti quando è previsto gelo e ci sono cicli programmati.",
+			frost_no_weather: "Richiede un'entità meteo.",
+			frost_alert: "Avviso gelo",
+			frost_alert_hint: "Un avviso, poi un solo promemoria circa 3 h prima del gelo se nessuno ha confermato.",
+			frost_threshold: "Soglia di gelo",
+			frost_threshold_hint: "Temperatura minima prevista nelle 24 h",
+			frost_thaw: "Avviso di fine gelo",
+			frost_thaw_hint: "Avvisare anche quando il gelo è finito"
 		},
 		unexpected: {
 			title: "{zone}: apertura non comandata alle {time}",
 			detail: "La valvola è stata accesa fuori da hydraXoo ed è stata chiusa."
+		},
+		frost: {
+			title: "Gelo previsto: {temp} verso le {time}",
+			detail: "Ricordati di chiudere i circuiti d'acqua esterni.",
+			done: "Fatto",
+			pause: "Metti in pausa l'irrigazione",
+			confirmed: "Circuiti esterni segnalati come chiusi"
 		}
 	}
 };
@@ -1942,14 +2032,14 @@ function Ie(e) {
 function Z(e) {
 	return e?.locale?.language || e?.language || "en";
 }
-function Le(e) {
+function Q(e) {
 	let t = e?.locale?.time_format;
 	if (t === "12") return !0;
 	if (t === "24") return !1;
 	let n = t === "system" ? void 0 : Z(e), r = new Intl.DateTimeFormat(n, { hour: "numeric" }).resolvedOptions().hourCycle;
 	return r === "h12" || r === "h11";
 }
-var Re = {
+var Le = {
 	monday: 0,
 	tuesday: 1,
 	wednesday: 2,
@@ -1958,21 +2048,27 @@ var Re = {
 	saturday: 5,
 	sunday: 6
 };
-function ze(e) {
+function Re(e) {
 	let t = e?.locale?.first_weekday;
-	if (t && t in Re) return Re[t];
+	if (t && t in Le) return Le[t];
 	try {
 		let t = new Intl.Locale(Z(e)), n = t.getWeekInfo?.() ?? t.weekInfo;
 		if (n?.firstDay) return (n.firstDay + 6) % 7;
 	} catch {}
 	return 0;
 }
-function Be(e) {
-	let t = ze(e);
+function ze(e) {
+	return e?.config?.unit_system?.temperature === "°F";
+}
+function Be(e, t) {
+	return t == null ? "?" : ze(e) ? `${Math.round(t * 9 / 5 + 32)} °F` : `${Math.round(t)} °C`;
+}
+function Ve(e) {
+	let t = Re(e);
 	return Array.from({ length: 7 }, (e, n) => (t + n) % 7);
 }
 // src/styles.ts
-var Q = o`
+var $ = o`
   :host {
     --hx-primary: var(--primary-color, #1d4ed8);
     --hx-on-primary: var(--text-primary-color, #ffffff);
@@ -2519,6 +2615,10 @@ var Q = o`
   .cycle-card.off {
     opacity: 0.6;
   }
+  .tile.frost {
+    outline: 2px solid var(--hx-warning);
+    outline-offset: -2px;
+  }
   .warning-box {
     display: flex;
     gap: 10px;
@@ -2569,7 +2669,7 @@ var Q = o`
       transition: none;
     }
   }
-`, Ve = class extends W {
+`, He = class extends W {
 	constructor(...e) {
 		super(...e), this.state = null, this._draft = null, this._message = "", this._error = "", this._saving = !1, this._test = async () => {
 			let e = this._t, t = await this._call({
@@ -2592,7 +2692,7 @@ var Q = o`
 		};
 	}
 	static {
-		this.styles = Q;
+		this.styles = $;
 	}
 	willUpdate() {
 		if (!this._draft && this.state) {
@@ -2602,7 +2702,10 @@ var Q = o`
 				rain_sensor: e.rain_sensor,
 				sequential: e.sequential,
 				notify_services: [...e.notify_services],
-				external_open: e.external_open ?? "close"
+				external_open: e.external_open ?? "close",
+				frost_alert: e.frost_alert ?? !0,
+				frost_threshold_c: e.frost_threshold_c ?? 2,
+				frost_thaw_notice: e.frost_thaw_notice ?? !1
 			};
 		}
 	}
@@ -2671,7 +2774,7 @@ var Q = o`
       ${t.paused ? N`<div class="row">
             <span class="stack grow">
               <span class="strong">${e("pause.paused")}</span>
-              <span class="small">${t.pause_until ? e("pause.until", { date: `${X(t.pause_until, n, r)} ${Y(t.pause_until, n, r, Le(this.hass))}` }) : e("pause.indefinite")}</span>
+              <span class="small">${t.pause_until ? e("pause.until", { date: `${X(t.pause_until, n, r)} ${Y(t.pause_until, n, r, Q(this.hass))}` }) : e("pause.indefinite")}</span>
             </span>
             <button type="button" class="btn" @click=${() => this._call({ type: "hydraxoo/resume" })}>
               ${e("pause.resume")}
@@ -2694,6 +2797,46 @@ var Q = o`
                 ${e("settings_screen.pause_until_resumed")}
               </button>
             </div>`}
+    </section>`;
+	}
+	_toggle(e, t, n, r) {
+		return N`<div class="setting">
+      <span class="stack"><span class="strong">${t}</span><span class="tiny">${n}</span></span>
+      <button
+        type="button"
+        class="switch"
+        role="switch"
+        aria-checked=${e ? "true" : "false"}
+        aria-label=${t}
+        @click=${() => r(!e)}
+      ></button>
+    </div>`;
+	}
+	_frost() {
+		let e = this._t, t = this._draft, n = ze(this.hass), r = n ? Math.round(t.frost_threshold_c * 9 / 5 + 32) : t.frost_threshold_c, i = (e) => {
+			let t = n ? Math.round((e - 32) * 5 / 9 * 10) / 10 : e;
+			this._set({ frost_threshold_c: Math.min(10, Math.max(-5, t)) });
+		}, a = n ? 1 : .5, o = n ? "°F" : "°C", s = !!this.state.settings.weather_entity;
+		return N`<section class="tile" aria-labelledby="hx-s-frost">
+      <h2 id="hx-s-frost">${e("settings_screen.frost")}</h2>
+      <span class="tiny">${e(s ? "settings_screen.frost_hint" : "settings_screen.frost_no_weather")}</span>
+      <div>
+        ${this._toggle(t.frost_alert, e("settings_screen.frost_alert"), e("settings_screen.frost_alert_hint"), (e) => this._set({ frost_alert: e }))}
+        ${t.frost_alert ? N`<div class="setting">
+              <span class="stack">
+                <span class="strong">${e("settings_screen.frost_threshold")}</span>
+                <span class="tiny">${e("settings_screen.frost_threshold_hint")}</span>
+              </span>
+              <span class="stepper">
+                <button type="button" aria-label=${e("editor.decrease", { what: e("settings_screen.frost_threshold") })}
+                  @click=${() => i(r - a)}>−</button>
+                <span class="value" aria-live="polite">${r.toLocaleString(Z(this.hass))} ${o}</span>
+                <button type="button" aria-label=${e("editor.increase", { what: e("settings_screen.frost_threshold") })}
+                  @click=${() => i(r + a)}>+</button>
+              </span>
+            </div>
+            ${this._toggle(t.frost_thaw_notice, e("settings_screen.frost_thaw"), e("settings_screen.frost_thaw_hint"), (e) => this._set({ frost_thaw_notice: e }))}` : F}
+      </div>
     </section>`;
 	}
 	_safety() {
@@ -2743,7 +2886,7 @@ var Q = o`
 		try {
 			return this._error = "", await this.hass.callWS(e);
 		} catch (e) {
-			this._error = He(this._t, e);
+			this._error = Ue(this._t, e);
 			return;
 		}
 	}
@@ -2779,7 +2922,7 @@ var Q = o`
           <h1>${e("settings")}</h1>
         </div>
       </div>
-      ${this._weather()} ${this._order()} ${this._pause()} ${this._safety()} ${this._alerts()}
+      ${this._weather()} ${this._order()} ${this._pause()} ${this._safety()} ${this._alerts()} ${this._frost()}
       ${this._message ? N`<div class="small" role="status">${this._message}</div>` : F}
       ${this._error ? N`<div class="error-text" role="alert">${this._error}</div>` : F}
       <button type="button" class="btn primary" ?disabled=${this._saving} @click=${this._save}>
@@ -2789,17 +2932,17 @@ var Q = o`
     </div>`;
 	}
 };
-function He(e, t) {
+function Ue(e, t) {
 	return e("editor.errors.generic", { message: t?.message ?? String(t) });
 }
-customElements.get("hydraxoo-settings-form") || customElements.define("hydraxoo-settings-form", Ve);
+customElements.get("hydraxoo-settings-form") || customElements.define("hydraxoo-settings-form", He);
 // src/types.ts
-var Ue = {
+var We = {
 	threshold_w: 1,
 	check_delay_s: 10,
 	retry_pulse_s: 5,
 	max_attempts: 5
-}, We = {
+}, Ge = {
 	skip_mm: 5,
 	past_window_h: 48,
 	forecast_window_h: 24,
@@ -2807,7 +2950,7 @@ var Ue = {
 	heat_bonus_pct: 0,
 	min_pct: 0,
 	max_pct: 150
-}, Ge = [
+}, Ke = [
 	{
 		icon: "mdi:sprout",
 		key: "plant"
@@ -2830,26 +2973,27 @@ var Ue = {
 	}
 ];
 // src/zone-form.ts
-function Ke(e) {
+function qe(e) {
 	return JSON.parse(JSON.stringify(e));
 }
-function qe() {
+function Je() {
 	return {
 		name: "",
-		icon: Ge[0].icon,
+		icon: Ke[0].icon,
 		enabled: !0,
 		switch_entity: "",
 		power_entity: null,
 		max_runtime_min: 5,
 		receives_rain: !0,
-		safety: { ...Ue },
-		weather_rules: { ...We },
+		frost_alert: !0,
+		safety: { ...We },
+		weather_rules: { ...Ge },
 		cycles: []
 	};
 }
-var Je = class extends W {
+var Ye = class extends W {
 	constructor(...e) {
-		super(...e), this.zone = null, this.state = null, this._draft = qe(), this._error = "", this._saving = !1, this._loadedFor = void 0, this._addCycle = () => {
+		super(...e), this.zone = null, this.state = null, this._draft = Je(), this._error = "", this._saving = !1, this._loadedFor = void 0, this._addCycle = () => {
 			let e = this._draft.cycles.at(-1), t = {
 				enabled: !0,
 				start_time: e ? e.start_time : "06:00",
@@ -2878,14 +3022,14 @@ var Je = class extends W {
 		};
 	}
 	static {
-		this.styles = Q;
+		this.styles = $;
 	}
 	willUpdate() {
 		let e = this.zone?.id ?? null;
-		e !== this._loadedFor && (this._loadedFor = e, this._draft = this.zone ? Ke(this._configOf(this.zone)) : qe(), this._error = "");
+		e !== this._loadedFor && (this._loadedFor = e, this._draft = this.zone ? qe(this._configOf(this.zone)) : Je(), this._error = "");
 	}
 	_configOf(e) {
-		let { id: t, name: n, icon: r, enabled: i, switch_entity: a, power_entity: o, max_runtime_min: s, receives_rain: c, safety: l, weather_rules: u, cycles: d } = e;
+		let { id: t, name: n, icon: r, enabled: i, switch_entity: a, power_entity: o, max_runtime_min: s, receives_rain: c, frost_alert: l, safety: u, weather_rules: d, cycles: f } = e;
 		return {
 			id: t,
 			name: n,
@@ -2895,9 +3039,10 @@ var Je = class extends W {
 			power_entity: o,
 			max_runtime_min: s,
 			receives_rain: c,
-			safety: l,
-			weather_rules: u,
-			cycles: d
+			frost_alert: l ?? !0,
+			safety: u,
+			weather_rules: d,
+			cycles: f
 		};
 	}
 	get _t() {
@@ -2981,7 +3126,7 @@ var Je = class extends W {
       <div class="stack" role="group" aria-label=${t("editor.icon")}>
         <span class="small strong">${t("editor.icon")}</span>
         <div class="icon-grid">
-          ${Ge.map((e) => N`<button
+          ${Ke.map((e) => N`<button
               type="button"
               class="choice"
               aria-pressed=${n.icon === e.icon ? "true" : "false"}
@@ -3131,7 +3276,7 @@ var Je = class extends W {
                 </span>
               </div>` : F}
           <div class="days">
-            ${Be(this.hass).map((n) => {
+            ${Ve(this.hass).map((n) => {
 				let o = t.short[n];
 				return N`<button
                 type="button"
@@ -3183,6 +3328,13 @@ var Je = class extends W {
             ><span class="tiny">${e(n ? "editor.rain_hint" : "editor.no_rain_desc")}</span></span
           >
           ${this._switch(n, e("editor.rain"), (e) => this._set({ receives_rain: e }))}
+        </div>
+        <div class="setting">
+          <span class="stack"
+            ><span class="strong">${e("editor.frost")}</span
+            ><span class="tiny">${e("editor.frost_hint")}</span></span
+          >
+          ${this._switch(t.frost_alert, e("editor.frost"), (e) => this._set({ frost_alert: e }))}
         </div>
         ${n ? N`${this._setting(e("editor.skip"), e("editor.skip_hint"), this._stepper(r.skip_mm, {
 			min: .5,
@@ -3306,9 +3458,9 @@ var Je = class extends W {
     </div>`;
 	}
 };
-customElements.get("hydraxoo-zone-form") || customElements.define("hydraxoo-zone-form", Je);
+customElements.get("hydraxoo-zone-form") || customElements.define("hydraxoo-zone-form", Ye);
 // src/hydraxoo-card.ts
-var Ye = "0.1.3", $ = class extends W {
+var Xe = "0.2.0", Ze = class extends W {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:hydraxoo-card" }, this._state = null, this._view = { name: "dashboard" }, this._error = "", this._runFor = null, this._runMinutes = 10, this._subscribing = !1;
 	}
@@ -3324,7 +3476,7 @@ var Ye = "0.1.3", $ = class extends W {
 		};
 	}
 	static {
-		this.styles = Q;
+		this.styles = $;
 	}
 	static getConfigElement() {
 		return document.createElement("hydraxoo-card-editor");
@@ -3393,7 +3545,7 @@ var Ye = "0.1.3", $ = class extends W {
 		return Z(this.hass);
 	}
 	get _h12() {
-		return Le(this.hass);
+		return Q(this.hass);
 	}
 	_time(e) {
 		return Y(e, this._tz, this._lang, this._h12);
@@ -3460,6 +3612,7 @@ var Ye = "0.1.3", $ = class extends W {
       ${this._pauseBanner()}
       ${this._weatherBanner()}
       ${this._faultBanners(i)}
+      ${this._frostBanner()}
       ${this._unexpectedBanner(i)}
       ${this._safetyBanner()}
       ${a ? F : this._timeline(i, o, r)}
@@ -3529,6 +3682,41 @@ var Ye = "0.1.3", $ = class extends W {
             ${t("safety.acknowledge")}
           </button>
         </div></div>`);
+	}
+	_frostBanner() {
+		let e = this._t, t = this._state.frost;
+		if (!t?.active) return F;
+		let n = {
+			temp: Be(this.hass, t.min_c),
+			time: t.frost_at ? this._time(t.frost_at) : "?"
+		};
+		return t.acknowledged ? N`<div class="tile"><div class="row">
+        <div class="badge-icon"><ha-icon icon="mdi:snowflake"></ha-icon></div>
+        <span class="stack grow">
+          <span class="strong">${e("frost.title", n)}</span>
+          <span class="tiny">${e("frost.confirmed")}</span>
+        </span>
+      </div></div>` : N`<div class="tile frost" role="alert">
+      <div class="row">
+        <div class="badge-icon warning"><ha-icon icon="mdi:snowflake-alert"></ha-icon></div>
+        <span class="stack grow">
+          <span class="strong">${e("frost.title", n)}</span>
+          <span class="small">${e("frost.detail")}</span>
+        </span>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn primary grow" @click=${() => this._call("frost/acknowledge")}>
+          <ha-icon icon="mdi:check"></ha-icon>${e("frost.done")}
+        </button>
+        ${this._state.settings.paused ? F : N`<button
+              type="button"
+              class="btn grow"
+              @click=${async () => {
+			await this._call("pause"), await this._call("frost/acknowledge");
+		}}
+            ><ha-icon icon="mdi:pause"></ha-icon>${e("frost.pause")}</button>`}
+      </div>
+    </div>`;
 	}
 	_unexpectedBanner(e) {
 		let t = this._t, n = new Set(e.map((e) => e.id)), r = Date.now() - 864e5, i = [...this._state.history].reverse().find((e) => e.kind === "unexpected" && n.has(e.zone_id) && new Date(e.started).getTime() >= r);
@@ -3736,10 +3924,10 @@ var Ye = "0.1.3", $ = class extends W {
     </div>`;
 	}
 };
-customElements.get("hydraxoo-card") || customElements.define("hydraxoo-card", $), window.customCards = window.customCards ?? [], window.customCards.some((e) => e.type === "hydraxoo-card") || window.customCards.push({
+customElements.get("hydraxoo-card") || customElements.define("hydraxoo-card", Ze), window.customCards = window.customCards ?? [], window.customCards.some((e) => e.type === "hydraxoo-card") || window.customCards.push({
 	type: "hydraxoo-card",
 	name: "hydraXoo",
 	description: "Zone-based irrigation: schedule, weather and valve safety.",
 	preview: !1
-}), console.info(`%c hydraXoo card %c ${Ye} `, "background:#1d4ed8;color:#fff", "");
-export { $ as HydraxooCard };
+}), console.info(`%c hydraXoo card %c ${Xe} `, "background:#1d4ed8;color:#fff", "");
+export { Ze as HydraxooCard };

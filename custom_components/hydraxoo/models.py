@@ -174,6 +174,7 @@ class Zone:
     safety: SafetySettings = field(default_factory=SafetySettings)
     fault: bool = False  # closing check failed; blocks watering until acknowledged
     receives_rain: bool = True  # False: sheltered, rain ignored (heat still counts)
+    frost_alert: bool = True  # False for e.g. a heated greenhouse
     weather_rules: WeatherRules = field(default_factory=WeatherRules)
     id: str = field(default_factory=new_id)
 
@@ -201,6 +202,7 @@ class Zone:
             "safety": self.safety.to_dict(),
             "fault": self.fault,
             "receives_rain": self.receives_rain,
+            "frost_alert": self.frost_alert,
             "weather_rules": self.weather_rules.to_dict(),
             "cycles": [c.to_dict() for c in self.cycles],
         }
@@ -223,5 +225,6 @@ class Zone:
                 data.get("receives_rain", data.get("exposure", "outdoor") == "outdoor")
             ),
             weather_rules=WeatherRules.from_dict(data.get("weather_rules")),
+            frost_alert=bool(data.get("frost_alert", True)),
             cycles=[Cycle.from_dict(c) for c in data.get("cycles", [])],
         )

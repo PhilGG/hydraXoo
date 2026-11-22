@@ -176,7 +176,9 @@
     "rain_hint": "Duración ajustada a la lluvia caída y prevista",
     "no_rain_detail": "Lluvia ignorada: solo el calor puede cambiar la duración",
     "cutoff_warning": "Este ciclo se detendrá a los {cutoff} min por el corte de seguridad. Para que dure {min} min, aumente el corte de seguridad.",
-    "raise_cutoff": "Poner el corte en {min} min"
+    "raise_cutoff": "Poner el corte en {min} min",
+    "frost": "Aviso de helada",
+    "frost_hint": "Desactívelo para una zona protegida de la helada (invernadero calefactado)"
   },
   "days": {
     "short": [
@@ -231,10 +233,26 @@
     "external_close": "Cerrarla al instante",
     "external_close_desc": "Tratado como fallo y avisado",
     "external_allow": "Dejarla abierta",
-    "external_allow_desc": "La cierra el corte de seguridad"
+    "external_allow_desc": "La cierra el corte de seguridad",
+    "frost": "Helada",
+    "frost_hint": "Avisa a los teléfonos elegidos cuando se prevé helada y hay ciclos programados.",
+    "frost_no_weather": "Necesita una entidad meteorológica.",
+    "frost_alert": "Aviso de helada",
+    "frost_alert_hint": "Un aviso y luego un solo recordatorio unas 3 h antes de la helada si nadie confirmó.",
+    "frost_threshold": "Umbral de helada",
+    "frost_threshold_hint": "Temperatura mínima prevista en 24 h",
+    "frost_thaw": "Aviso de fin de helada",
+    "frost_thaw_hint": "Avisar también cuando termine la helada"
   },
   "unexpected": {
     "title": "{zone}: apertura no ordenada a las {time}",
     "detail": "La válvula se encendió fuera de hydraXoo y se ha cerrado."
+  },
+  "frost": {
+    "title": "Helada prevista: {temp} hacia las {time}",
+    "detail": "Acuérdese de cortar los circuitos de agua exteriores.",
+    "done": "Hecho",
+    "pause": "Pausar el riego",
+    "confirmed": "Circuitos exteriores indicados como cortados"
   }
 }

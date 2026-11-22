@@ -176,7 +176,9 @@
     "rain_hint": "Duration adjusted to the rain fallen and expected",
     "no_rain_detail": "Rain ignored: only heat can change the duration",
     "cutoff_warning": "This cycle will be stopped after {cutoff} min by the safety cut-off. For it to last {min} min, raise the safety cut-off.",
-    "raise_cutoff": "Set the cut-off to {min} min"
+    "raise_cutoff": "Set the cut-off to {min} min",
+    "frost": "Frost warning",
+    "frost_hint": "Turn off for a zone protected from frost (heated greenhouse)"
   },
   "days": {
     "short": [
@@ -231,10 +233,26 @@
     "external_close": "Close it at once",
     "external_close_desc": "Treated as a fault and reported",
     "external_allow": "Leave it open",
-    "external_allow_desc": "Closed by the safety cut-off"
+    "external_allow_desc": "Closed by the safety cut-off",
+    "frost": "Frost",
+    "frost_hint": "Alerts the chosen phones when frost is forecast while cycles are scheduled.",
+    "frost_no_weather": "Needs a weather entity.",
+    "frost_alert": "Frost warning",
+    "frost_alert_hint": "One alert, then one reminder about 3 h before the frost if nobody confirmed.",
+    "frost_threshold": "Frost threshold",
+    "frost_threshold_hint": "Lowest temperature forecast over 24 h",
+    "frost_thaw": "End-of-frost notice",
+    "frost_thaw_hint": "Also tell when the frost is over"
   },
   "unexpected": {
     "title": "{zone}: unexpected opening at {time}",
     "detail": "The valve was switched on outside hydraXoo and has been closed."
+  },
+  "frost": {
+    "title": "Frost forecast: {temp} around {time}",
+    "detail": "Remember to shut the outdoor water circuits.",
+    "done": "Done",
+    "pause": "Pause watering",
+    "confirmed": "Outdoor circuits reported shut"
   }
 }

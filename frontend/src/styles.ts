@@ -549,6 +549,10 @@ export const styles = css`
   .cycle-card.off {
     opacity: 0.6;
   }
+  .tile.frost {
+    outline: 2px solid var(--hx-warning);
+    outline-offset: -2px;
+  }
   .warning-box {
     display: flex;
     gap: 10px;

@@ -49,6 +49,18 @@ export function firstWeekday(hass?: Hass): number {
   return 0;
 }
 
+/** Does the user work in °F? */
+export function usesFahrenheit(hass?: Hass): boolean {
+  return hass?.config?.unit_system?.temperature === "°F";
+}
+
+/** A °C value shown in the user's unit, e.g. "-1 °C" or "30 °F". */
+export function temperatureText(hass: Hass | undefined, celsius: number | null): string {
+  if (celsius === null || celsius === undefined) return "?";
+  if (usesFahrenheit(hass)) return `${Math.round((celsius * 9) / 5 + 32)} °F`;
+  return `${Math.round(celsius)} °C`;
+}
+
 /** Day indexes (0 = Monday) in display order. */
 export function weekOrder(hass?: Hass): number[] {
   const first = firstWeekday(hass);

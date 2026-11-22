@@ -334,6 +334,9 @@ async def test_settings(hass: HomeAssistant) -> None:
         "sequence_mode": "parallel",
         "notify_services": [],
         "external_open": "close",
+        "frost_alert": True,
+        "frost_threshold_c": 2.0,
+        "frost_thaw_notice": False,
     }
     assert entry.runtime_data.sequential is False
 

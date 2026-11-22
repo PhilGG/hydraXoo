@@ -35,6 +35,7 @@ Arrosage automatique par zones pour Home Assistant, libre et gratuit. Tout se r�
 - [Programmation](#programmation)
 - [Ajustement météo](#ajustement-météo)
 - [Sécurité](#sécurité)
+- [Alerte gel](#alerte-gel)
 - [Entités, services et événements](#entités-services-et-événements)
 - [Exemples d'automatisations](#exemples-dautomatisations)
 - [Dépannage](#dépannage)
@@ -170,6 +171,19 @@ Le contrôle a lieu après chaque fermeture (fin d'arrosage, Arrêter, coupure, 
 
 Si le capteur de consommation est indisponible, la fermeture n'est pas contrôlée (pas de relance) et un avertissement est écrit dans le journal.
 
+## Alerte gel
+
+Une canalisation extérieure peut éclater en gelant. Quand la prévision des 24 prochaines heures descend à **2 °C ou moins** (seuil réglable ; °F gérés) alors que des cycles sont programmés, hydraXoo rappelle de couper les circuits d'eau extérieurs — sans harceler :
+
+- Un **épisode de gel** commence à la première prévision sous le seuil et ne se termine qu'au redoux franc (seuil + 2 °C) : une prévision qui oscille autour du seuil ne relance pas l'alerte.
+- **Au plus deux notifications par épisode** : l'alerte à la détection (reportée à 7 h si elle tombe la nuit et que le gel n'est pas attendu avant 10 h), puis **un seul rappel environ 3 heures avant le gel** si personne n'a confirmé — et seulement s'il tombe au moins 2 heures après l'alerte.
+- **Confirmer** avec les boutons **C'est fait** ou **Mettre l'arrosage en pause** de la notification, ou depuis le bandeau gel de la carte. Mettre l'arrosage en pause, ou ne plus avoir de cycle actif dans les zones concernées, vaut aussi confirmation. Ensuite, plus rien jusqu'au redoux.
+- L'épisode est enregistré : un redémarrage ne renvoie jamais l'alerte. Événement `hydraxoo_frost_warning` (`kind` : `alert`, `reminder`, `thaw`).
+- **Message de fin de gel** facultatif (désactivé par défaut), avec un bouton **Reprendre l'arrosage** si l'arrosage est en pause.
+- Par zone, l'**Alerte gel** peut être désactivée (par exemple une serre chauffée) : cette zone ne compte plus.
+
+Réglages : carte **⚙ › Gel** (ou **Configurer › Réglages généraux**). Nécessite une entité météo ; les alertes partent vers les téléphones choisis dans **Alertes**.
+
 ## Entités, services et événements
 
 Entités générales (appareil **hydraXoo**) :
@@ -211,6 +225,7 @@ Services :
 | `hydraxoo_safety_retry` | `zone_id`, `zone_name`, `attempt`, `max_attempts`, `power_w` |
 | `hydraxoo_safety_failed` | `zone_id`, `zone_name`, `attempts`, `power_w` |
 | `hydraxoo_unexpected_open` | `zone_id`, `zone_name` |
+| `hydraxoo_frost_warning` | `kind` (`alert`, `reminder`, `thaw`), `min_temp_c`, `frost_at` |
 
 ## Exemples d'automatisations
 

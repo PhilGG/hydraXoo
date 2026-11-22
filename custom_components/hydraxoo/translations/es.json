@@ -9,14 +9,20 @@
           "rain_sensor": "Sensor de lluvia (opcional)",
           "sequence_mode": "Orden de riego",
           "notify_services": "Notificaciones móviles",
-          "external_open": "Cuando una válvula se enciende fuera de hydraXoo"
+          "external_open": "Cuando una válvula se enciende fuera de hydraXoo",
+          "frost_alert": "Aviso de helada",
+          "frost_threshold_c": "Umbral de helada",
+          "frost_thaw_notice": "Aviso de fin de helada"
         },
         "data_description": {
           "weather_entity": "Opcional. Sirve para adaptar el riego a la lluvia y al calor; las previsiones horarias dan los mejores resultados.",
           "rain_sensor": "Pluviómetro acumulativo en mm. Sin él, la lluvia caída se estima a partir de la previsión horaria.",
           "sequence_mode": "Con una zona a la vez, un riego que toca mientras otra zona riega espera su turno.",
           "notify_services": "Teléfonos (app Home Assistant) avisados con prioridad alta si una válvula sigue abierta pese a los reintentos. El aviso se retira al confirmarlo.",
-          "external_open": "Las válvulas solo deberían abrirse desde hydraXoo: por defecto, esa apertura se cierra al instante y se avisa."
+          "external_open": "Las válvulas solo deberían abrirse desde hydraXoo: por defecto, esa apertura se cierra al instante y se avisa.",
+          "frost_alert": "Avisa a los teléfonos cuando se prevé helada y hay ciclos programados, para cortar los circuitos de agua exteriores.",
+          "frost_threshold_c": "Temperatura mínima prevista en las próximas 24 horas.",
+          "frost_thaw_notice": "Avisar también cuando termine la helada."
         }
       }
     },
@@ -42,14 +48,20 @@
           "sequence_mode": "Orden de riego",
           "rain_sensor": "Sensor de lluvia (opcional)",
           "notify_services": "Notificaciones móviles",
-          "external_open": "Cuando una válvula se enciende fuera de hydraXoo"
+          "external_open": "Cuando una válvula se enciende fuera de hydraXoo",
+          "frost_alert": "Aviso de helada",
+          "frost_threshold_c": "Umbral de helada",
+          "frost_thaw_notice": "Aviso de fin de helada"
         },
         "data_description": {
           "sequence_mode": "Con una zona a la vez, un riego que toca mientras otra zona riega espera su turno.",
           "rain_sensor": "Pluviómetro acumulativo en mm. Sin él, la lluvia caída se estima a partir de la previsión horaria.",
           "weather_entity": "Opcional. Sirve para adaptar el riego a la lluvia y al calor; las previsiones horarias dan los mejores resultados.",
           "notify_services": "Teléfonos (app Home Assistant) avisados con prioridad alta si una válvula sigue abierta pese a los reintentos. El aviso se retira al confirmarlo.",
-          "external_open": "Las válvulas solo deberían abrirse desde hydraXoo: por defecto, esa apertura se cierra al instante y se avisa."
+          "external_open": "Las válvulas solo deberían abrirse desde hydraXoo: por defecto, esa apertura se cierra al instante y se avisa.",
+          "frost_alert": "Avisa a los teléfonos cuando se prevé helada y hay ciclos programados, para cortar los circuitos de agua exteriores.",
+          "frost_threshold_c": "Temperatura mínima prevista en las próximas 24 horas.",
+          "frost_thaw_notice": "Avisar también cuando termine la helada."
         }
       },
       "add_zone": {
@@ -64,14 +76,16 @@
           "start_time": "Hora de inicio",
           "duration_min": "Duración",
           "weekdays": "Días",
-          "receives_rain": "Recibe lluvia"
+          "receives_rain": "Recibe lluvia",
+          "frost_alert": "Aviso de helada"
         },
         "data_description": {
           "switch_entity": "El enchufe o relé que abre la electroválvula.",
           "max_runtime_min": "La válvula siempre se cierra tras este tiempo, pase lo que pase.",
           "power_entity": "Consumo del enchufe, en W. Si se indica, hydraXoo comprueba tras cada cierre que la válvula se ha cerrado de verdad.",
           "receives_rain": "Desactívelo para una zona protegida de la lluvia (invernadero, zona cubierta): se ignora la lluvia, el bono de calor sigue aplicándose.",
-          "duration_min": "Si supera el corte de seguridad, el riego se detiene en el corte."
+          "duration_min": "Si supera el corte de seguridad, el riego se detiene en el corte.",
+          "frost_alert": "Desactívelo para una zona protegida de la helada (invernadero calefactado): ya no activa el aviso de helada."
         },
         "sections": {
           "safety": {
@@ -134,13 +148,15 @@
           "switch_entity": "Interruptor de la válvula",
           "max_runtime_min": "Corte de seguridad",
           "power_entity": "Sensor de consumo (opcional)",
-          "receives_rain": "Recibe lluvia"
+          "receives_rain": "Recibe lluvia",
+          "frost_alert": "Aviso de helada"
         },
         "data_description": {
           "switch_entity": "El enchufe o relé que abre la electroválvula.",
           "max_runtime_min": "La válvula siempre se cierra tras este tiempo, pase lo que pase.",
           "power_entity": "Consumo del enchufe, en W. Si se indica, hydraXoo comprueba tras cada cierre que la válvula se ha cerrado de verdad.",
-          "receives_rain": "Desactívelo para una zona protegida de la lluvia (invernadero, zona cubierta): se ignora la lluvia, el bono de calor sigue aplicándose."
+          "receives_rain": "Desactívelo para una zona protegida de la lluvia (invernadero, zona cubierta): se ignora la lluvia, el bono de calor sigue aplicándose.",
+          "frost_alert": "Desactívelo para una zona protegida de la helada (invernadero calefactado): ya no activa el aviso de helada."
         },
         "sections": {
           "safety": {
@@ -367,6 +383,30 @@
     },
     "unexpected_open": {
       "message": "Zona {zone}: la válvula se encendió fuera de hydraXoo y se ha cerrado. Compruebe qué encendió el enchufe."
+    },
+    "frost_title": {
+      "message": "hydraXoo: helada prevista"
+    },
+    "frost_alert": {
+      "message": "Helada prevista: {temp} hacia las {time}. Acuérdese de cortar los circuitos de agua exteriores."
+    },
+    "frost_reminder": {
+      "message": "Recordatorio: helada dentro de unas 3 horas ({temp} hacia las {time}). ¿Están cortados los circuitos de agua exteriores?"
+    },
+    "frost_thaw_title": {
+      "message": "hydraXoo: fin de la helada"
+    },
+    "frost_thaw": {
+      "message": "Fin de la helada previsto: puede volver a abrir los circuitos de agua exteriores."
+    },
+    "action_done": {
+      "message": "Hecho"
+    },
+    "action_pause": {
+      "message": "Pausar el riego"
+    },
+    "action_resume": {
+      "message": "Reanudar el riego"
     }
   }
 }

@@ -486,6 +486,59 @@ describe("new zone", () => {
   });
 });
 
+describe("frost warning", () => {
+  const frosty = () =>
+    makeState({
+      frost: { active: true, acknowledged: false, alerted: true, min_c: -1, frost_at: "2026-11-24T04:00:00Z" },
+    });
+
+  it("asks to shut the outdoor circuits, with two buttons", async () => {
+    const hass = makeHass(frosty());
+    const card = await mount(hass);
+    expect(text(card)).toContain("Gel prévu : -1 °C vers 05:00");
+    expect(text(card)).toContain("Pensez à couper les circuits d'eau extérieurs.");
+    buttonByText(root(card), "C'est fait").click();
+    expect(hass.callWS).toHaveBeenCalledWith({ type: "hydraxoo/frost/acknowledge" });
+  });
+
+  it("pauses watering and confirms", async () => {
+    const hass = makeHass(frosty());
+    const card = await mount(hass);
+    buttonByText(root(card), "Mettre l'arrosage en pause").click();
+    await vi.waitFor(() => expect(hass.callWS).toHaveBeenCalledWith({ type: "hydraxoo/frost/acknowledge" }));
+    expect(hass.callWS.mock.calls[0][0]).toEqual({ type: "hydraxoo/pause" });
+  });
+
+  it("stays discreet once confirmed", async () => {
+    const state = frosty();
+    state.frost.acknowledged = true;
+    const card = await mount(makeHass(state));
+    expect(text(card)).toContain("Circuits extérieurs signalés coupés");
+    expect(text(card)).not.toContain("C'est fait");
+  });
+
+  it("shows °F for American users", async () => {
+    const hass = makeHass(frosty(), { lang: "en-US" });
+    (hass.config as any).unit_system = { temperature: "°F" };
+    const card = await mount(hass);
+    expect(text(card)).toContain("Frost forecast: 30 °F around 5:00 AM");
+  });
+
+  it("can be turned off for a heated greenhouse", async () => {
+    const hass = makeHass(makeState());
+    const card = await mount(hass);
+    buttonByText(root(card), "Modifier").click();
+    const el = await form(card);
+    const toggle = el.shadowRoot!.querySelector('[aria-label="Alerte gel"]') as HTMLButtonElement;
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+    toggle.click();
+    await el.updateComplete;
+    buttonByText(el.shadowRoot!, "Enregistrer").click();
+    await vi.waitFor(() => expect(hass.callWS).toHaveBeenCalled());
+    expect(hass.callWS.mock.calls[0][0].zone.frost_alert).toBe(false);
+  });
+});
+
 describe("valve opened outside hydraXoo", () => {
   it("reports an unexpected opening that was closed", async () => {
     const state = makeState();
@@ -550,6 +603,9 @@ describe("general settings", () => {
       sequential: false,
       notify_services: ["mobile_app_iphone_de_phil", "mobile_app_ipad_de_philippe"],
       external_open: "close",
+      frost_alert: true,
+      frost_threshold_c: 2,
+      frost_thaw_notice: false,
     });
   });
 
@@ -577,6 +633,24 @@ describe("general settings", () => {
     buttonByText(scope, "Enregistrer").click();
     await vi.waitFor(() => expect(hass.callWS).toHaveBeenCalled());
     expect(hass.callWS.mock.calls[0][0].external_open).toBe("allow");
+  });
+
+  it("sets the frost warning", async () => {
+    const hass = makeHass(makeState());
+    const { scope, el } = await openSettings(hass);
+    expect(scope.textContent).toContain("Alerte gel");
+    (scope.querySelector('[aria-label="Diminuer Seuil de gel"]') as HTMLButtonElement).click();
+    await el.updateComplete;
+    expect(scope.textContent).toContain("1,5 °C");
+    (scope.querySelector('[aria-label="Message de fin de gel"]') as HTMLButtonElement).click();
+    await el.updateComplete;
+    buttonByText(scope, "Enregistrer").click();
+    await vi.waitFor(() => expect(hass.callWS).toHaveBeenCalled());
+    expect(hass.callWS.mock.calls[0][0]).toMatchObject({
+      frost_alert: true,
+      frost_threshold_c: 1.5,
+      frost_thaw_notice: true,
+    });
   });
 
   it("pauses for 3 days at once", async () => {

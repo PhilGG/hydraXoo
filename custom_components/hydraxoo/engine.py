@@ -42,15 +42,22 @@ from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    ACTION_FROST_DONE,
+    ACTION_FROST_PAUSE,
+    ACTION_RESUME,
     CHECK_CONFIRMED,
     CHECK_FAILED,
     CHECK_SENSOR_UNAVAILABLE,
     CONF_EXTERNAL_OPEN,
+    CONF_FROST_ALERT,
+    CONF_FROST_THAW_NOTICE,
+    CONF_FROST_THRESHOLD,
     CONF_NOTIFY_SERVICES,
     CONF_RAIN_SENSOR,
     CONF_SEQUENCE_MODE,
     CONF_WEATHER_ENTITY,
     DEFAULT_DURATION,
+    DEFAULT_FROST_THRESHOLD,
     DOMAIN,
     END_COMPLETED,
     END_EXTERNAL,
@@ -61,6 +68,7 @@ from .const import (
     EVENT_CYCLE_FINISHED,
     EVENT_CYCLE_SKIPPED,
     EVENT_CYCLE_STARTED,
+    EVENT_FROST_WARNING,
     EVENT_SAFETY_FAILED,
     EVENT_SAFETY_RETRY,
     EVENT_UNEXPECTED_OPEN,
@@ -78,6 +86,7 @@ from .const import (
     SOURCE_SCHEDULE,
     UNEXPECTED_NOTIFY_MINUTES,
 )
+from .frost import REMINDER, THAW, FrostSettings, FrostState, evaluate
 from .models import Cycle, WeatherRules, Zone
 from .safety import CheckResult, ClosingCheck
 from .store import StoredData, ZoneStore
@@ -132,6 +141,7 @@ class HydraxooEngine:
         rain_sensor: str | None = None,
         notify_services: list[str] | None = None,
         external_open: str = EXTERNAL_CLOSE,
+        frost: FrostSettings | None = None,
     ) -> None:
         """Initialize the engine."""
         self.hass = hass
@@ -157,6 +167,9 @@ class HydraxooEngine:
         self.external_mode = external_open
         self.external_open: dict[str, datetime] = {}  # allowed openings, by zone
         self._unexpected_notified: dict[str, datetime] = {}
+        # Frost warning settings and current episode (saved)
+        self.frost_settings = frost or FrostSettings()
+        self.frost = FrostState.from_dict(data.frost)
         self._pause_timer: CALLBACK_TYPE | None = None
         # Safety cut-off for valves switched on outside hydraXoo
         self._external_cutoff: dict[str, CALLBACK_TYPE] = {}
@@ -181,6 +194,11 @@ class HydraxooEngine:
                 self._schedule_auto_resume()
         self._unsubs.append(
             async_track_time_change(self.hass, self._async_tick, second=0)
+        )
+        self._unsubs.append(
+            self.hass.bus.async_listen(
+                "mobile_app_notification_action", self._async_phone_action
+            )
         )
         self._subscribe_switches()
         self._unsubs.append(
@@ -328,6 +346,7 @@ class HydraxooEngine:
                 rain_history=self.weather.history,
                 rain_total=self.weather.rain_total,
                 history=self.history,
+                frost=self.frost.to_dict(),
             )
         )
 
@@ -940,6 +959,9 @@ class HydraxooEngine:
             CONF_SEQUENCE_MODE: MODE_SEQUENTIAL if self.sequential else MODE_PARALLEL,
             CONF_NOTIFY_SERVICES: list(self.notify_services),
             CONF_EXTERNAL_OPEN: self.external_mode,
+            CONF_FROST_ALERT: self.frost_settings.enabled,
+            CONF_FROST_THRESHOLD: self.frost_settings.threshold_c,
+            CONF_FROST_THAW_NOTICE: self.frost_settings.thaw_notice,
         }
 
     def matches_options(self, options: dict[str, Any]) -> bool:
@@ -958,6 +980,7 @@ class HydraxooEngine:
                 if options.get(CONF_EXTERNAL_OPEN) == EXTERNAL_ALLOW
                 else EXTERNAL_CLOSE
             ),
+            **_frost_options(options),
         }
         return wanted == self.settings_options()
 
@@ -974,6 +997,12 @@ class HydraxooEngine:
             EXTERNAL_ALLOW
             if options.get(CONF_EXTERNAL_OPEN) == EXTERNAL_ALLOW
             else EXTERNAL_CLOSE
+        )
+        frost = _frost_options(options)
+        self.frost_settings = FrostSettings(
+            enabled=frost[CONF_FROST_ALERT],
+            threshold_c=frost[CONF_FROST_THRESHOLD],
+            thaw_notice=frost[CONF_FROST_THAW_NOTICE],
         )
         await self.async_update_weather(force=True)
         await self._async_process_queue()
@@ -1009,6 +1038,140 @@ class HydraxooEngine:
                 failed.append(service)
         return failed
 
+    # ---------------------------------------------------------- frost warning
+
+    def _frost_relevant(self) -> bool:
+        """Is there anything to protect? Cycles to come in frost-alerted zones."""
+        if self.paused:
+            return False
+        return any(
+            zone.enabled and zone.frost_alert and any(c.enabled for c in zone.cycles)
+            for zone in self.zones.values()
+        )
+
+    async def _async_check_frost(self) -> None:
+        """Called after each weather refresh (every 30 min and before starts)."""
+        settings = self.frost_settings
+        before = self.frost.to_dict()
+        forecast = (
+            self.weather.frost_forecast(dt_util.utcnow(), settings.threshold_c)
+            if settings.enabled
+            else None
+        )
+        actions = evaluate(
+            self.frost, settings, dt_util.utcnow(), forecast, self._frost_relevant()
+        )
+        if self.frost.to_dict() != before:
+            await self.async_save()
+        if self.frost.acknowledged or not self.frost.active:
+            persistent_notification.async_dismiss(self.hass, f"{DOMAIN}_frost")
+        for action in actions:
+            if action == THAW and not settings.thaw_notice:
+                continue
+            await self._async_send_frost(action, before)
+
+    def _temperature_text(self, celsius: float | None) -> str:
+        """Temperature in the user's unit, e.g. '-1 °C' or '30 °F'."""
+        if celsius is None:
+            return "?"
+        if self.hass.config.units.temperature_unit == "°F":
+            return f"{round(celsius * 9 / 5 + 32)} °F"
+        return f"{round(celsius)} °C"
+
+    async def _async_send_frost(self, action: str, before: dict[str, Any]) -> None:
+        texts = await async_get_translations(
+            self.hass, self.hass.config.language, "exceptions", [DOMAIN]
+        )
+
+        def text(key: str, default: str) -> str:
+            return texts.get(f"component.{DOMAIN}.exceptions.{key}.message", default)
+
+        if action == THAW:
+            min_c = before.get("min_c")
+            title = text("frost_thaw_title", "hydraXoo: end of frost")
+            message = text(
+                "frost_thaw", "End of frost forecast: outdoor circuits can be reopened."
+            )
+            buttons = (
+                [
+                    {
+                        "action": ACTION_RESUME,
+                        "title": text("action_resume", "Resume watering"),
+                    }
+                ]
+                if self.paused
+                else []
+            )
+            data: dict[str, Any] = {"tag": f"{DOMAIN}_frost", "channel": "hydraXoo"}
+        else:
+            min_c = self.frost.min_c
+            when = (
+                dt_util.as_local(self.frost.frost_at).strftime("%H:%M")
+                if self.frost.frost_at
+                else "?"
+            )
+            title = text("frost_title", "hydraXoo: frost forecast")
+            message = text(
+                "frost_reminder" if action == REMINDER else "frost_alert",
+                "Frost forecast: {temp} around {time}. Shut the outdoor water circuits.",
+            ).format(temp=self._temperature_text(min_c), time=when)
+            buttons = [
+                {"action": ACTION_FROST_DONE, "title": text("action_done", "Done")},
+                {
+                    "action": ACTION_FROST_PAUSE,
+                    "title": text("action_pause", "Pause watering"),
+                },
+            ]
+            data = {
+                "tag": f"{DOMAIN}_frost",
+                "channel": "hydraXoo",
+                "priority": "high",
+                "ttl": 0,
+                "push": {"interruption-level": "time-sensitive"},
+            }
+            persistent_notification.async_create(
+                self.hass, message, title=title, notification_id=f"{DOMAIN}_frost"
+            )
+        if buttons:
+            data["actions"] = buttons
+        self.hass.bus.async_fire(
+            EVENT_FROST_WARNING,
+            {
+                "kind": action,
+                "min_temp_c": min_c,
+                "frost_at": self.frost.frost_at.isoformat()
+                if self.frost.frost_at
+                else None,
+            },
+        )
+        await self._async_notify_phones(
+            {"title": title, "message": message, "data": data}
+        )
+
+    async def async_acknowledge_frost(self) -> None:
+        """Outdoor circuits are shut: no reminder for this episode."""
+        if not self.frost.active or self.frost.acknowledged:
+            return
+        self.frost.acknowledged = True
+        await self.async_save()
+        persistent_notification.async_dismiss(self.hass, f"{DOMAIN}_frost")
+        await self._async_notify_phones(
+            {"message": "clear_notification", "data": {"tag": f"{DOMAIN}_frost"}},
+            mobile_only=True,
+        )
+        self._notify()
+
+    async def _async_phone_action(self, event: Event) -> None:
+        """Buttons of the frost notification, pressed on a phone."""
+        action = event.data.get("action")
+        if action == ACTION_FROST_DONE:
+            await self.async_acknowledge_frost()
+        elif action == ACTION_FROST_PAUSE:
+            await self.async_pause()
+            await self.async_acknowledge_frost()
+        elif action == ACTION_RESUME:
+            await self.async_resume()
+
     async def async_update_weather(self, force: bool = False) -> None:
         """Refresh forecasts and every zone's coefficient."""
         try:
@@ -1018,6 +1181,7 @@ class HydraxooEngine:
         self.weather_results = {
             zone.id: self.weather.compute(zone) for zone in self.zones.values()
         }
+        await self._async_check_frost()
         self._notify()
 
     def weather_result(self, zone_id: str) -> WeatherResult:
@@ -1105,6 +1269,7 @@ class HydraxooEngine:
                 "safety",
                 "receives_rain",
                 "weather_rules",
+                "frost_alert",
                 "cycles",
             ):
                 setattr(zone, attr, getattr(incoming, attr))
@@ -1190,3 +1355,14 @@ class HydraxooEngine:
         self.hass.bus.async_fire(
             event_type, {"zone_id": zone.id, "zone_name": zone.name, **data}
         )
+
+
+def _frost_options(options: dict[str, Any]) -> dict[str, Any]:
+    """Frost settings from config entry options, with defaults."""
+    return {
+        CONF_FROST_ALERT: bool(options.get(CONF_FROST_ALERT, True)),
+        CONF_FROST_THRESHOLD: float(
+            options.get(CONF_FROST_THRESHOLD, DEFAULT_FROST_THRESHOLD)
+        ),
+        CONF_FROST_THAW_NOTICE: bool(options.get(CONF_FROST_THAW_NOTICE, False)),
+    }

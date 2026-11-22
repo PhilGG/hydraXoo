@@ -267,6 +267,45 @@ class WeatherService:
         current = _number(state.attributes.get("temperature")) if state else None
         return self._to_celsius(current)
 
+    def frost_forecast(
+        self, now: datetime, threshold_c: float, window_h: int = 24
+    ) -> tuple[float, datetime | None] | None:
+        """Lowest temperature over the window (°C) and first hour at/below threshold.
+
+        Hourly forecasts give the exact hour; with daily forecasts only, the
+        day's low temperature is used and the frost time is the start of
+        that day (or now).
+        """
+        if not self.available:
+            return None
+        end = now + timedelta(hours=window_h)
+        if self.hourly:
+            points = [
+                (start, self._to_celsius(value))
+                for item in self.hourly
+                if (start := _parse_time(item.get("datetime"))) is not None
+                and start + timedelta(hours=1) > now
+                and start < end
+                and (value := _number(item.get("temperature"))) is not None
+            ]
+            if points:
+                first = next((t for t, c in sorted(points) if c <= threshold_c), None)
+                return min(c for _, c in points), max(first, now) if first else None
+        if self.daily:
+            points = [
+                (start, self._to_celsius(value))
+                for item in self.daily
+                if (start := _parse_time(item.get("datetime"))) is not None
+                and start + timedelta(days=1) > now
+                and start < end
+                and (value := _number(item.get("templow", item.get("temperature"))))
+                is not None
+            ]
+            if points:
+                first = next((t for t, c in sorted(points) if c <= threshold_c), None)
+                return min(c for _, c in points), max(first, now) if first else None
+        return None
+
     # ---------------------------------------------------------- rain history
 
     def record_hour(self, now: datetime) -> bool:

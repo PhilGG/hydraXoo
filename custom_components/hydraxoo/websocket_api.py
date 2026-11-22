@@ -19,6 +19,9 @@ from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_EXTERNAL_OPEN,
+    CONF_FROST_ALERT,
+    CONF_FROST_THAW_NOTICE,
+    CONF_FROST_THRESHOLD,
     CONF_NOTIFY_SERVICES,
     CONF_RAIN_SENSOR,
     CONF_SEQUENCE_MODE,
@@ -115,6 +118,7 @@ ZONE_SCHEMA = vol.Schema(
             vol.Coerce(int), vol.Range(min=1, max=MAX_RUNTIME_LIMIT)
         ),
         vol.Optional("receives_rain", default=True): cv.boolean,
+        vol.Optional("frost_alert", default=True): cv.boolean,
         vol.Optional("safety", default={}): SAFETY_SCHEMA,
         vol.Optional("weather_rules", default={}): WEATHER_SCHEMA,
         vol.Optional("cycles", default=[]): [CYCLE_SCHEMA],
@@ -139,6 +143,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_resume,
         ws_save_settings,
         ws_test_notification,
+        ws_frost_acknowledge,
     ):
         websocket_api.async_register_command(hass, command)
 
@@ -233,6 +238,9 @@ def serialize(hass: HomeAssistant, engine: HydraxooEngine) -> dict[str, Any]:
             "rain_name": (friendly(engine.weather.rain_sensor) or {}).get("name"),
             "notify_services": list(engine.notify_services),
             "external_open": engine.external_mode,
+            "frost_alert": engine.frost_settings.enabled,
+            "frost_threshold_c": engine.frost_settings.threshold_c,
+            "frost_thaw_notice": engine.frost_settings.thaw_notice,
             "notify_options": notify_options(hass),
             "sequential": engine.sequential,
             "paused": engine.paused,
@@ -241,6 +249,15 @@ def serialize(hass: HomeAssistant, engine: HydraxooEngine) -> dict[str, Any]:
             else None,
         },
         "weather": engine.global_weather().as_dict(),
+        "frost": {
+            "active": engine.frost.active,
+            "acknowledged": engine.frost.acknowledged,
+            "alerted": engine.frost.alerted,
+            "min_c": engine.frost.min_c,
+            "frost_at": engine.frost.frost_at.isoformat()
+            if engine.frost.frost_at
+            else None,
+        },
         "last_check": None
         if latest is None
         else {
@@ -461,6 +478,11 @@ async def ws_resume(hass, connection, msg) -> None:
         vol.Optional("sequential"): cv.boolean,
         vol.Optional("notify_services"): [cv.string],
         vol.Optional("external_open"): vol.In([EXTERNAL_CLOSE, EXTERNAL_ALLOW]),
+        vol.Optional("frost_alert"): cv.boolean,
+        vol.Optional("frost_threshold_c"): vol.All(
+            vol.Coerce(float), vol.Range(min=-5, max=10)
+        ),
+        vol.Optional("frost_thaw_notice"): cv.boolean,
     }
 )
 @websocket_api.require_admin
@@ -486,6 +508,13 @@ async def ws_save_settings(hass, connection, msg) -> None:
         options[CONF_NOTIFY_SERVICES] = msg["notify_services"]
     if "external_open" in msg:
         options[CONF_EXTERNAL_OPEN] = msg["external_open"]
+    for key, conf in (
+        ("frost_alert", CONF_FROST_ALERT),
+        ("frost_threshold_c", CONF_FROST_THRESHOLD),
+        ("frost_thaw_notice", CONF_FROST_THAW_NOTICE),
+    ):
+        if key in msg:
+            options[conf] = msg[key]
     options = {k: v for k, v in options.items() if v is not None}
     # Engine first: the entry's update listener then sees nothing to reload.
     await engine.async_apply_settings(options)
@@ -512,3 +541,15 @@ async def ws_test_notification(hass, connection, msg) -> None:
         msg["id"],
         {"sent": [s for s in msg["services"] if s not in failed], "failed": failed},
     )
+
+
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/frost/acknowledge"})
+@websocket_api.async_response
+async def ws_frost_acknowledge(hass, connection, msg) -> None:
+    """Outdoor circuits are shut: stop reminding for this frost episode."""
+    engine = _engine(hass)
+    if engine is None:
+        _not_loaded(connection, msg)
+        return
+    await engine.async_acknowledge_frost()
+    connection.send_result(msg["id"])

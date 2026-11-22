@@ -28,6 +28,7 @@ class StoredData:
     rain_total: float | None = None  # last value of the rain sensor
     # Waterings and skipped cycles of the last 48 h (shown by the card)
     history: list[dict[str, Any]] = field(default_factory=list)
+    frost: dict[str, Any] = field(default_factory=dict)  # current frost episode
 
 
 class ZoneStore:
@@ -52,6 +53,7 @@ class ZoneStore:
             },
             rain_total=data.get("rain_total"),
             history=list(data.get("history") or []),
+            frost=dict(data.get("frost") or {}),
         )
 
     async def async_save(self, data: StoredData) -> None:
@@ -66,6 +68,7 @@ class ZoneStore:
                 "rain_history": data.rain_history,
                 "rain_total": data.rain_total,
                 "history": data.history,
+                "frost": data.frost,
             }
         )
 

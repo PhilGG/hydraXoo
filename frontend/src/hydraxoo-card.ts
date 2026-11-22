@@ -14,7 +14,7 @@ import {
   type TodayCycle,
   type ZonedNow,
 } from "./schedule";
-import { fullLanguage, uses12h } from "./locale";
+import { fullLanguage, temperatureText, uses12h } from "./locale";
 import { styles } from "./styles";
 import type { CardConfig, Hass, HydraxooState, Zone } from "./types";
 import "./settings-form";
@@ -26,7 +26,7 @@ type View =
   | { name: "new" }
   | { name: "settings" };
 
-const VERSION = "0.1.3";
+const VERSION = "0.2.0";
 
 export class HydraxooCard extends LitElement {
   static properties = {
@@ -245,6 +245,7 @@ export class HydraxooCard extends LitElement {
       ${this._pauseBanner()}
       ${this._weatherBanner()}
       ${this._faultBanners(zones)}
+      ${this._frostBanner()}
       ${this._unexpectedBanner(zones)}
       ${this._safetyBanner()}
       ${compact ? nothing : this._timeline(zones, perZone, zoned)}
@@ -337,6 +338,50 @@ export class HydraxooCard extends LitElement {
           </button>
         </div></div>`,
       );
+  }
+
+  /** Frost forecast while cycles are scheduled: shut the outdoor circuits. */
+  private _frostBanner() {
+    const t = this._t;
+    const frost = this._state!.frost;
+    if (!frost?.active) return nothing;
+    const vars = {
+      temp: temperatureText(this.hass, frost.min_c),
+      time: frost.frost_at ? this._time(frost.frost_at) : "?",
+    };
+    if (frost.acknowledged) {
+      return html`<div class="tile"><div class="row">
+        <div class="badge-icon"><ha-icon icon="mdi:snowflake"></ha-icon></div>
+        <span class="stack grow">
+          <span class="strong">${t("frost.title", vars)}</span>
+          <span class="tiny">${t("frost.confirmed")}</span>
+        </span>
+      </div></div>`;
+    }
+    return html`<div class="tile frost" role="alert">
+      <div class="row">
+        <div class="badge-icon warning"><ha-icon icon="mdi:snowflake-alert"></ha-icon></div>
+        <span class="stack grow">
+          <span class="strong">${t("frost.title", vars)}</span>
+          <span class="small">${t("frost.detail")}</span>
+        </span>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn primary grow" @click=${() => this._call("frost/acknowledge")}>
+          <ha-icon icon="mdi:check"></ha-icon>${t("frost.done")}
+        </button>
+        ${this._state!.settings.paused
+          ? nothing
+          : html`<button
+              type="button"
+              class="btn grow"
+              @click=${async () => {
+                await this._call("pause");
+                await this._call("frost/acknowledge");
+              }}
+            ><ha-icon icon="mdi:pause"></ha-icon>${t("frost.pause")}</button>`}
+      </div>
+    </div>`;
   }
 
   /** Latest valve opening not ordered by hydraXoo, in the last 24 hours. */

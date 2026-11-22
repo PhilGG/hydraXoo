@@ -59,6 +59,7 @@ export interface ZoneConfig {
   power_entity: string | null;
   max_runtime_min: number;
   receives_rain: boolean; // false: sheltered, rain ignored (heat still counts)
+  frost_alert: boolean; // false: protected from frost (heated greenhouse)
   safety: SafetySettings;
   weather_rules: WeatherRules;
   cycles: Cycle[];
@@ -114,12 +115,16 @@ export interface HydraxooState {
     rain_name: string | null;
     notify_services: string[];
     external_open: "close" | "allow";
+    frost_alert: boolean;
+    frost_threshold_c: number;
+    frost_thaw_notice: boolean;
     notify_options: { value: string; label: string }[];
     sequential: boolean;
     paused: boolean;
     pause_until: string | null;
   };
   weather: WeatherResult;
+  frost: { active: boolean; acknowledged: boolean; alerted: boolean; min_c: number | null; frost_at: string | null };
   last_check: (CheckInfo & { zone_id: string; zone_name: string }) | null;
   queue: { zone_id: string; duration_min: number; source: string }[];
   zones: Zone[];
@@ -141,7 +146,7 @@ export interface Hass {
     time_format?: "language" | "system" | "12" | "24";
     first_weekday?: string;
   };
-  config: { time_zone: string };
+  config: { time_zone: string; unit_system?: { temperature?: string } };
   user?: { is_admin: boolean };
   states: Record<string, { entity_id: string; state: string; attributes: Record<string, any> }>;
   connection: {

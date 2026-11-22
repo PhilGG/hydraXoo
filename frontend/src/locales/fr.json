@@ -176,7 +176,9 @@
     "rain_hint": "Durée ajustée selon la pluie tombée et prévue",
     "no_rain_detail": "Pluie ignorée : seule la chaleur peut changer la durée",
     "cutoff_warning": "Ce cycle sera arrêté au bout de {cutoff} min par la coupure de sécurité. Pour qu'il dure {min} min, augmentez la coupure de sécurité.",
-    "raise_cutoff": "Passer la coupure à {min} min"
+    "raise_cutoff": "Passer la coupure à {min} min",
+    "frost": "Alerte gel",
+    "frost_hint": "Désactivez-la pour une zone protégée du gel (serre chauffée)"
   },
   "days": {
     "short": [
@@ -231,10 +233,26 @@
     "external_close": "La refermer immédiatement",
     "external_close_desc": "Traité comme un défaut et signalé",
     "external_allow": "La laisser ouverte",
-    "external_allow_desc": "Refermée par la coupure de sécurité"
+    "external_allow_desc": "Refermée par la coupure de sécurité",
+    "frost": "Gel",
+    "frost_hint": "Prévient les téléphones choisis quand du gel est prévu alors que des cycles sont programmés.",
+    "frost_no_weather": "Nécessite une entité météo.",
+    "frost_alert": "Alerte gel",
+    "frost_alert_hint": "Une alerte, puis un seul rappel environ 3 h avant le gel si personne n'a confirmé.",
+    "frost_threshold": "Seuil de gel",
+    "frost_threshold_hint": "Température minimale prévue sur 24 h",
+    "frost_thaw": "Message de fin de gel",
+    "frost_thaw_hint": "Prévenir aussi quand le gel est terminé"
   },
   "unexpected": {
     "title": "{zone} : ouverture non commandée à {time}",
     "detail": "La vanne a été allumée en dehors de hydraXoo et a été refermée."
+  },
+  "frost": {
+    "title": "Gel prévu : {temp} vers {time}",
+    "detail": "Pensez à couper les circuits d'eau extérieurs.",
+    "done": "C'est fait",
+    "pause": "Mettre l'arrosage en pause",
+    "confirmed": "Circuits extérieurs signalés coupés"
   }
 }

@@ -2,6 +2,10 @@
 
 All notable changes to hydraXoo. Versions follow [Semantic Versioning](https://semver.org/).
 
+## 0.2.0
+
+- **Frost warning**: when frost is forecast within 24 hours while cycles are scheduled, the chosen phones are reminded to shut the outdoor water circuits. One alert per frost episode and one reminder about 3 hours before the frost if nobody confirmed; **Done** and **Pause watering** buttons on the notification and in the card; quiet at night when there is time; saved across restarts; optional end-of-frost notice. Threshold adjustable (2 °C by default, °F handled). Can be turned off per zone (heated greenhouse).
+
 ## 0.1.3
 
 - A valve switched on outside hydraXoo is now closed at once by default, checked, shown on the card and sent to the chosen phones (at most once per zone every 10 minutes; new event `hydraxoo_unexpected_open`). New setting to leave such openings until the safety cut-off instead, with a countdown on the card.
