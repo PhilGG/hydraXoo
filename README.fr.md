@@ -4,37 +4,68 @@
 
 *[English version](README.md)*
 
-Arrosage automatique par zones pour Home Assistant, libre et gratuit, entièrement configurable depuis l'interface — sans YAML.
+Arrosage automatique par zones pour Home Assistant, libre et gratuit. Tout se règle depuis l'interface, avec une carte de tableau de bord pensée pour le téléphone — sans YAML.
 
-> **État : début du développement (0.0.x).** Les zones, les cycles, la file d'attente, la pause, l'arrosage manuel, la coupure de sécurité, le contrôle de fermeture, l'ajustement météo et la carte Lovelace fonctionnent. D'autres langues et la première version publique arrivent.
+- **Zones et cycles** : autant de zones que vous voulez, chacune commandée par une entité `switch` existante (prise Z-Wave, Zigbee, Wi-Fi, relais…), chacune avec autant de cycles que nécessaire (heure, durée, jours).
+- **Météo** : durées adaptées à la pluie tombée, à la pluie prévue et à la chaleur ; cycles sautés quand assez de pluie arrive.
+- **Sécurité** : coupure après une durée maximale, contrôle de fermeture par la consommation électrique de la prise, alerte sur votre téléphone si une vanne reste ouverte.
+- **Carte** : tableau de bord, réglages et création de zones, thèmes clair et sombre, en français, anglais, allemand, espagnol et italien.
 
-## Ce que fait hydraXoo
+## Sommaire
 
-- Chaque **zone** commande une entité `switch` existante (prise Z-Wave, Zigbee, Wi-Fi, relais…).
-- Chaque zone a autant de **cycles** que nécessaire, chacun avec son heure, sa durée, ses jours et son interrupteur actif/inactif.
-- **Une zone à la fois** (par défaut) ou **zones en parallèle**. En mode une zone à la fois, un arrosage qui tombe pendant qu'une autre zone arrose attend dans une **file d'attente** et démarre dès que la vanne précédente est fermée.
-- **Pause** de l'arrosage jusqu'à la reprise ou pendant un nombre de jours. L'arrosage manuel reste possible pendant la pause.
-- **Ajustement météo** : la durée d'arrosage est multipliée par un coefficient recalculé juste avant chaque départ, d'après la pluie prévue, la pluie tombée et la chaleur (détails plus bas).
-- **Arroser maintenant** avec la durée de base ou une durée choisie, et **arrêter** à tout moment.
-- **Coupure de sécurité** : une vanne est toujours fermée après la durée maximale de la zone, même si elle a été ouverte en dehors de hydraXoo.
-- **Contrôle de fermeture** (facultatif, avec un capteur de consommation) : après chaque fermeture, hydraXoo vérifie que la consommation est retombée. Sinon, il rallume puis éteint la vanne, jusqu'à 5 fois ; ensuite la zone passe en défaut, une notification s'affiche (et part en priorité haute sur les téléphones choisis dans **Configurer › Réglages généraux › Notifications sur mobile**) et la zone n'arrose plus jusqu'à l'acquittement. La consommation est aussi **surveillée en permanence** : si une prise éteinte se met à consommer (vanne bloquée, prise revenue en ligne après un redémarrage…), le même contrôle est lancé.
-- **Sécurité au redémarrage** : une vanne trouvée ouverte au démarrage de Home Assistant est fermée ; le cycle interrompu n'est pas relancé et un événement le signale.
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Premiers pas](#premiers-pas)
+- [La carte](#la-carte)
+- [Programmation](#programmation)
+- [Ajustement météo](#ajustement-météo)
+- [Sécurité](#sécurité)
+- [Entités, services et événements](#entités-services-et-événements)
+- [Exemples d'automatisations](#exemples-dautomatisations)
+- [Dépannage](#dépannage)
+- [Langues](#langues)
+- [Développement](#développement)
+
+## Prérequis
+
+- Home Assistant **2026.3** ou plus récent.
+- Une entité `switch` par zone : la prise ou le relais qui alimente l'électrovanne.
+- Recommandé : le **capteur de consommation** de la prise (W), pour le contrôle de fermeture.
+- Facultatif : une entité **météo** (Met.no, Météo-France ou autre), un **pluviomètre** cumulatif, l'**application Home Assistant** sur votre téléphone pour les alertes.
 
 ## Installation
 
-Nécessite Home Assistant 2026.3 ou plus récent.
-
 1. Dans Home Assistant, ouvrez **Paramètres › Marketplace**.
-2. Choisissez **Add from link**, saisissez `PhilGG/hydraXoo` puis **Add**.
-3. Ouvrez hydraXoo dans le Marketplace, installez-le, puis redémarrez Home Assistant.
-4. hydraXoo est en général proposé automatiquement après le redémarrage. Sinon, allez dans **Paramètres › Appareils et services › Ajouter une intégration** et choisissez **hydraXoo**.
-5. Utilisez le bouton **Configurer** de l'intégration pour ajouter zones et cycles, et choisir l'enchaînement des zones.
+2. Choisissez **Add from link**, saisissez `PhilGG/hydraXoo` puis **Add** (une connexion GitHub est demandée la première fois).
+3. Ouvrez hydraXoo dans le Marketplace, installez-le, puis **redémarrez Home Assistant**.
+4. hydraXoo est en général proposé automatiquement après le redémarrage. Sinon : **Paramètres › Appareils et services › Ajouter une intégration › hydraXoo**.
+5. **Rechargez une fois la page du tableau de bord** pour que le navigateur charge la carte.
+
+<details>
+<summary>Installation manuelle</summary>
+
+Copiez `custom_components/hydraxoo` depuis la [dernière version](https://github.com/PhilGG/hydraXoo/releases) dans le dossier `custom_components` de votre configuration Home Assistant, puis redémarrez. Les mises à jour seront alors manuelles elles aussi.
+</details>
+
+**Mettre à jour** : installez la mise à jour depuis le Marketplace, redémarrez Home Assistant, puis rechargez une fois la page du tableau de bord.
+
+**Désinstaller** : supprimez l'intégration dans **Paramètres › Appareils et services** ; ses zones et son historique sont supprimés avec elle.
+
+## Premiers pas
+
+1. À l'installation, choisissez (tout est facultatif et modifiable ensuite dans **Configurer › Réglages généraux**) :
+   - l'**entité météo** ;
+   - un **capteur de pluie** (pluviomètre cumulatif en mm) ;
+   - l'**enchaînement des zones** : *une zone à la fois* (par défaut) ou *zones en parallèle* ;
+   - les **téléphones** à prévenir si une vanne ne se referme pas.
+2. Ajoutez la carte à un tableau de bord : **Modifier le tableau de bord › Ajouter une carte › Par carte › hydraXoo**.
+3. Dans la carte, choisissez **Nouvelle zone** : nom, icône, reçoit la pluie ou non, interrupteur de la vanne, capteur de consommation. **Créer et ajouter des cycles** ouvre ensuite les réglages de la zone pour ajouter ses cycles.
+
+Les zones se gèrent aussi sans la carte, avec le bouton **Configurer** de l'intégration.
 
 ## La carte
 
-hydraXoo fournit sa propre carte de tableau de bord : rien d'autre à installer. Après une installation ou une mise à jour, rafraîchissez votre navigateur.
-
-Ajoutez-la depuis l'éditeur du tableau de bord (**Ajouter une carte › hydraXoo**) ou en YAML :
+La carte est servie par l'intégration et ajoutée automatiquement aux ressources du tableau de bord.
 
 ```yaml
 type: custom:hydraxoo-card
@@ -43,33 +74,102 @@ compact: false         # facultatif : masque la frise et les listes de cycles
 zones: []              # facultatif : identifiants des zones affichées, toutes si vide
 ```
 
-- **Tableau de bord** : bandeau météo (coefficient du jour et raison), dernier contrôle de fermeture, frise de 24 h, une carte par zone (interrupteur, prochain passage, cycles du jour avec durée de base et durée ajustée, **Arroser maintenant** avec une durée choisie, **Modifier**).
-- **Réglages d'une zone** : électrovanne et contrôle de fermeture, cycles (activation, heure, durée −/+, jours, ajout, suppression), règle météo, **Enregistrer**. Les modifications s'appliquent immédiatement.
-- **Nouvelle zone** : nom, icône, reçoit la pluie ou non, interrupteur de la vanne et capteur de consommation, puis les cycles.
+Ces options existent aussi dans l'éditeur visuel de la carte.
 
-La modification est réservée aux administrateurs. Les thèmes clair et sombre suivent Home Assistant.
+**Tableau de bord**
 
-## Entités
+- Bandeau météo : pluie tombée et prévue, coefficient du jour et sa raison.
+- Dernier contrôle de fermeture (par exemple « refermée après 1 relance de 5 s »), bandeaux de défaut et de pause.
+- Frise de 24 h : terminé (gris), sauté (hachuré), à venir (bleu), désactivé (pointillé), en cours (vert), heure actuelle.
+- Une carte par zone : interrupteur, prochain arrosage, cycles du jour avec la durée de base barrée et la durée ajustée (✓ Fait, ✕ Sauté · pluie, dans 2 h…), **Arroser maintenant** avec une durée au choix, **Arrêter**, **Modifier**.
 
-Générales (appareil **hydraXoo**) :
+**Réglages d'une zone** : électrovanne et contrôle de fermeture, coupure de sécurité, cycles (activation, heure, durée −/+, jours, ajout, suppression), météo (reçoit la pluie, règles pluie, bonus chaleur), **Enregistrer**, **Supprimer cette zone**. Les modifications s'appliquent immédiatement, sans rien redémarrer.
+
+**Nouvelle zone** : nom, cinq icônes, reçoit la pluie ou non, interrupteur de la vanne, capteur de consommation.
+
+La modification et les réglages sont réservés aux administrateurs ; les autres utilisateurs peuvent arroser, arrêter et activer les zones.
+
+## Programmation
+
+- Un cycle démarre à son heure, ses jours, si la zone et le cycle sont actifs, si l'arrosage n'est pas en pause, si la zone n'est pas en défaut et si la météo ne le saute pas.
+- **Une zone à la fois** (par défaut) : un arrosage qui tombe pendant qu'une autre zone arrose — ou pendant le contrôle d'une vanne — attend dans une **file d'attente** et démarre dès que la place se libère. C'est aussi le cas d'**Arroser maintenant** et de deux cycles d'une même zone qui se chevauchent. **Zones en parallèle** : chaque zone démarre à son heure.
+- **Pause** : l'interrupteur *Pause de l'arrosage*, ou `hydraxoo.pause` avec un nombre de jours (elle se lève alors seule). Les cycles sont sautés pendant la pause ; l'arrosage manuel reste possible et un arrosage en cours n'est pas arrêté. La pause est conservée en cas de redémarrage.
+- **Arroser maintenant** utilise la durée choisie (par défaut : celle du premier cycle actif de la zone). L'arrosage manuel n'est jamais ajusté à la météo.
+- **Zone désactivée** : ses cycles sont sautés, l'arrosage manuel reste possible.
+- **Redémarrage** : la file d'attente est vidée et un cycle interrompu n'est pas relancé ; une vanne trouvée ouverte est fermée puis contrôlée.
+
+## Ajustement météo
+
+Chaque zone a sa propre règle (carte : **Modifier › Météo** ; ou **Configurer › Modifier une zone › Réglages de la zone › Règle météo**). Valeurs par défaut :
+
+| Réglage | Défaut | Signification |
+| --- | --- | --- |
+| Reçoit la pluie | activé | Désactivé pour une serre ou une zone couverte : la pluie est ignorée |
+| Sauter le cycle si la pluie prévue atteint | 5 mm | Sur les 24 prochaines heures ; c'est aussi la quantité de pluie qui remplace un arrosage complet |
+| Pluie tombée prise en compte | 48 h | Les dernières 24 h comptent entièrement, les 24 h d'avant pour moitié |
+| Arroser plus les jours chauds | +0 % | 0 % = durée normale |
+| Jour chaud à partir de | 30 °C | Température maximale prévue dans la journée |
+| Coefficient minimum / maximum | 0 % / 150 % | Bornes du résultat |
+
+Le calcul, juste avant chaque départ :
+
+1. **Pluie prévue ≥ seuil** → le cycle est sauté (événement `hydraxoo_cycle_skipped`, raison `weather`).
+2. Sinon **coefficient = 1 − (pluie tombée pondérée + pluie prévue) ÷ seuil**, entre 0 et 100 %.
+3. **Bonus chaleur** : multiplié par (1 + bonus) les jours chauds.
+4. Borné entre le minimum et le maximum ; la durée est arrondie à la minute. 0 minute saute le cycle.
+
+Une zone qui **ne reçoit pas la pluie** ignore les étapes 1 et 2 : seul le bonus chaleur peut changer sa durée.
+
+**Sources**
+
+- **Pluie prévue** et **température** : `weather.get_forecasts`, prévisions horaires si le fournisseur en donne, sinon journalières. Testé avec les formats Met.no et Météo-France ; les heures sans valeur de pluie sont ignorées ; les pouces et les °F sont convertis.
+- **Pluie tombée** : lue sur le pluviomètre s'il est renseigné (remises à zéro gérées) ; sinon estimée en enregistrant, chaque heure, la pluie prévue pour cette heure — les entités météo ne donnent pas la pluie réellement tombée.
+- **Météo indisponible**, ou fournisseur sans quantité de pluie : 100 % et un avertissement dans la carte et le capteur *Coefficient météo*.
+
+## Sécurité
+
+**Coupure de sécurité** (par zone, 30 min par défaut) : la vanne est toujours fermée après ce délai, même si elle a été ouverte en dehors de hydraXoo.
+
+**Contrôle de fermeture** — actif quand la zone a un capteur de consommation. Une électrovanne ouverte consomme de l'électricité ; après chaque fermeture, hydraXoo :
+
+1. attend le **délai de contrôle** (10 s), puis lit la consommation ;
+2. au **seuil** ou en dessous (1 W) : fermée ;
+3. au-dessus : rallume la vanne pendant la durée de **relance** (5 s), l'éteint, et revient à l'étape 1 ;
+4. après le **nombre maximal de relances** (5) : la zone passe en **défaut**.
+
+Une zone en défaut n'arrose plus jusqu'à l'acquittement (bouton de la carte ou `hydraxoo.acknowledge_fault`). Une notification s'affiche dans Home Assistant et, si des téléphones sont choisis dans **Réglages généraux › Notifications sur mobile**, une alerte en priorité haute leur est envoyée (retirée à l'acquittement).
+
+Le contrôle a lieu après chaque fermeture (fin d'arrosage, Arrêter, coupure, vanne éteinte à la main), au démarrage, et **à tout moment** si une prise éteinte se met à consommer — vanne bloquée, ou prise revenue en ligne après un redémarrage. Une prise allumée exprès n'est pas touchée (la coupure de sécurité s'applique toujours).
+
+**Régler la prise** : beaucoup de prises ne transmettent leur consommation qu'à intervalles réguliers ou au-delà d'une variation minimale (par exemple toutes les 60 s ou ±5 W). Si la mesure lue après la fermeture date d'avant l'ordre de fermeture, hydraXoo attend jusqu'à 60 s une mesure récente. Pour un contrôle fiable :
+
+1. Dans les réglages de la prise (Z-Wave JS : configuration de l'appareil), réduisez autant que possible l'**intervalle de rapport** de la consommation et la **variation minimale**.
+2. Choisissez un **délai de contrôle** un peu plus long que l'intervalle de rapport de la prise.
+3. Réglez le **seuil** entre la consommation propre de la prise au repos et celle de la vanne (une électrovanne consomme en général 2 à 8 W ; le seuil descend jusqu'à 0,1 W).
+
+Si le capteur de consommation est indisponible, la fermeture n'est pas contrôlée (pas de relance) et un avertissement est écrit dans le journal.
+
+## Entités, services et événements
+
+Entités générales (appareil **hydraXoo**) :
 
 | Entité | Type | Rôle |
 | --- | --- | --- |
-| Pause de l'arrosage | `switch` | Allumé, aucun cycle n'est lancé ; attribut `until` quand la pause se lève seule |
+| Pause de l'arrosage | `switch` | Allumé, aucun cycle ne démarre ; attribut `until` quand la pause se lève seule |
 | File d'attente | `sensor` | Nombre d'arrosages en attente, listés dans l'attribut `items` |
 
-Par zone :
+Par zone (un appareil par zone) :
 
 | Entité | Type | Rôle |
 | --- | --- | --- |
-| Zone active | `switch` | Désactivée, la zone ne lance plus ses cycles |
+| Zone active | `switch` | Éteint, les cycles de la zone sont sautés |
 | Arrosage en cours | `binary_sensor` | Allumé tant que hydraXoo garde la vanne ouverte |
+| Défaut de fermeture | `binary_sensor` (problème) | Allumé quand la vanne n'a pas pu être refermée ; dernier contrôle en attributs |
 | Prochain arrosage | `sensor` (horodatage) | Prochain départ ; durée de base et durée ajustée en attributs |
 | Temps restant | `sensor` (durée) | Temps restant de l'arrosage en cours |
-| Coefficient météo | `sensor` (%) | Pourcentage appliqué à la durée de base ; raisons (pluie tombée, pluie prévue, température, avertissements) en attributs |
-| Défaut de fermeture | `binary_sensor` (problème) | Allumé quand la vanne n'a pas pu être refermée ; détails du dernier contrôle en attributs |
+| Coefficient météo | `sensor` (%) | Pourcentage appliqué à la durée de base ; pluie tombée, pluie prévue, température et avertissements en attributs |
 
-## Services
+Services :
 
 | Service | Champs |
 | --- | --- |
@@ -80,41 +180,71 @@ Par zone :
 | `hydraxoo.resume` | — |
 | `hydraxoo.acknowledge_fault` | `zone` (appareil) |
 
-## Événements
+Événements :
 
 | Événement | Données |
 | --- | --- |
-| `hydraxoo_cycle_started` | `zone_id`, `zone_name`, `source` (`schedule`/`manual`), `duration_min`, `cycle_id`, et pour les cycles `base_duration_min`, `coefficient_pct` |
-| `hydraxoo_cycle_skipped` | `zone_id`, `zone_name`, `cycle_id`, `reason` (`paused`, `zone_disabled`, `stopped`, `fault`, `weather`), `weather` (détails) |
+| `hydraxoo_cycle_started` | `zone_id`, `zone_name`, `source` (`schedule` / `manual`), `duration_min`, `cycle_id` ; pour les cycles, aussi `base_duration_min`, `coefficient_pct` |
+| `hydraxoo_cycle_finished` | `zone_id`, `zone_name`, `reason` (`completed`, `manual_stop`, `max_runtime`, `external`, `restart`, `unload`), `source`, `duration_min`, `elapsed_min` |
+| `hydraxoo_cycle_skipped` | `zone_id`, `zone_name`, `cycle_id`, `reason` (`weather`, `paused`, `zone_disabled`, `fault`, `stopped`), `weather` (détails) |
 | `hydraxoo_safety_retry` | `zone_id`, `zone_name`, `attempt`, `max_attempts`, `power_w` |
 | `hydraxoo_safety_failed` | `zone_id`, `zone_name`, `attempts`, `power_w` |
-| `hydraxoo_cycle_finished` | `zone_id`, `zone_name`, `reason` (`completed`, `manual_stop`, `max_runtime`, `external`, `restart`, `unload`), … |
 
-## Ajustement météo
+## Exemples d'automatisations
 
-Choisissez une entité météo (et éventuellement un pluviomètre cumulatif) dans **Configurer › Réglages généraux**. Chaque zone a sa propre règle (**Modifier une zone › Réglages de la zone › Règle météo**, ou la section **Météo** de la carte) :
+Être prévenu quand la pluie annule un arrosage :
 
-- **Pluie prévue** sur les 24 prochaines heures (via `weather.get_forecasts`, horaire si disponible, sinon journalière) supérieure ou égale au **seuil d'annulation** (5 mm) : le cycle est sauté.
-- Sinon **coefficient = 1 − (pluie tombée pondérée + pluie prévue) ÷ seuil**, borné entre 0 et 100 %. La pluie des dernières 24 h compte entièrement, celle de 24 à 48 h pour moitié.
-- **Bonus chaleur** (désactivé par défaut) : +X % quand la température maximale prévue atteint un seuil.
-- Le résultat est borné entre le minimum et le maximum de la zone (0 à 150 %), et la durée est arrondie à la minute. 0 % saute le cycle.
-- **Pluie tombée** : lue sur le pluviomètre s'il est renseigné ; sinon estimée en enregistrant, chaque heure, la pluie prévue pour cette heure.
-- **Météo indisponible** : 100 % et un avertissement.
-- **Zones à l'abri de la pluie** (serre, terrasse couverte : *Reçoit la pluie* désactivé) : la pluie est ignorée, mais le bonus chaleur s'applique.
+```yaml
+alias: Arrosage sauté pour cause de pluie
+triggers:
+  - trigger: event
+    event_type: hydraxoo_cycle_skipped
+    event_data:
+      reason: weather
+actions:
+  - action: notify.mobile_app_mon_telephone
+    data:
+      message: "{{ trigger.event.data.zone_name }} : arrosage sauté, pluie prévue."
+```
 
-Testé avec les formats Met.no et Météo-France ; les fournisseurs qui ne donnent que des prévisions journalières, ou aucune quantité de pluie, sont gérés (100 % avec un avertissement dans ce dernier cas). L'arrosage manuel n'est jamais ajusté.
+Tout arrêter si un détecteur de fuite se déclenche, et mettre en pause pour une journée :
 
-## Contrôle de fermeture : régler sa prise
+```yaml
+alias: Fuite - arrêter l'arrosage
+triggers:
+  - trigger: state
+    entity_id: binary_sensor.fuite_jardin
+    to: "on"
+actions:
+  - action: hydraxoo.stop_all
+  - action: hydraxoo.pause
+    data:
+      days: 1
+```
 
-Le contrôle lit la consommation transmise par la prise (capteur en W). Beaucoup de prises ne transmettent leur consommation **qu'à intervalles réguliers** ou **au-delà d'une variation minimale** (par exemple toutes les 60 s ou ±5 W). Si la mesure lue après la fermeture est plus ancienne que l'ordre de fermeture, hydraXoo attend jusqu'à 60 s une mesure récente.
+## Dépannage
 
-Pour un contrôle fiable :
+| Symptôme | Que faire |
+| --- | --- |
+| La carte n'est pas proposée | Dans **Ajouter une carte**, utilisez l'onglet **Par carte**, pas *Par entité*. Rechargez la page ; vérifiez que `/hydraxoo_static/hydraxoo-card.js` figure dans **Paramètres › Tableaux de bord › ⋮ › Ressources**. |
+| Anciens textes ou ancienne présentation après une mise à jour | Rechargez la page (sur ordinateur, en forçant : Ctrl/Cmd + Maj + R ; dans l'application : *Paramètres › Application compagnon › Débogage › Réinitialiser le cache du frontend*). |
+| Des relances alors que la vanne s'est bien fermée | La prise transmet trop tard : réduisez son intervalle de rapport ou allongez le délai de contrôle. |
+| Coefficient météo bloqué à 100 % avec un avertissement | L'entité météo est indisponible, ou le fournisseur ne donne pas de quantité de pluie : essayez un autre fournisseur (Met.no donne des quantités horaires). |
+| « — » au lieu de ✓ pour un cycle passé | Aucune trace pour ce cycle (par exemple un cycle passé avant la mise à jour en 0.0.7). |
 
-1. Dans les réglages de la prise (Z-Wave JS : configuration de l'appareil), réduisez autant que possible l'**intervalle de rapport** de la consommation et la **variation minimale** qui déclenche un rapport.
-2. Dans hydraXoo (**Configurer › Modifier une zone › Réglages de la zone › Contrôle de fermeture**), choisissez un **délai de contrôle** un peu plus long que l'intervalle de rapport de la prise.
-3. Réglez le **seuil** entre la consommation propre de la prise au repos et celle de la vanne (une électrovanne consomme en général 2 à 8 W).
+Journal détaillé :
 
-Si le capteur est indisponible, la fermeture n'est pas contrôlée (pas de relance) et un avertissement est écrit dans le journal.
+```yaml
+logger:
+  logs:
+    custom_components.hydraxoo: debug
+```
+
+Signalez les problèmes sur [GitHub](https://github.com/PhilGG/hydraXoo/issues).
+
+## Langues
+
+Français, anglais, allemand, espagnol et italien, partout : écrans de configuration, entités, services, notifications et carte. La carte suit la langue de votre profil Home Assistant (anglais sinon). Les traductions sont dans `custom_components/hydraxoo/translations/` et `frontend/src/locales/` ; corrections et nouvelles langues bienvenues.
 
 ## Développement
 
@@ -122,12 +252,12 @@ Tout tourne dans Docker ; rien d'autre n'est nécessaire sur votre machine.
 
 ```bash
 ./dev build   # construire l'image de développement
-./dev test    # lancer les tests
+./dev test    # lancer les tests de l'intégration
 ./dev lint    # vérifier le style du code
-./dev card    # vérifier, tester et compiler la carte Lovelace (Node tourne aussi dans Docker)
+./dev card    # vérifier, tester et compiler la carte (Node tourne aussi dans Docker)
 ```
 
-Les sources de la carte sont dans `frontend/` (TypeScript + Lit). `custom_components/hydraxoo/frontend/hydraxoo-card.js` est généré par `./dev card` : ne pas le modifier à la main.
+Les sources de la carte sont dans `frontend/` (TypeScript + Lit). `custom_components/hydraxoo/frontend/hydraxoo-card.js` est généré par `./dev card` : ne pas le modifier à la main. L'historique des versions est dans [CHANGELOG.md](CHANGELOG.md).
 
 ## Licence
 

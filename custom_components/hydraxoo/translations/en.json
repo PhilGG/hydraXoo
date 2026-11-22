@@ -11,7 +11,7 @@
           "notify_services": "Mobile notifications"
         },
         "data_description": {
-          "weather_entity": "Optional for now. It will be used to adjust watering to rain and heat.",
+          "weather_entity": "Optional. Used to adjust watering to rain and heat; hourly forecasts give the best results.",
           "rain_sensor": "Cumulative rain gauge in mm. Without it, the rain fallen is estimated from the hourly forecast.",
           "sequence_mode": "With one zone at a time, a watering that comes up while another zone is watering waits its turn.",
           "notify_services": "Phones (Home Assistant app) alerted with high priority when a valve stays open despite the retries. The alert is removed once acknowledged."
@@ -44,7 +44,7 @@
         "data_description": {
           "sequence_mode": "With one zone at a time, a watering that comes up while another zone is watering waits its turn.",
           "rain_sensor": "Cumulative rain gauge in mm. Without it, the rain fallen is estimated from the hourly forecast.",
-          "weather_entity": "Used to adjust outdoor zones to rain and heat. Any weather entity works; hourly forecasts give the best results.",
+          "weather_entity": "Optional. Used to adjust watering to rain and heat; hourly forecasts give the best results.",
           "notify_services": "Phones (Home Assistant app) alerted with high priority when a valve stays open despite the retries. The alert is removed once acknowledged."
         }
       },

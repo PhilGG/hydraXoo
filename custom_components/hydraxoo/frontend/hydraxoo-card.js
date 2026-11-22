@@ -507,7 +507,208 @@ var _e = (e, t, n) => {
 K._$litElement$ = !0, K.finalized = !0, G.litElementHydrateSupport?.({ LitElement: K });
 var ve = G.litElementPolyfillSupport;
 ve?.({ LitElement: K }), (G.litElementVersions ??= []).push("4.2.2");
-var q = {
+var ye = {
+	title: "Bewässerung",
+	loading: "Wird geladen…",
+	not_loaded: "hydraXoo ist nicht geladen. Fügen Sie die Integration unter Einstellungen › Geräte & Dienste hinzu.",
+	settings: "Allgemeine Einstellungen",
+	weather: {
+		rain: "Regen: {past} mm gefallen, {forecast} mm erwartet",
+		rain_forecast: "Regen: {forecast} mm erwartet",
+		adjusted: "Dauern automatisch angepasst",
+		skipped: "Genug Regen erwartet: Zyklen der Zonen mit Regen werden übersprungen",
+		of_durations: "der Dauern",
+		unavailable: "Wetter nicht verfügbar",
+		unavailable_detail: "Die Zonen bewässern ihre volle Dauer",
+		no_data: "Der Wetteranbieter liefert keine Regenmengen",
+		heat: "Hitzebonus +{bonus} % ({temp} °C)"
+	},
+	pause: {
+		paused: "Bewässerung pausiert",
+		until: "Bis {date}",
+		indefinite: "Bis zur Fortsetzung",
+		resume: "Fortsetzen",
+		pause: "Bewässerung pausieren"
+	},
+	safety: {
+		confirmed: "{zone} · Schließen um {time} geprüft",
+		confirmed_detail: "Das Ventil hat normal geschlossen",
+		retried: "{zone} · Schließen um {time} geprüft",
+		retried_detail_one: "Restverbrauch erkannt: nach {n} Versuch von {s} s geschlossen",
+		retried_detail_other: "Restverbrauch erkannt: nach {n} Versuchen von {s} s geschlossen",
+		failed: "{zone}: Ventil nicht geschlossen",
+		failed_detail: "Noch {power} W nach {n} Versuchen. Diese Zone bewässert nicht mehr.",
+		acknowledge: "Quittieren",
+		unavailable: "{zone} · Schließen nicht geprüft",
+		unavailable_detail: "Leistungssensor um {time} nicht verfügbar"
+	},
+	timeline: {
+		title: "Heute",
+		total: "{min} Min. Bewässerung",
+		running: "Läuft",
+		done: "Erledigt",
+		skipped: "Übersprungen",
+		upcoming: "Geplant",
+		disabled: "Deaktiviert",
+		now: "Jetzt",
+		label: "{zone}: {count} Zyklen heute"
+	},
+	zone: {
+		rain: "Bekommt Regen · angepasste Dauer",
+		no_rain: "Vor Regen geschützt",
+		heat: " · Hitzebonus",
+		enable: "Zone {zone} aktivieren",
+		next: "Nächste: {time} · {min} min",
+		next_day: "Nächste: {day} {time} · {min} min",
+		next_skipped: "Nächste: {time} · übersprungen (Regen)",
+		next_day_skipped: "Nächste: {day} {time} · übersprungen (Regen)",
+		nothing: "Kein Zyklus geplant",
+		weather: "Wetter: {pct} % der Dauer",
+		weather_skip: "Regen: Bewässerung übersprungen",
+		running: "Bewässerung · noch {left}",
+		queued: "Wartet, bis sie an der Reihe ist",
+		checking: "Schließen wird geprüft…",
+		fault: "Schließfehler",
+		disabled: "Zone deaktiviert",
+		no_cycle_today: "Heute kein Zyklus",
+		water_now: "Jetzt bewässern",
+		stop: "Stoppen",
+		edit: "Bearbeiten",
+		start: "Starten",
+		cancel: "Abbrechen",
+		duration: "Dauer",
+		status: {
+			done: "Erledigt",
+			running: "Jetzt",
+			disabled: "Deaktiviert",
+			missed: "Nicht gelaufen",
+			in_min: "in {m} Min.",
+			in_h: "in {h} Std.",
+			tonight: "heute Abend"
+		},
+		skip: {
+			weather: "Übersprungen · Regen",
+			paused: "Übersprungen · Pause",
+			zone_disabled: "Übersprungen · Zone aus",
+			fault: "Übersprungen · Störung",
+			stopped: "Übersprungen · gestoppt"
+		}
+	},
+	new_zone: "Neue Zone",
+	editor: {
+		subtitle: "Zoneneinstellungen",
+		back: "Zurück zur Übersicht",
+		cancel: "Abbrechen und zurück",
+		general: "Zone",
+		name: "Name",
+		name_placeholder: "Z. B. Rosenbeet",
+		icon: "Symbol",
+		icons: {
+			plant: "Pflanze",
+			tree: "Baum",
+			lawn: "Rasen",
+			flower: "Blumen",
+			drop: "Tropfen"
+		},
+		hardware: "Hardware",
+		valve: "Magnetventil",
+		switch: "Ventilschalter · erforderlich",
+		switch_choose: "Schalter-Entität wählen…",
+		power: "Leistungssensor · empfohlen",
+		power_choose: "Leistungssensor (W) wählen…",
+		power_hint: "Der Sensor prüft, ob das Ventil wirklich geschlossen ist.",
+		online: "Online",
+		offline: "Nicht verfügbar",
+		check: "Schließen prüfen",
+		threshold: "Ventil gilt als offen über",
+		threshold_hint: "Messung nach dem Schließen",
+		delay: "Prüfverzögerung",
+		delay_hint: "Nach dem Schließbefehl",
+		pulse: "Wiederholung",
+		pulse_hint: "Öffnen und wieder schließen",
+		attempts: "Maximale Versuche",
+		attempts_hint: "Dann Alarm und Benachrichtigung",
+		cutoff: "Sicherheitsabschaltung",
+		cutoff_hint: "Zwangsstopp, wenn das Ventil offen bleibt",
+		cycles: "Zyklen",
+		today_total: "{min} Min. heute",
+		no_cycle: "Noch kein Zyklus: Diese Zone bewässert nur auf Anforderung.",
+		cycle: "Zyklus {n}",
+		every_day: "Jeden Tag",
+		weekdays_only: "Werktags",
+		weekend: "Wochenende",
+		n_days: "{n} Tage / Woche",
+		no_day: "Kein Tag gewählt",
+		enable_cycle: "Zyklus {n} aktivieren",
+		delete_cycle: "Zyklus {n} löschen",
+		start_time: "Startzeit von Zyklus {n}",
+		day_label: "{day}, Zyklus {n}",
+		decrease: "{what} verringern",
+		increase: "{what} erhöhen",
+		duration_of: "die Dauer von Zyklus {n}",
+		add_cycle: "Zyklus hinzufügen",
+		rain: "Bekommt Regen",
+		rain_source: "Quelle: {name}",
+		rain_none: "Noch keine Wetter-Entität: Wählen Sie eine in den allgemeinen Einstellungen der Integration.",
+		today: "Heute",
+		rain_detail: "{past} mm gefallen · {forecast} mm erwartet",
+		skip: "Zyklus überspringen, wenn erwarteter Regen erreicht",
+		skip_hint: "Erwarteter Regen in den nächsten 24 Stunden",
+		past: "Berücksichtigter gefallener Regen",
+		past_hint: "Über die letzten Stunden",
+		heat: "An heißen Tagen mehr bewässern",
+		heat_hint: "Dauer um diesen Prozentsatz verlängert · 0 % = normale Dauer",
+		heat_threshold: "Heißer Tag ab",
+		heat_threshold_hint: "Höchste erwartete Tagestemperatur",
+		heat_summary: "Wenn der Tag {t} °C oder mehr erreichen soll, wird die Dauer um {pct} % verlängert.",
+		save: "Speichern",
+		saving: "Wird gespeichert…",
+		create: "Erstellen und Zyklen hinzufügen",
+		create_hint: "Die Zyklen werden im nächsten Schritt eingestellt.",
+		delete: "Diese Zone löschen",
+		delete_confirm: "Zone {zone} löschen? Ihre Zyklen und Entitäten werden entfernt.",
+		errors: {
+			name: "Geben Sie einen Namen ein.",
+			switch: "Wählen Sie den Ventilschalter.",
+			no_day: "Jeder Zyklus braucht mindestens einen Tag.",
+			duration_exceeds_max: "Ein Zyklus dauert länger als die Sicherheitsabschaltung.",
+			generic: "Speichern fehlgeschlagen: {message}"
+		},
+		rain_choice: "Regen",
+		receives_rain: "Bekommt Regen",
+		receives_rain_desc: "Dauern an den Regen angepasst",
+		no_rain: "Vor Regen geschützt",
+		no_rain_desc: "Gewächshaus, überdachter Bereich: Regen wird ignoriert",
+		weather_title: "Wetter",
+		rain_hint: "Dauer an gefallenen und erwarteten Regen angepasst",
+		no_rain_detail: "Regen ignoriert: Nur Hitze kann die Dauer ändern"
+	},
+	days: {
+		short: [
+			"M",
+			"D",
+			"M",
+			"D",
+			"F",
+			"S",
+			"S"
+		],
+		long: [
+			"Montag",
+			"Dienstag",
+			"Mittwoch",
+			"Donnerstag",
+			"Freitag",
+			"Samstag",
+			"Sonntag"
+		]
+	},
+	card_editor: {
+		title: "Titel",
+		compact: "Kompakte Anzeige",
+		zones: "Angezeigte Zonen (alle, wenn leer)"
+	}
+}, q = {
 	title: "Watering",
 	loading: "Loading…",
 	not_loaded: "hydraXoo is not loaded. Add the integration in Settings › Devices & services.",
@@ -709,7 +910,210 @@ var q = {
 		zones: "Zones shown (all when empty)"
 	}
 }, J = {
+	de: ye,
 	en: q,
+	es: {
+		title: "Riego",
+		loading: "Cargando…",
+		not_loaded: "hydraXoo no está cargado. Añada la integración en Ajustes › Dispositivos y servicios.",
+		settings: "Ajustes generales",
+		weather: {
+			rain: "Lluvia: {past} mm caídos, {forecast} mm previstos",
+			rain_forecast: "Lluvia: {forecast} mm previstos",
+			adjusted: "Duraciones ajustadas automáticamente",
+			skipped: "Suficiente lluvia prevista: ciclos omitidos en las zonas que reciben lluvia",
+			of_durations: "de las duraciones",
+			unavailable: "Meteorología no disponible",
+			unavailable_detail: "Las zonas riegan su duración completa",
+			no_data: "El proveedor meteorológico no da cantidades de lluvia",
+			heat: "Bono de calor +{bonus} % ({temp} °C)"
+		},
+		pause: {
+			paused: "Riego en pausa",
+			until: "Hasta el {date}",
+			indefinite: "Hasta reanudar",
+			resume: "Reanudar",
+			pause: "Pausar el riego"
+		},
+		safety: {
+			confirmed: "{zone} · cierre comprobado a las {time}",
+			confirmed_detail: "La válvula se cerró con normalidad",
+			retried: "{zone} · cierre comprobado a las {time}",
+			retried_detail_one: "Consumo residual detectado: cerrada tras {n} reintento de {s} s",
+			retried_detail_other: "Consumo residual detectado: cerrada tras {n} reintentos de {s} s",
+			failed: "{zone}: válvula no cerrada",
+			failed_detail: "Todavía {power} W tras {n} reintentos. Esta zona ya no riega.",
+			acknowledge: "Confirmar",
+			unavailable: "{zone} · cierre no comprobado",
+			unavailable_detail: "Sensor de consumo no disponible a las {time}"
+		},
+		timeline: {
+			title: "Hoy",
+			total: "{min} min de riego",
+			running: "En curso",
+			done: "Hecho",
+			skipped: "Omitido",
+			upcoming: "Próximo",
+			disabled: "Desactivado",
+			now: "Ahora",
+			label: "{zone}: {count} ciclos hoy"
+		},
+		zone: {
+			rain: "Recibe lluvia · duración ajustada",
+			no_rain: "Protegida de la lluvia",
+			heat: " · bono de calor",
+			enable: "Activar la zona {zone}",
+			next: "Próximo: {time} · {min} min",
+			next_day: "Próximo: {day} {time} · {min} min",
+			next_skipped: "Próximo: {time} · omitido (lluvia)",
+			next_day_skipped: "Próximo: {day} {time} · omitido (lluvia)",
+			nothing: "Ningún ciclo programado",
+			weather: "Meteorología: {pct} % de la duración",
+			weather_skip: "Lluvia: riego omitido",
+			running: "Regando · quedan {left}",
+			queued: "Esperando su turno",
+			checking: "Comprobando el cierre…",
+			fault: "Fallo de cierre",
+			disabled: "Zona desactivada",
+			no_cycle_today: "Ningún ciclo hoy",
+			water_now: "Regar ahora",
+			stop: "Detener",
+			edit: "Editar",
+			start: "Iniciar",
+			cancel: "Cancelar",
+			duration: "Duración",
+			status: {
+				done: "Hecho",
+				running: "Ahora",
+				disabled: "Desactivado",
+				missed: "No ejecutado",
+				in_min: "en {m} min",
+				in_h: "en {h} h",
+				tonight: "esta noche"
+			},
+			skip: {
+				weather: "Omitido · lluvia",
+				paused: "Omitido · pausa",
+				zone_disabled: "Omitido · zona inactiva",
+				fault: "Omitido · fallo",
+				stopped: "Omitido · detenido"
+			}
+		},
+		new_zone: "Nueva zona",
+		editor: {
+			subtitle: "Ajustes de la zona",
+			back: "Volver al panel",
+			cancel: "Cancelar y volver",
+			general: "Zona",
+			name: "Nombre",
+			name_placeholder: "Ej.: Rosaleda",
+			icon: "Icono",
+			icons: {
+				plant: "Planta",
+				tree: "Árbol",
+				lawn: "Césped",
+				flower: "Flores",
+				drop: "Gota"
+			},
+			hardware: "Material",
+			valve: "Electroválvula",
+			switch: "Interruptor de la válvula · obligatorio",
+			switch_choose: "Elegir una entidad switch…",
+			power: "Sensor de consumo · recomendado",
+			power_choose: "Elegir un sensor de consumo (W)…",
+			power_hint: "El sensor comprueba que la válvula se ha cerrado de verdad.",
+			online: "En línea",
+			offline: "No disponible",
+			check: "Comprobar el cierre",
+			threshold: "Válvula considerada abierta por encima de",
+			threshold_hint: "Medición tras el cierre",
+			delay: "Retardo de comprobación",
+			delay_hint: "Tras la orden de cierre",
+			pulse: "Reintento",
+			pulse_hint: "Abrir y volver a cerrar",
+			attempts: "Reintentos máximos",
+			attempts_hint: "Después alerta y notificación",
+			cutoff: "Corte de seguridad",
+			cutoff_hint: "Parada forzada si la válvula sigue abierta",
+			cycles: "Ciclos",
+			today_total: "{min} min hoy",
+			no_cycle: "Aún no hay ciclos: esta zona solo riega bajo demanda.",
+			cycle: "Ciclo {n}",
+			every_day: "Todos los días",
+			weekdays_only: "Entre semana",
+			weekend: "Fin de semana",
+			n_days: "{n} días / semana",
+			no_day: "Ningún día elegido",
+			enable_cycle: "Activar el ciclo {n}",
+			delete_cycle: "Eliminar el ciclo {n}",
+			start_time: "Hora de inicio del ciclo {n}",
+			day_label: "{day}, ciclo {n}",
+			decrease: "Reducir {what}",
+			increase: "Aumentar {what}",
+			duration_of: "la duración del ciclo {n}",
+			add_cycle: "Añadir un ciclo",
+			rain: "Recibe lluvia",
+			rain_source: "Fuente: {name}",
+			rain_none: "Aún no hay entidad meteorológica: elija una en los ajustes generales de la integración.",
+			today: "Hoy",
+			rain_detail: "{past} mm caídos · {forecast} mm previstos",
+			skip: "Omitir el ciclo si la lluvia prevista alcanza",
+			skip_hint: "Lluvia prevista en las próximas 24 horas",
+			past: "Lluvia caída tenida en cuenta",
+			past_hint: "En las últimas horas",
+			heat: "Regar más los días calurosos",
+			heat_hint: "Duración alargada este porcentaje · 0 % = duración normal",
+			heat_threshold: "Día caluroso a partir de",
+			heat_threshold_hint: "Temperatura máxima prevista durante el día",
+			heat_summary: "Si se prevé que el día alcance {t} °C o más, la duración se alarga un {pct} %.",
+			save: "Guardar",
+			saving: "Guardando…",
+			create: "Crear y añadir ciclos",
+			create_hint: "Los ciclos se configuran en el siguiente paso.",
+			delete: "Eliminar esta zona",
+			delete_confirm: "¿Eliminar la zona {zone}? Se borrarán sus ciclos y entidades.",
+			errors: {
+				name: "Introduzca un nombre.",
+				switch: "Elija el interruptor de la válvula.",
+				no_day: "Cada ciclo necesita al menos un día.",
+				duration_exceeds_max: "Un ciclo dura más que el corte de seguridad.",
+				generic: "No se pudo guardar: {message}"
+			},
+			rain_choice: "Lluvia",
+			receives_rain: "Recibe lluvia",
+			receives_rain_desc: "Duraciones ajustadas a la lluvia",
+			no_rain: "Protegida de la lluvia",
+			no_rain_desc: "Invernadero, zona cubierta: se ignora la lluvia",
+			weather_title: "Meteorología",
+			rain_hint: "Duración ajustada a la lluvia caída y prevista",
+			no_rain_detail: "Lluvia ignorada: solo el calor puede cambiar la duración"
+		},
+		days: {
+			short: [
+				"L",
+				"M",
+				"X",
+				"J",
+				"V",
+				"S",
+				"D"
+			],
+			long: [
+				"Lunes",
+				"Martes",
+				"Miércoles",
+				"Jueves",
+				"Viernes",
+				"Sábado",
+				"Domingo"
+			]
+		},
+		card_editor: {
+			title: "Título",
+			compact: "Vista compacta",
+			zones: "Zonas mostradas (todas si está vacío)"
+		}
+	},
 	fr: {
 		title: "Arrosage",
 		loading: "Chargement…",
@@ -911,6 +1315,208 @@ var q = {
 			compact: "Affichage compact",
 			zones: "Zones affichées (toutes si vide)"
 		}
+	},
+	it: {
+		title: "Irrigazione",
+		loading: "Caricamento…",
+		not_loaded: "hydraXoo non è caricato. Aggiungi l'integrazione in Impostazioni › Dispositivi e servizi.",
+		settings: "Impostazioni generali",
+		weather: {
+			rain: "Pioggia: {past} mm caduti, {forecast} mm previsti",
+			rain_forecast: "Pioggia: {forecast} mm previsti",
+			adjusted: "Durate adattate automaticamente",
+			skipped: "Pioggia sufficiente prevista: cicli saltati per le zone che ricevono pioggia",
+			of_durations: "delle durate",
+			unavailable: "Meteo non disponibile",
+			unavailable_detail: "Le zone irrigano la durata completa",
+			no_data: "Il fornitore meteo non fornisce quantità di pioggia",
+			heat: "Bonus caldo +{bonus} % ({temp} °C)"
+		},
+		pause: {
+			paused: "Irrigazione in pausa",
+			until: "Fino a {date}",
+			indefinite: "Fino alla ripresa",
+			resume: "Riprendi",
+			pause: "Metti in pausa"
+		},
+		safety: {
+			confirmed: "{zone} · chiusura verificata alle {time}",
+			confirmed_detail: "La valvola si è chiusa normalmente",
+			retried: "{zone} · chiusura verificata alle {time}",
+			retried_detail_one: "Consumo residuo rilevato: chiusa dopo {n} tentativo di {s} s",
+			retried_detail_other: "Consumo residuo rilevato: chiusa dopo {n} tentativi di {s} s",
+			failed: "{zone}: valvola non chiusa",
+			failed_detail: "Ancora {power} W dopo {n} tentativi. Questa zona non irriga più.",
+			acknowledge: "Conferma",
+			unavailable: "{zone} · chiusura non verificata",
+			unavailable_detail: "Sensore di consumo non disponibile alle {time}"
+		},
+		timeline: {
+			title: "Oggi",
+			total: "{min} min di irrigazione",
+			running: "In corso",
+			done: "Fatto",
+			skipped: "Saltato",
+			upcoming: "In programma",
+			disabled: "Disattivato",
+			now: "Ora",
+			label: "{zone}: {count} cicli oggi"
+		},
+		zone: {
+			rain: "Riceve la pioggia · durata adattata",
+			no_rain: "Al riparo dalla pioggia",
+			heat: " · bonus caldo",
+			enable: "Attiva la zona {zone}",
+			next: "Prossima: {time} · {min} min",
+			next_day: "Prossima: {day} {time} · {min} min",
+			next_skipped: "Prossima: {time} · saltata (pioggia)",
+			next_day_skipped: "Prossima: {day} {time} · saltata (pioggia)",
+			nothing: "Nessun ciclo programmato",
+			weather: "Meteo: {pct} % della durata",
+			weather_skip: "Pioggia: irrigazione saltata",
+			running: "Irrigazione · mancano {left}",
+			queued: "In attesa del suo turno",
+			checking: "Controllo della chiusura…",
+			fault: "Guasto di chiusura",
+			disabled: "Zona disattivata",
+			no_cycle_today: "Nessun ciclo oggi",
+			water_now: "Irriga ora",
+			stop: "Ferma",
+			edit: "Modifica",
+			start: "Avvia",
+			cancel: "Annulla",
+			duration: "Durata",
+			status: {
+				done: "Fatto",
+				running: "Ora",
+				disabled: "Disattivato",
+				missed: "Non eseguito",
+				in_min: "tra {m} min",
+				in_h: "tra {h} h",
+				tonight: "stasera"
+			},
+			skip: {
+				weather: "Saltato · pioggia",
+				paused: "Saltato · pausa",
+				zone_disabled: "Saltato · zona disattivata",
+				fault: "Saltato · guasto",
+				stopped: "Saltato · fermato"
+			}
+		},
+		new_zone: "Nuova zona",
+		editor: {
+			subtitle: "Impostazioni della zona",
+			back: "Torna al pannello",
+			cancel: "Annulla e torna indietro",
+			general: "Zona",
+			name: "Nome",
+			name_placeholder: "Es.: Aiuola di rose",
+			icon: "Icona",
+			icons: {
+				plant: "Pianta",
+				tree: "Albero",
+				lawn: "Prato",
+				flower: "Fiori",
+				drop: "Goccia"
+			},
+			hardware: "Hardware",
+			valve: "Elettrovalvola",
+			switch: "Interruttore della valvola · obbligatorio",
+			switch_choose: "Scegli un'entità switch…",
+			power: "Sensore di consumo · consigliato",
+			power_choose: "Scegli un sensore di consumo (W)…",
+			power_hint: "Il sensore controlla che la valvola sia davvero chiusa.",
+			online: "In linea",
+			offline: "Non disponibile",
+			check: "Controlla la chiusura",
+			threshold: "Valvola considerata aperta oltre",
+			threshold_hint: "Misura dopo la chiusura",
+			delay: "Ritardo di controllo",
+			delay_hint: "Dopo il comando di chiusura",
+			pulse: "Tentativo",
+			pulse_hint: "Apri e richiudi",
+			attempts: "Tentativi massimi",
+			attempts_hint: "Poi avviso e notifica",
+			cutoff: "Spegnimento di sicurezza",
+			cutoff_hint: "Arresto forzato se la valvola resta aperta",
+			cycles: "Cicli",
+			today_total: "{min} min oggi",
+			no_cycle: "Ancora nessun ciclo: questa zona irriga solo su richiesta.",
+			cycle: "Ciclo {n}",
+			every_day: "Tutti i giorni",
+			weekdays_only: "Giorni feriali",
+			weekend: "Fine settimana",
+			n_days: "{n} giorni / settimana",
+			no_day: "Nessun giorno scelto",
+			enable_cycle: "Attiva il ciclo {n}",
+			delete_cycle: "Elimina il ciclo {n}",
+			start_time: "Ora di inizio del ciclo {n}",
+			day_label: "{day}, ciclo {n}",
+			decrease: "Diminuisci {what}",
+			increase: "Aumenta {what}",
+			duration_of: "la durata del ciclo {n}",
+			add_cycle: "Aggiungi un ciclo",
+			rain: "Riceve la pioggia",
+			rain_source: "Fonte: {name}",
+			rain_none: "Ancora nessuna entità meteo: scegline una nelle impostazioni generali dell'integrazione.",
+			today: "Oggi",
+			rain_detail: "{past} mm caduti · {forecast} mm previsti",
+			skip: "Salta il ciclo se la pioggia prevista raggiunge",
+			skip_hint: "Pioggia prevista nelle prossime 24 ore",
+			past: "Pioggia caduta considerata",
+			past_hint: "Nelle ultime ore",
+			heat: "Irrigare di più nei giorni caldi",
+			heat_hint: "Durata allungata di questa percentuale · 0 % = durata normale",
+			heat_threshold: "Giorno caldo da",
+			heat_threshold_hint: "Temperatura massima prevista durante la giornata",
+			heat_summary: "Se la giornata dovrebbe raggiungere {t} °C o più, la durata viene allungata del {pct} %.",
+			save: "Salva",
+			saving: "Salvataggio…",
+			create: "Crea e aggiungi i cicli",
+			create_hint: "I cicli si impostano al passo successivo.",
+			delete: "Elimina questa zona",
+			delete_confirm: "Eliminare la zona {zone}? I suoi cicli e le sue entità verranno rimossi.",
+			errors: {
+				name: "Inserisci un nome.",
+				switch: "Scegli l'interruttore della valvola.",
+				no_day: "Ogni ciclo deve avere almeno un giorno.",
+				duration_exceeds_max: "Un ciclo dura più dello spegnimento di sicurezza.",
+				generic: "Salvataggio impossibile: {message}"
+			},
+			rain_choice: "Pioggia",
+			receives_rain: "Riceve la pioggia",
+			receives_rain_desc: "Durate adattate alla pioggia",
+			no_rain: "Al riparo dalla pioggia",
+			no_rain_desc: "Serra, zona coperta: la pioggia viene ignorata",
+			weather_title: "Meteo",
+			rain_hint: "Durata adattata alla pioggia caduta e prevista",
+			no_rain_detail: "Pioggia ignorata: solo il caldo può cambiare la durata"
+		},
+		days: {
+			short: [
+				"L",
+				"M",
+				"M",
+				"G",
+				"V",
+				"S",
+				"D"
+			],
+			long: [
+				"Lunedì",
+				"Martedì",
+				"Mercoledì",
+				"Giovedì",
+				"Venerdì",
+				"Sabato",
+				"Domenica"
+			]
+		},
+		card_editor: {
+			title: "Titolo",
+			compact: "Visualizzazione compatta",
+			zones: "Zone mostrate (tutte se vuoto)"
+		}
 	}
 };
 function Y(e, t) {
@@ -932,17 +1538,17 @@ function Z(e) {
 		return r;
 	};
 }
-function ye(e) {
+function be(e) {
 	return (J[X(e)] ?? q).days ?? q.days;
 }
-function be(e, t, n, r = {}) {
+function xe(e, t, n, r = {}) {
 	return e(`${t}_${n === 1 ? "one" : "other"}`, {
 		n,
 		...r
 	});
 }
 // src/editor.ts
-var xe = class extends K {
+var Se = class extends K {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:hydraxoo-card" }, this._zones = [], this._loading = !1;
 	}
@@ -1027,9 +1633,9 @@ var xe = class extends K {
     ></ha-form>`;
 	}
 };
-customElements.get("hydraxoo-card-editor") || customElements.define("hydraxoo-card-editor", xe);
+customElements.get("hydraxoo-card-editor") || customElements.define("hydraxoo-card-editor", Se);
 // src/schedule.ts
-var Se = [
+var Ce = [
 	"Mon",
 	"Tue",
 	"Wed",
@@ -1050,12 +1656,12 @@ function Q(e, t) {
 		hourCycle: "h23"
 	}).formatToParts(e).map((e) => [e.type, e.value]));
 	return {
-		weekday: Se.indexOf(n.weekday),
+		weekday: Ce.indexOf(n.weekday),
 		minutes: Number(n.hour) * 60 + Number(n.minute),
 		dateKey: `${n.year}-${n.month}-${n.day}`
 	};
 }
-function Ce(e) {
+function we(e) {
 	let [t, n] = e.split(":").map(Number);
 	return t * 60 + n;
 }
@@ -1068,7 +1674,7 @@ function $(e, t, n) {
 		hourCycle: "h23"
 	}).format(r);
 }
-function we(e, t, n) {
+function Te(e, t, n) {
 	let r = typeof e == "string" ? new Date(e) : e, i = new Intl.DateTimeFormat(n, {
 		timeZone: t,
 		weekday: "long",
@@ -1077,23 +1683,23 @@ function we(e, t, n) {
 	}).format(r);
 	return i.charAt(0).toUpperCase() + i.slice(1);
 }
-function Te(e) {
+function Ee(e) {
 	let t = Math.max(0, Math.round(e)), n = Math.floor(t / 3600), r = Math.floor(t % 3600 / 60), i = String(t % 60).padStart(2, "0");
 	return n ? `${n}:${String(r).padStart(2, "0")}:${i}` : `${r}:${i}`;
 }
-function Ee(e, t) {
+function De(e, t) {
 	return e.weather.skip ? 0 : Math.round(t * e.weather.coefficient_pct / 100);
 }
-function De(e, t, n, r, i) {
+function Oe(e, t, n, r, i) {
 	return [...e].reverse().find((e) => e.zone_id === t.id && e.cycle_id === n && Q(new Date(e.started), i).dateKey === r);
 }
-function Oe(e, t, n, r) {
+function ke(e, t, n, r) {
 	return e.cycles.filter((e) => e.weekdays.includes(t.weekday)).map((i) => {
-		let a = Ce(i.start_time), o = i.duration_min, s = Ee(e, o), c;
+		let a = we(i.start_time), o = i.duration_min, s = De(e, o), c;
 		if (e.running && e.run && e.run.cycle_id === i.id) c = { kind: "running" }, s = e.run.duration_min;
 		else if (!i.enabled || !e.enabled) c = { kind: "disabled" };
 		else if (a <= t.minutes) {
-			let a = De(n, e, i.id, t.dateKey, r);
+			let a = Oe(n, e, i.id, t.dateKey, r);
 			a?.kind === "run" ? (c = {
 				kind: "done",
 				duration: a.duration_min
@@ -1118,10 +1724,10 @@ function Oe(e, t, n, r) {
 		};
 	}).sort((e, t) => e.start - t.start);
 }
-function ke(e) {
+function Ae(e) {
 	return e.filter((e) => e.status.kind !== "disabled").reduce((e, t) => e + t.adjusted, 0);
 }
-function Ae(e) {
+function je(e) {
 	let t = [...new Set(e)].sort();
 	return t.length === 7 ? { key: "every_day" } : t.join() === "0,1,2,3,4" ? { key: "weekdays_only" } : t.join() === "5,6" ? { key: "weekend" } : t.length === 0 ? { key: "no_day" } : {
 		key: "n_days",
@@ -1129,7 +1735,7 @@ function Ae(e) {
 	};
 }
 // src/styles.ts
-var je = o`
+var Me = o`
   :host {
     --hx-primary: var(--primary-color, #1d4ed8);
     --hx-on-primary: var(--text-primary-color, #ffffff);
@@ -1677,12 +2283,12 @@ var je = o`
       transition: none;
     }
   }
-`, Me = {
+`, Ne = {
 	threshold_w: 1,
 	check_delay_s: 10,
 	retry_pulse_s: 5,
 	max_attempts: 5
-}, Ne = {
+}, Pe = {
 	skip_mm: 5,
 	past_window_h: 48,
 	forecast_window_h: 24,
@@ -1690,7 +2296,7 @@ var je = o`
 	heat_bonus_pct: 0,
 	min_pct: 0,
 	max_pct: 150
-}, Pe = [
+}, Fe = [
 	{
 		icon: "mdi:sprout",
 		key: "plant"
@@ -1713,26 +2319,26 @@ var je = o`
 	}
 ];
 // src/zone-form.ts
-function Fe(e) {
+function Ie(e) {
 	return JSON.parse(JSON.stringify(e));
 }
-function Ie() {
+function Le() {
 	return {
 		name: "",
-		icon: Pe[0].icon,
+		icon: Fe[0].icon,
 		enabled: !0,
 		switch_entity: "",
 		power_entity: null,
 		max_runtime_min: 30,
 		receives_rain: !0,
-		safety: { ...Me },
-		weather_rules: { ...Ne },
+		safety: { ...Ne },
+		weather_rules: { ...Pe },
 		cycles: []
 	};
 }
-var Le = class extends K {
+var Re = class extends K {
 	constructor(...e) {
-		super(...e), this.zone = null, this.state = null, this._draft = Ie(), this._error = "", this._saving = !1, this._loadedFor = void 0, this._addCycle = () => {
+		super(...e), this.zone = null, this.state = null, this._draft = Le(), this._error = "", this._saving = !1, this._loadedFor = void 0, this._addCycle = () => {
 			let e = this._draft.cycles.at(-1), t = {
 				enabled: !0,
 				start_time: e ? e.start_time : "06:00",
@@ -1761,11 +2367,11 @@ var Le = class extends K {
 		};
 	}
 	static {
-		this.styles = je;
+		this.styles = Me;
 	}
 	willUpdate() {
 		let e = this.zone?.id ?? null;
-		e !== this._loadedFor && (this._loadedFor = e, this._draft = this.zone ? Fe(this._configOf(this.zone)) : Ie(), this._error = "");
+		e !== this._loadedFor && (this._loadedFor = e, this._draft = this.zone ? Ie(this._configOf(this.zone)) : Le(), this._error = "");
 	}
 	_configOf(e) {
 		let { id: t, name: n, icon: r, enabled: i, switch_entity: a, power_entity: o, max_runtime_min: s, receives_rain: c, safety: l, weather_rules: u, cycles: d } = e;
@@ -1864,7 +2470,7 @@ var Le = class extends K {
       <div class="stack" role="group" aria-label=${t("editor.icon")}>
         <span class="small strong">${t("editor.icon")}</span>
         <div class="icon-grid">
-          ${Pe.map((e) => F`<button
+          ${Fe.map((e) => F`<button
               type="button"
               class="choice"
               aria-pressed=${n.icon === e.icon ? "true" : "false"}
@@ -1962,14 +2568,14 @@ var Le = class extends K {
     </div>`;
 	}
 	_cycles() {
-		let e = this._t, t = ye(this.hass), n = this._draft.cycles;
+		let e = this._t, t = be(this.hass), n = this._draft.cycles;
 		return F`<section class="tile" aria-labelledby="hx-cycles">
       <div class="row">
         <h2 id="hx-cycles" class="grow">${e("editor.cycles")}</h2>
       </div>
       ${n.length === 0 ? F`<span class="small">${e("editor.no_cycle")}</span>` : L}
       ${n.map((r, i) => {
-			let a = i + 1, o = Ae(r.weekdays);
+			let a = i + 1, o = je(r.weekdays);
 			return F`<div class="cycle-card ${r.enabled ? "" : "off"}">
           <div class="row">
             ${this._switch(r.enabled, e("editor.enable_cycle", { n: a }), (e) => this._setCycle(i, { enabled: e }))}
@@ -2172,9 +2778,9 @@ var Le = class extends K {
     </div>`;
 	}
 };
-customElements.get("hydraxoo-zone-form") || customElements.define("hydraxoo-zone-form", Le);
+customElements.get("hydraxoo-zone-form") || customElements.define("hydraxoo-zone-form", Re);
 // src/hydraxoo-card.ts
-var Re = "0.0.7", ze = class extends K {
+var ze = "0.1.0", Be = class extends K {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:hydraxoo-card" }, this._state = null, this._view = { name: "dashboard" }, this._error = "", this._runFor = null, this._runMinutes = 10, this._subscribing = !1;
 	}
@@ -2190,7 +2796,7 @@ var Re = "0.0.7", ze = class extends K {
 		};
 	}
 	static {
-		this.styles = je;
+		this.styles = Me;
 	}
 	static getConfigElement() {
 		return document.createElement("hydraxoo-card-editor");
@@ -2300,12 +2906,12 @@ var Re = "0.0.7", ze = class extends K {
       </ha-card>` : this._dashboard();
 	}
 	_dashboard() {
-		let e = this._t, t = this._state, n = /* @__PURE__ */ new Date(), r = Q(n, this._tz), i = this._zones(), a = !!this._config.compact, o = new Map(i.map((e) => [e.id, Oe(e, r, t.history, this._tz)]));
+		let e = this._t, t = this._state, n = /* @__PURE__ */ new Date(), r = Q(n, this._tz), i = this._zones(), a = !!this._config.compact, o = new Map(i.map((e) => [e.id, ke(e, r, t.history, this._tz)]));
 		return F`<ha-card class=${a ? "compact" : ""}>
       <div class="header">
         <div class="stack">
           <h1>${this._config.title || e("title")}</h1>
-          <span class="sub">${we(n, this._tz, this._lang)} · ${$(n, this._tz, this._lang)}</span>
+          <span class="sub">${Te(n, this._tz, this._lang)} · ${$(n, this._tz, this._lang)}</span>
         </div>
         ${this._isAdmin ? F`<button type="button" class="icon-button" aria-label=${e("settings")} @click=${this._openSettings}>
               <ha-icon icon="mdi:cog-outline"></ha-icon>
@@ -2330,7 +2936,7 @@ var Re = "0.0.7", ze = class extends K {
         <div class="badge-icon warning"><ha-icon icon="mdi:pause"></ha-icon></div>
         <span class="stack grow">
           <span class="strong">${e("pause.paused")}</span>
-          <span class="small">${t.pause_until ? e("pause.until", { date: `${we(t.pause_until, this._tz, this._lang)} ${$(t.pause_until, this._tz, this._lang)}` }) : e("pause.indefinite")}</span>
+          <span class="small">${t.pause_until ? e("pause.until", { date: `${Te(t.pause_until, this._tz, this._lang)} ${$(t.pause_until, this._tz, this._lang)}` }) : e("pause.indefinite")}</span>
         </span>
         <button type="button" class="btn" @click=${() => this._call("resume")}>${e("pause.resume")}</button>
       </div>
@@ -2390,7 +2996,7 @@ var Re = "0.0.7", ze = class extends K {
 		return t.result === "sensor_unavailable" ? (i = e("safety.unavailable", { zone: t.zone_name }), a = e("safety.unavailable_detail", { time: r }), o = "warning") : t.retries > 0 ? (i = e("safety.retried", {
 			zone: t.zone_name,
 			time: r
-		}), a = be(e, "safety.retried_detail", t.retries, { s: n?.safety.retry_pulse_s ?? 5 }), o = "warning") : (i = e("safety.confirmed", {
+		}), a = xe(e, "safety.retried_detail", t.retries, { s: n?.safety.retry_pulse_s ?? 5 }), o = "warning") : (i = e("safety.confirmed", {
 			zone: t.zone_name,
 			time: r
 		}), a = e("safety.confirmed_detail")), F`<div class="tile"><div class="row">
@@ -2404,7 +3010,7 @@ var Re = "0.0.7", ze = class extends K {
 	_timeline(e, t, n) {
 		let r = this._t;
 		if (!e.length) return L;
-		let i = [...t.values()].reduce((e, t) => e + ke(t), 0), a = n.minutes / 1440 * 100, o = new Set([...t.values()].flat().map((e) => e.status.kind));
+		let i = [...t.values()].reduce((e, t) => e + Ae(t), 0), a = n.minutes / 1440 * 100, o = new Set([...t.values()].flat().map((e) => e.status.kind));
 		return F`<section class="tile" aria-labelledby="hx-today">
       <div class="row">
         <h2 id="hx-today" class="grow">${r("timeline.title")}</h2>
@@ -2447,8 +3053,8 @@ var Re = "0.0.7", ze = class extends K {
 	}
 	_chips(e) {
 		let t = this._t, n = [];
-		if (e.fault && n.push(F`<span class="chip error">${t("zone.fault")}</span>`), e.running && n.push(F`<span class="chip success"><ha-icon icon="mdi:water"></ha-icon>${t("zone.running", { left: Te(this._remaining(e)) })}</span>`), e.queued && n.push(F`<span class="chip warning">${t("zone.queued")}</span>`), e.checking && n.push(F`<span class="chip warning">${t("zone.checking")}</span>`), e.enabled || n.push(F`<span class="chip muted">${t("zone.disabled")}</span>`), e.next_run && !e.running) {
-			let r = new Date(e.next_run.time), i = Q(r, this._tz).dateKey === Q(/* @__PURE__ */ new Date(), this._tz).dateKey, a = $(r, this._tz, this._lang), o = e.next_run.adjusted_duration_min, s = ye(this.hass).long[Q(r, this._tz).weekday], c = `zone.${i ? "next" : "next_day"}${o === 0 ? "_skipped" : ""}`;
+		if (e.fault && n.push(F`<span class="chip error">${t("zone.fault")}</span>`), e.running && n.push(F`<span class="chip success"><ha-icon icon="mdi:water"></ha-icon>${t("zone.running", { left: Ee(this._remaining(e)) })}</span>`), e.queued && n.push(F`<span class="chip warning">${t("zone.queued")}</span>`), e.checking && n.push(F`<span class="chip warning">${t("zone.checking")}</span>`), e.enabled || n.push(F`<span class="chip muted">${t("zone.disabled")}</span>`), e.next_run && !e.running) {
+			let r = new Date(e.next_run.time), i = Q(r, this._tz).dateKey === Q(/* @__PURE__ */ new Date(), this._tz).dateKey, a = $(r, this._tz, this._lang), o = e.next_run.adjusted_duration_min, s = be(this.hass).long[Q(r, this._tz).weekday], c = `zone.${i ? "next" : "next_day"}${o === 0 ? "_skipped" : ""}`;
 			n.push(F`<span class="chip ${o === 0 ? "muted" : ""}"><ha-icon icon="mdi:clock-outline"></ha-icon>${t(c, {
 				time: a,
 				min: o,
@@ -2558,10 +3164,10 @@ var Re = "0.0.7", ze = class extends K {
     </div>`;
 	}
 };
-customElements.get("hydraxoo-card") || customElements.define("hydraxoo-card", ze), window.customCards = window.customCards ?? [], window.customCards.some((e) => e.type === "hydraxoo-card") || window.customCards.push({
+customElements.get("hydraxoo-card") || customElements.define("hydraxoo-card", Be), window.customCards = window.customCards ?? [], window.customCards.some((e) => e.type === "hydraxoo-card") || window.customCards.push({
 	type: "hydraxoo-card",
 	name: "hydraXoo",
 	description: "Zone-based irrigation: schedule, weather and valve safety.",
 	preview: !1
-}), console.info(`%c hydraXoo card %c ${Re} `, "background:#1d4ed8;color:#fff", "");
-export { ze as HydraxooCard };
+}), console.info(`%c hydraXoo card %c ${ze} `, "background:#1d4ed8;color:#fff", "");
+export { Be as HydraxooCard };

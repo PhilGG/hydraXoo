@@ -1,0 +1,343 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurar hydraXoo",
+        "description": "Las zonas se añaden después, con el botón Configurar de la integración.",
+        "data": {
+          "weather_entity": "Entidad meteorológica",
+          "rain_sensor": "Sensor de lluvia (opcional)",
+          "sequence_mode": "Orden de riego",
+          "notify_services": "Notificaciones móviles"
+        },
+        "data_description": {
+          "weather_entity": "Opcional. Sirve para adaptar el riego a la lluvia y al calor; las previsiones horarias dan los mejores resultados.",
+          "rain_sensor": "Pluviómetro acumulativo en mm. Sin él, la lluvia caída se estima a partir de la previsión horaria.",
+          "sequence_mode": "Con una zona a la vez, un riego que toca mientras otra zona riega espera su turno.",
+          "notify_services": "Teléfonos (app Home Assistant) avisados con prioridad alta si una válvula sigue abierta pese a los reintentos. El aviso se retira al confirmarlo."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "hydraXoo ya está configurado."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "hydraXoo",
+        "menu_options": {
+          "add_zone": "Añadir una zona",
+          "pick_zone": "Editar una zona",
+          "remove_zone": "Eliminar una zona",
+          "settings": "Ajustes generales"
+        }
+      },
+      "settings": {
+        "title": "Ajustes generales",
+        "data": {
+          "weather_entity": "Entidad meteorológica",
+          "sequence_mode": "Orden de riego",
+          "rain_sensor": "Sensor de lluvia (opcional)",
+          "notify_services": "Notificaciones móviles"
+        },
+        "data_description": {
+          "sequence_mode": "Con una zona a la vez, un riego que toca mientras otra zona riega espera su turno.",
+          "rain_sensor": "Pluviómetro acumulativo en mm. Sin él, la lluvia caída se estima a partir de la previsión horaria.",
+          "weather_entity": "Opcional. Sirve para adaptar el riego a la lluvia y al calor; las previsiones horarias dan los mejores resultados.",
+          "notify_services": "Teléfonos (app Home Assistant) avisados con prioridad alta si una válvula sigue abierta pese a los reintentos. El aviso se retira al confirmarlo."
+        }
+      },
+      "add_zone": {
+        "title": "Nueva zona",
+        "data": {
+          "name": "Nombre",
+          "icon": "Icono",
+          "switch_entity": "Interruptor de la válvula",
+          "max_runtime_min": "Corte de seguridad",
+          "power_entity": "Sensor de consumo (opcional)",
+          "cycle_enabled": "Ciclo activo",
+          "start_time": "Hora de inicio",
+          "duration_min": "Duración",
+          "weekdays": "Días",
+          "receives_rain": "Recibe lluvia"
+        },
+        "data_description": {
+          "switch_entity": "El enchufe o relé que abre la electroválvula.",
+          "max_runtime_min": "La válvula siempre se cierra tras este tiempo, pase lo que pase.",
+          "power_entity": "Consumo del enchufe, en W. Si se indica, hydraXoo comprueba tras cada cierre que la válvula se ha cerrado de verdad.",
+          "receives_rain": "Desactívelo para una zona protegida de la lluvia (invernadero, zona cubierta): se ignora la lluvia, el bono de calor sigue aplicándose."
+        },
+        "sections": {
+          "safety": {
+            "name": "Comprobación de cierre",
+            "description": "Solo se usa si hay un sensor de consumo. Algunos enchufes solo informan de su consumo periódicamente o a partir de un cambio mínimo: elija un retardo de comprobación mayor que el intervalo de informe del enchufe.",
+            "data": {
+              "threshold_w": "Válvula abierta por encima de",
+              "check_delay_s": "Retardo de comprobación tras el cierre",
+              "retry_pulse_s": "Reintento: tiempo encendido",
+              "max_attempts": "Reintentos máximos"
+            },
+            "data_description": {
+              "threshold_w": "Con esta potencia o menos, la válvula se considera cerrada.",
+              "max_attempts": "Tras este número de reintentos, la zona pasa a fallo y deja de regar hasta que se confirme."
+            }
+          },
+          "weather_rules": {
+            "name": "Regla meteorológica",
+            "description": "Coeficiente = 1 − (lluvia caída ponderada + lluvia prevista) ÷ umbral, después el bono de calor y luego los límites. La lluvia de las últimas 24 h cuenta entera, la anterior la mitad. Para una zona que no recibe lluvia, solo cuenta el bono de calor.",
+            "data": {
+              "skip_mm": "Omitir el ciclo si la lluvia prevista alcanza",
+              "past_window_h": "Lluvia caída tenida en cuenta (horas)",
+              "forecast_window_h": "Lluvia prevista tenida en cuenta (horas)",
+              "heat_threshold_c": "Día caluroso a partir de",
+              "heat_bonus_pct": "Regar más los días calurosos",
+              "min_pct": "Coeficiente mínimo",
+              "max_pct": "Coeficiente máximo"
+            },
+            "data_description": {
+              "skip_mm": "A partir de esta previsión el ciclo se omite. Es también la cantidad de lluvia que sustituye a un riego completo.",
+              "heat_bonus_pct": "En los días calurosos la duración se alarga este porcentaje. 0 = duración normal, sin alargar.",
+              "min_pct": "Por encima de 0, la zona siempre se riega un poco, salvo si se espera suficiente lluvia.",
+              "heat_threshold_c": "Temperatura máxima prevista durante el día."
+            }
+          }
+        }
+      },
+      "pick_zone": {
+        "title": "Editar una zona",
+        "data": {
+          "zone": "Zona"
+        }
+      },
+      "zone_menu": {
+        "title": "Zona {zone}",
+        "menu_options": {
+          "edit_zone": "Ajustes de la zona (nombre, válvula, seguridad)",
+          "add_cycle": "Añadir un ciclo",
+          "pick_cycle": "Editar un ciclo",
+          "remove_cycle": "Eliminar un ciclo",
+          "init": "← Menú principal",
+          "finish": "Listo"
+        }
+      },
+      "edit_zone": {
+        "title": "Zona {zone}",
+        "data": {
+          "name": "Nombre",
+          "icon": "Icono",
+          "switch_entity": "Interruptor de la válvula",
+          "max_runtime_min": "Corte de seguridad",
+          "power_entity": "Sensor de consumo (opcional)",
+          "receives_rain": "Recibe lluvia"
+        },
+        "data_description": {
+          "switch_entity": "El enchufe o relé que abre la electroválvula.",
+          "max_runtime_min": "La válvula siempre se cierra tras este tiempo, pase lo que pase.",
+          "power_entity": "Consumo del enchufe, en W. Si se indica, hydraXoo comprueba tras cada cierre que la válvula se ha cerrado de verdad.",
+          "receives_rain": "Desactívelo para una zona protegida de la lluvia (invernadero, zona cubierta): se ignora la lluvia, el bono de calor sigue aplicándose."
+        },
+        "sections": {
+          "safety": {
+            "name": "Comprobación de cierre",
+            "description": "Solo se usa si hay un sensor de consumo. Algunos enchufes solo informan de su consumo periódicamente o a partir de un cambio mínimo: elija un retardo de comprobación mayor que el intervalo de informe del enchufe.",
+            "data": {
+              "threshold_w": "Válvula abierta por encima de",
+              "check_delay_s": "Retardo de comprobación tras el cierre",
+              "retry_pulse_s": "Reintento: tiempo encendido",
+              "max_attempts": "Reintentos máximos"
+            },
+            "data_description": {
+              "threshold_w": "Con esta potencia o menos, la válvula se considera cerrada.",
+              "max_attempts": "Tras este número de reintentos, la zona pasa a fallo y deja de regar hasta que se confirme."
+            }
+          },
+          "weather_rules": {
+            "name": "Regla meteorológica",
+            "description": "Coeficiente = 1 − (lluvia caída ponderada + lluvia prevista) ÷ umbral, después el bono de calor y luego los límites. La lluvia de las últimas 24 h cuenta entera, la anterior la mitad. Para una zona que no recibe lluvia, solo cuenta el bono de calor.",
+            "data": {
+              "skip_mm": "Omitir el ciclo si la lluvia prevista alcanza",
+              "past_window_h": "Lluvia caída tenida en cuenta (horas)",
+              "forecast_window_h": "Lluvia prevista tenida en cuenta (horas)",
+              "heat_threshold_c": "Día caluroso a partir de",
+              "heat_bonus_pct": "Regar más los días calurosos",
+              "min_pct": "Coeficiente mínimo",
+              "max_pct": "Coeficiente máximo"
+            },
+            "data_description": {
+              "skip_mm": "A partir de esta previsión el ciclo se omite. Es también la cantidad de lluvia que sustituye a un riego completo.",
+              "heat_bonus_pct": "En los días calurosos la duración se alarga este porcentaje. 0 = duración normal, sin alargar.",
+              "min_pct": "Por encima de 0, la zona siempre se riega un poco, salvo si se espera suficiente lluvia.",
+              "heat_threshold_c": "Temperatura máxima prevista durante el día."
+            }
+          }
+        }
+      },
+      "remove_zone": {
+        "title": "Eliminar una zona",
+        "description": "Se eliminarán la zona, sus ciclos y sus entidades.",
+        "data": {
+          "zone": "Zona"
+        }
+      },
+      "add_cycle": {
+        "title": "Nuevo ciclo — {zone}",
+        "data": {
+          "cycle_enabled": "Ciclo activo",
+          "start_time": "Hora de inicio",
+          "duration_min": "Duración",
+          "weekdays": "Días"
+        }
+      },
+      "pick_cycle": {
+        "title": "Editar un ciclo — {zone}",
+        "data": {
+          "cycle": "Ciclo"
+        }
+      },
+      "edit_cycle": {
+        "title": "Editar el ciclo — {zone}",
+        "data": {
+          "cycle_enabled": "Ciclo activo",
+          "start_time": "Hora de inicio",
+          "duration_min": "Duración",
+          "weekdays": "Días"
+        }
+      },
+      "remove_cycle": {
+        "title": "Eliminar un ciclo — {zone}",
+        "description": "El ciclo se eliminará.",
+        "data": {
+          "cycle": "Ciclo"
+        }
+      }
+    },
+    "error": {
+      "name_required": "Introduzca un nombre.",
+      "no_weekday": "Seleccione al menos un día.",
+      "duration_exceeds_max": "La duración no puede superar el corte de seguridad."
+    }
+  },
+  "selector": {
+    "weekday": {
+      "options": {
+        "0": "Lunes",
+        "1": "Martes",
+        "2": "Miércoles",
+        "3": "Jueves",
+        "4": "Viernes",
+        "5": "Sábado",
+        "6": "Domingo"
+      }
+    },
+    "sequence_mode": {
+      "options": {
+        "sequential": "Una zona a la vez",
+        "parallel": "Zonas en paralelo"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "watering": {
+        "name": "Regando"
+      },
+      "fault": {
+        "name": "Fallo de cierre"
+      }
+    },
+    "sensor": {
+      "next_run": {
+        "name": "Próximo riego"
+      },
+      "remaining": {
+        "name": "Tiempo restante"
+      },
+      "queue": {
+        "name": "Cola de espera"
+      },
+      "weather_coefficient": {
+        "name": "Coeficiente meteorológico"
+      }
+    },
+    "switch": {
+      "zone_enabled": {
+        "name": "Zona activa"
+      },
+      "pause": {
+        "name": "Riego en pausa"
+      }
+    }
+  },
+  "services": {
+    "run_zone": {
+      "name": "Regar una zona",
+      "description": "Abre ahora la válvula de una zona.",
+      "fields": {
+        "zone": {
+          "name": "Zona",
+          "description": "La zona a regar."
+        },
+        "duration": {
+          "name": "Duración",
+          "description": "Minutos. Si está vacío, se usa la duración base de la zona."
+        }
+      }
+    },
+    "stop_zone": {
+      "name": "Detener una zona",
+      "description": "Cierra la válvula de una zona.",
+      "fields": {
+        "zone": {
+          "name": "Zona",
+          "description": "La zona a detener."
+        }
+      }
+    },
+    "stop_all": {
+      "name": "Detener todas las zonas",
+      "description": "Cierra todas las válvulas gestionadas por hydraXoo."
+    },
+    "pause": {
+      "name": "Pausar el riego",
+      "description": "Durante la pausa no se inicia ningún ciclo. El riego manual sigue funcionando y un riego en curso no se detiene.",
+      "fields": {
+        "days": {
+          "name": "Días",
+          "description": "Número de días. Si está vacío, hasta reanudar."
+        }
+      }
+    },
+    "resume": {
+      "name": "Reanudar el riego",
+      "description": "Termina la pausa."
+    },
+    "acknowledge_fault": {
+      "name": "Confirmar un fallo de cierre",
+      "description": "Permite que una zona en fallo vuelva a regar. Compruebe primero la válvula.",
+      "fields": {
+        "zone": {
+          "name": "Zona",
+          "description": "La zona en fallo."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "hydraXoo no está cargado."
+    },
+    "zone_not_found": {
+      "message": "Este dispositivo no es una zona de hydraXoo."
+    },
+    "zone_in_fault": {
+      "message": "La zona {zone} tiene un fallo de cierre. Compruebe la válvula y luego confirme el fallo."
+    },
+    "safety_failed_title": {
+      "message": "hydraXoo: válvula {zone} no cerrada"
+    },
+    "safety_failed": {
+      "message": "La válvula de la zona {zone} sigue consumiendo {power} W tras {attempts} reintentos. El riego de esta zona está bloqueado. Compruebe la válvula y su enchufe y luego confirme el fallo (servicio hydraxoo.acknowledge_fault)."
+    }
+  }
+}

@@ -26,3 +26,28 @@ describe("card translations", () => {
     });
   }
 });
+
+function leaves(value: unknown, prefix = ""): Record<string, string> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return Object.assign(
+      {},
+      ...Object.entries(value).map(([k, v]) => leaves(v, prefix ? `${prefix}.${k}` : k)),
+    );
+  }
+  return typeof value === "string" ? { [prefix]: value } : {};
+}
+
+const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join();
+const english = leaves(load("en.json"));
+
+describe("card placeholders", () => {
+  for (const file of readdirSync(DIR).filter((f) => f !== "en.json")) {
+    it(`${file} keeps {zone}, {n}… as in English`, () => {
+      const found = leaves(load(file));
+      const wrong = Object.keys(english).filter(
+        (k) => found[k] !== undefined && placeholders(found[k]) !== placeholders(english[k]),
+      );
+      expect(wrong).toEqual([]);
+    });
+  }
+});

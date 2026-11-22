@@ -210,6 +210,21 @@ describe("dashboard", () => {
     expect(text(card)).toContain("Jardin");
   });
 
+  it.each([
+    ["de", "Jetzt bewässern", "Bewässerung"],
+    ["es", "Regar ahora", "Riego"],
+    ["it", "Irriga ora", "Irrigazione"],
+  ])("speaks %s", async (lang, waterNow, title) => {
+    const card = await mount(makeHass(makeState(), { lang }));
+    expect(text(card)).toContain(waterNow);
+    expect(text(card)).toContain(title);
+  });
+
+  it("falls back to English for other languages", async () => {
+    const card = await mount(makeHass(makeState(), { lang: "nl" }));
+    expect(text(card)).toContain("Water now");
+  });
+
   it("speaks English when the profile is in English", async () => {
     const card = await mount(makeHass(makeState(), { lang: "en" }));
     expect(text(card)).toContain("Water now");

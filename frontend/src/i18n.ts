@@ -1,11 +1,14 @@
 // Card translations. Language from the Home Assistant profile, English fallback.
+import de from "./locales/de.json";
 import en from "./locales/en.json";
+import es from "./locales/es.json";
 import fr from "./locales/fr.json";
+import it from "./locales/it.json";
 import type { Hass } from "./types";
 
 type Dict = { [key: string]: string | string[] | Dict };
 
-export const LOCALES: Record<string, Dict> = { en, fr };
+export const LOCALES: Record<string, Dict> = { de, en, es, fr, it };
 
 function lookup(dict: Dict, key: string): string | undefined {
   let node: string | string[] | Dict | undefined = dict;
