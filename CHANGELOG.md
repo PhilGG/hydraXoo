@@ -2,6 +2,12 @@
 
 All notable changes to hydraXoo. Versions follow [Semantic Versioning](https://semver.org/).
 
+## 0.1.3
+
+- A valve switched on outside hydraXoo is now closed at once by default, checked, shown on the card and sent to the chosen phones (at most once per zone every 10 minutes; new event `hydraxoo_unexpected_open`). New setting to leave such openings until the safety cut-off instead, with a countdown on the card.
+- Default safety cut-off for new zones: 5 minutes (was 30); default cycle duration: 5 minutes. Existing zones keep their settings.
+- A cycle longer than the safety cut-off is no longer refused: the card warns that it will be stopped at the cut-off and offers to raise the cut-off; the dashboard and "Next watering" show the real duration (⚠).
+
 ## 0.1.2
 
 - Card: new **General settings** screen (⚙ button): weather entity and rain gauge, watering order, pause for 1, 3 or 7 days, phones to alert with a **Send a test notification** button. Settings apply at once, without reloading or interrupting a watering.

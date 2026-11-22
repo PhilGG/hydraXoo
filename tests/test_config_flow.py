@@ -108,10 +108,7 @@ async def test_add_zone_errors(hass: HomeAssistant, valve: MockValve) -> None:
         ZONE_FORM | {"weekdays": [], "duration_min": 45},
     )
     assert result["type"] is FlowResultType.FORM
-    assert result["errors"] == {
-        "weekdays": "no_weekday",
-        "duration_min": "duration_exceeds_max",
-    }
+    assert result["errors"] == {"weekdays": "no_weekday"}
 
 
 ZONE_ONLY = {
@@ -280,17 +277,19 @@ async def test_zone_power_sensor_and_safety_settings(
     }
 
 
-async def test_cycle_longer_than_cutoff_refused(
+async def test_cycle_longer_than_cutoff_allowed(
     hass: HomeAssistant, hass_storage: dict[str, Any], valve: MockValve
 ) -> None:
-    """A cycle cannot last longer than the zone's safety cut-off."""
+    """A cycle longer than the cut-off is saved (it will stop at the cut-off)."""
     store_zones(hass_storage, [zone_data()])
     entry = await setup_entry(hass)
     result = await _zone_menu(hass, entry.entry_id, "add_cycle")
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], CYCLE_FORM | {"duration_min": 31}
     )
-    assert result["errors"] == {"duration_min": "duration_exceeds_max"}
+    assert result["step_id"] == "zone_menu"
+    cycles = hass_storage["hydraxoo.zones"]["data"]["zones"][0]["cycles"]
+    assert cycles[-1]["duration_min"] == 31
 
 
 async def test_remove_zone(
@@ -334,6 +333,7 @@ async def test_settings(hass: HomeAssistant) -> None:
         "weather_entity": "weather.home",
         "sequence_mode": "parallel",
         "notify_services": [],
+        "external_open": "close",
     }
     assert entry.runtime_data.sequential is False
 
@@ -365,3 +365,16 @@ async def test_settings_offer_phones(hass: HomeAssistant) -> None:
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
     assert entry.runtime_data.notify_services == ["mobile_app_iphone_de_phil"]
+
+
+async def test_new_zone_defaults(hass: HomeAssistant, valve: MockValve) -> None:
+    """A new zone: 5 min safety cut-off and a 5 min cycle by default."""
+    entry = await setup_entry(hass)
+    result = await _open_menu(hass, entry.entry_id, "add_zone")
+    defaults = {
+        str(key): key.default()
+        for key in result["data_schema"].schema
+        if callable(getattr(key, "default", None))
+    }
+    assert defaults["max_runtime_min"] == 5
+    assert defaults["duration_min"] == 5

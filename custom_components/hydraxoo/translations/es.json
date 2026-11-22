@@ -8,13 +8,15 @@
           "weather_entity": "Entidad meteorológica",
           "rain_sensor": "Sensor de lluvia (opcional)",
           "sequence_mode": "Orden de riego",
-          "notify_services": "Notificaciones móviles"
+          "notify_services": "Notificaciones móviles",
+          "external_open": "Cuando una válvula se enciende fuera de hydraXoo"
         },
         "data_description": {
           "weather_entity": "Opcional. Sirve para adaptar el riego a la lluvia y al calor; las previsiones horarias dan los mejores resultados.",
           "rain_sensor": "Pluviómetro acumulativo en mm. Sin él, la lluvia caída se estima a partir de la previsión horaria.",
           "sequence_mode": "Con una zona a la vez, un riego que toca mientras otra zona riega espera su turno.",
-          "notify_services": "Teléfonos (app Home Assistant) avisados con prioridad alta si una válvula sigue abierta pese a los reintentos. El aviso se retira al confirmarlo."
+          "notify_services": "Teléfonos (app Home Assistant) avisados con prioridad alta si una válvula sigue abierta pese a los reintentos. El aviso se retira al confirmarlo.",
+          "external_open": "Las válvulas solo deberían abrirse desde hydraXoo: por defecto, esa apertura se cierra al instante y se avisa."
         }
       }
     },
@@ -39,13 +41,15 @@
           "weather_entity": "Entidad meteorológica",
           "sequence_mode": "Orden de riego",
           "rain_sensor": "Sensor de lluvia (opcional)",
-          "notify_services": "Notificaciones móviles"
+          "notify_services": "Notificaciones móviles",
+          "external_open": "Cuando una válvula se enciende fuera de hydraXoo"
         },
         "data_description": {
           "sequence_mode": "Con una zona a la vez, un riego que toca mientras otra zona riega espera su turno.",
           "rain_sensor": "Pluviómetro acumulativo en mm. Sin él, la lluvia caída se estima a partir de la previsión horaria.",
           "weather_entity": "Opcional. Sirve para adaptar el riego a la lluvia y al calor; las previsiones horarias dan los mejores resultados.",
-          "notify_services": "Teléfonos (app Home Assistant) avisados con prioridad alta si una válvula sigue abierta pese a los reintentos. El aviso se retira al confirmarlo."
+          "notify_services": "Teléfonos (app Home Assistant) avisados con prioridad alta si una válvula sigue abierta pese a los reintentos. El aviso se retira al confirmarlo.",
+          "external_open": "Las válvulas solo deberían abrirse desde hydraXoo: por defecto, esa apertura se cierra al instante y se avisa."
         }
       },
       "add_zone": {
@@ -66,7 +70,8 @@
           "switch_entity": "El enchufe o relé que abre la electroválvula.",
           "max_runtime_min": "La válvula siempre se cierra tras este tiempo, pase lo que pase.",
           "power_entity": "Consumo del enchufe, en W. Si se indica, hydraXoo comprueba tras cada cierre que la válvula se ha cerrado de verdad.",
-          "receives_rain": "Desactívelo para una zona protegida de la lluvia (invernadero, zona cubierta): se ignora la lluvia, el bono de calor sigue aplicándose."
+          "receives_rain": "Desactívelo para una zona protegida de la lluvia (invernadero, zona cubierta): se ignora la lluvia, el bono de calor sigue aplicándose.",
+          "duration_min": "Si supera el corte de seguridad, el riego se detiene en el corte."
         },
         "sections": {
           "safety": {
@@ -187,6 +192,9 @@
           "start_time": "Hora de inicio",
           "duration_min": "Duración",
           "weekdays": "Días"
+        },
+        "data_description": {
+          "duration_min": "Si supera el corte de seguridad, el riego se detiene en el corte."
         }
       },
       "pick_cycle": {
@@ -202,6 +210,9 @@
           "start_time": "Hora de inicio",
           "duration_min": "Duración",
           "weekdays": "Días"
+        },
+        "data_description": {
+          "duration_min": "Si supera el corte de seguridad, el riego se detiene en el corte."
         }
       },
       "remove_cycle": {
@@ -234,6 +245,12 @@
       "options": {
         "sequential": "Una zona a la vez",
         "parallel": "Zonas en paralelo"
+      }
+    },
+    "external_open": {
+      "options": {
+        "close": "Cerrarla al instante (fallo)",
+        "allow": "Dejarla hasta el corte de seguridad"
       }
     }
   },
@@ -344,6 +361,12 @@
     },
     "test_notification": {
       "message": "Los avisos de válvula llegarán como este."
+    },
+    "unexpected_open_title": {
+      "message": "hydraXoo: apertura no ordenada de la válvula {zone}"
+    },
+    "unexpected_open": {
+      "message": "Zona {zone}: la válvula se encendió fuera de hydraXoo y se ha cerrado. Compruebe qué encendió el enchufe."
     }
   }
 }

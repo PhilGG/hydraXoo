@@ -66,7 +66,9 @@ class NextRunSensor(HydraxooZoneEntity, SensorEntity):
         result = self.engine.weather_result(self.zone.id)
         return {
             "duration_min": nxt[1].duration_min,
-            "adjusted_duration_min": result.adjust(nxt[1].duration_min),
+            "adjusted_duration_min": min(
+                result.adjust(nxt[1].duration_min), self.zone.max_runtime_min
+            ),
             "coefficient_pct": result.percent,
             "cycle_id": nxt[1].id,
         }

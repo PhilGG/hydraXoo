@@ -83,7 +83,9 @@
       "zone_disabled": "Sauté · zone inactive",
       "fault": "Sauté · défaut",
       "stopped": "Sauté · arrêté"
-    }
+    },
+    "external": "Ouverte hors hydraXoo · fermeture dans {left}",
+    "capped": "Limité à {cutoff} min par la coupure de sécurité"
   },
   "new_zone": "Nouvelle zone",
   "editor": {
@@ -172,7 +174,9 @@
     "no_rain_desc": "Serre, terrasse couverte : la pluie est ignorée",
     "weather_title": "Météo",
     "rain_hint": "Durée ajustée selon la pluie tombée et prévue",
-    "no_rain_detail": "Pluie ignorée : seule la chaleur peut changer la durée"
+    "no_rain_detail": "Pluie ignorée : seule la chaleur peut changer la durée",
+    "cutoff_warning": "Ce cycle sera arrêté au bout de {cutoff} min par la coupure de sécurité. Pour qu'il dure {min} min, augmentez la coupure de sécurité.",
+    "raise_cutoff": "Passer la coupure à {min} min"
   },
   "days": {
     "short": [
@@ -222,6 +226,15 @@
     "test": "Envoyer une notification de test",
     "test_sent": "Notification de test envoyée.",
     "test_failed": "Envoi impossible vers : {names}",
-    "advanced": "Réglages avancés de l'intégration"
+    "advanced": "Réglages avancés de l'intégration",
+    "external": "Vanne allumée hors hydraXoo",
+    "external_close": "La refermer immédiatement",
+    "external_close_desc": "Traité comme un défaut et signalé",
+    "external_allow": "La laisser ouverte",
+    "external_allow_desc": "Refermée par la coupure de sécurité"
+  },
+  "unexpected": {
+    "title": "{zone} : ouverture non commandée à {time}",
+    "detail": "La vanne a été allumée en dehors de hydraXoo et a été refermée."
   }
 }

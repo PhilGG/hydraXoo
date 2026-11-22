@@ -8,13 +8,15 @@
           "weather_entity": "Entità meteo",
           "rain_sensor": "Sensore di pioggia (facoltativo)",
           "sequence_mode": "Ordine di irrigazione",
-          "notify_services": "Notifiche sul cellulare"
+          "notify_services": "Notifiche sul cellulare",
+          "external_open": "Quando una valvola viene accesa fuori da hydraXoo"
         },
         "data_description": {
           "weather_entity": "Facoltativa. Serve ad adattare l'irrigazione a pioggia e caldo; le previsioni orarie danno i risultati migliori.",
           "rain_sensor": "Pluviometro cumulativo in mm. Senza di esso, la pioggia caduta viene stimata dalla previsione oraria.",
           "sequence_mode": "Con una zona alla volta, un'irrigazione che arriva mentre un'altra zona irriga aspetta il suo turno.",
-          "notify_services": "Telefoni (app Home Assistant) avvisati con priorità alta se una valvola resta aperta nonostante i tentativi. L'avviso sparisce dopo la conferma."
+          "notify_services": "Telefoni (app Home Assistant) avvisati con priorità alta se una valvola resta aperta nonostante i tentativi. L'avviso sparisce dopo la conferma.",
+          "external_open": "Le valvole dovrebbero essere aperte solo da hydraXoo: per impostazione predefinita un'apertura del genere viene chiusa subito e segnalata."
         }
       }
     },
@@ -39,13 +41,15 @@
           "weather_entity": "Entità meteo",
           "sequence_mode": "Ordine di irrigazione",
           "rain_sensor": "Sensore di pioggia (facoltativo)",
-          "notify_services": "Notifiche sul cellulare"
+          "notify_services": "Notifiche sul cellulare",
+          "external_open": "Quando una valvola viene accesa fuori da hydraXoo"
         },
         "data_description": {
           "sequence_mode": "Con una zona alla volta, un'irrigazione che arriva mentre un'altra zona irriga aspetta il suo turno.",
           "rain_sensor": "Pluviometro cumulativo in mm. Senza di esso, la pioggia caduta viene stimata dalla previsione oraria.",
           "weather_entity": "Facoltativa. Serve ad adattare l'irrigazione a pioggia e caldo; le previsioni orarie danno i risultati migliori.",
-          "notify_services": "Telefoni (app Home Assistant) avvisati con priorità alta se una valvola resta aperta nonostante i tentativi. L'avviso sparisce dopo la conferma."
+          "notify_services": "Telefoni (app Home Assistant) avvisati con priorità alta se una valvola resta aperta nonostante i tentativi. L'avviso sparisce dopo la conferma.",
+          "external_open": "Le valvole dovrebbero essere aperte solo da hydraXoo: per impostazione predefinita un'apertura del genere viene chiusa subito e segnalata."
         }
       },
       "add_zone": {
@@ -66,7 +70,8 @@
           "switch_entity": "La presa o il relè che apre l'elettrovalvola.",
           "max_runtime_min": "La valvola viene sempre chiusa dopo questo tempo, qualunque cosa accada.",
           "power_entity": "Consumo della presa, in W. Se impostato, hydraXoo controlla dopo ogni chiusura che la valvola sia davvero chiusa.",
-          "receives_rain": "Disattivare per una zona al riparo dalla pioggia (serra, zona coperta): la pioggia viene ignorata, il bonus caldo resta valido."
+          "receives_rain": "Disattivare per una zona al riparo dalla pioggia (serra, zona coperta): la pioggia viene ignorata, il bonus caldo resta valido.",
+          "duration_min": "Se supera lo spegnimento di sicurezza, l'irrigazione si ferma allo spegnimento."
         },
         "sections": {
           "safety": {
@@ -187,6 +192,9 @@
           "start_time": "Ora di inizio",
           "duration_min": "Durata",
           "weekdays": "Giorni"
+        },
+        "data_description": {
+          "duration_min": "Se supera lo spegnimento di sicurezza, l'irrigazione si ferma allo spegnimento."
         }
       },
       "pick_cycle": {
@@ -202,6 +210,9 @@
           "start_time": "Ora di inizio",
           "duration_min": "Durata",
           "weekdays": "Giorni"
+        },
+        "data_description": {
+          "duration_min": "Se supera lo spegnimento di sicurezza, l'irrigazione si ferma allo spegnimento."
         }
       },
       "remove_cycle": {
@@ -234,6 +245,12 @@
       "options": {
         "sequential": "Una zona alla volta",
         "parallel": "Zone in parallelo"
+      }
+    },
+    "external_open": {
+      "options": {
+        "close": "Chiuderla subito (guasto)",
+        "allow": "Lasciarla fino allo spegnimento di sicurezza"
       }
     }
   },
@@ -344,6 +361,12 @@
     },
     "test_notification": {
       "message": "Gli avvisi delle valvole arriveranno come questo."
+    },
+    "unexpected_open_title": {
+      "message": "hydraXoo: apertura non comandata della valvola {zone}"
+    },
+    "unexpected_open": {
+      "message": "Zona {zone}: la valvola è stata accesa fuori da hydraXoo ed è stata chiusa. Verificare cosa ha acceso la presa."
     }
   }
 }

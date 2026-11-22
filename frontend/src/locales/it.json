@@ -83,7 +83,9 @@
       "zone_disabled": "Saltato · zona disattivata",
       "fault": "Saltato · guasto",
       "stopped": "Saltato · fermato"
-    }
+    },
+    "external": "Aperta fuori da hydraXoo · si chiude tra {left}",
+    "capped": "Limitato a {cutoff} min dallo spegnimento di sicurezza"
   },
   "new_zone": "Nuova zona",
   "editor": {
@@ -172,7 +174,9 @@
     "no_rain_desc": "Serra, zona coperta: la pioggia viene ignorata",
     "weather_title": "Meteo",
     "rain_hint": "Durata adattata alla pioggia caduta e prevista",
-    "no_rain_detail": "Pioggia ignorata: solo il caldo può cambiare la durata"
+    "no_rain_detail": "Pioggia ignorata: solo il caldo può cambiare la durata",
+    "cutoff_warning": "Questo ciclo verrà fermato dopo {cutoff} min dallo spegnimento di sicurezza. Perché duri {min} min, aumentare lo spegnimento di sicurezza.",
+    "raise_cutoff": "Porta lo spegnimento a {min} min"
   },
   "days": {
     "short": [
@@ -222,6 +226,15 @@
     "test": "Invia una notifica di prova",
     "test_sent": "Notifica di prova inviata.",
     "test_failed": "Invio impossibile a: {names}",
-    "advanced": "Impostazioni avanzate dell'integrazione"
+    "advanced": "Impostazioni avanzate dell'integrazione",
+    "external": "Valvola accesa fuori da hydraXoo",
+    "external_close": "Chiuderla subito",
+    "external_close_desc": "Trattato come guasto e segnalato",
+    "external_allow": "Lasciarla aperta",
+    "external_allow_desc": "Chiusa dallo spegnimento di sicurezza"
+  },
+  "unexpected": {
+    "title": "{zone}: apertura non comandata alle {time}",
+    "detail": "La valvola è stata accesa fuori da hydraXoo ed è stata chiusa."
   }
 }

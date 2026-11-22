@@ -11,6 +11,7 @@ interface Draft {
   rain_sensor: string | null;
   sequential: boolean;
   notify_services: string[];
+  external_open: "close" | "allow";
 }
 
 export class HydraxooSettingsForm extends LitElement {
@@ -40,6 +41,7 @@ export class HydraxooSettingsForm extends LitElement {
         rain_sensor: s.rain_sensor,
         sequential: s.sequential,
         notify_services: [...s.notify_services],
+        external_open: s.external_open ?? "close",
       };
     }
   }
@@ -163,6 +165,27 @@ export class HydraxooSettingsForm extends LitElement {
     </section>`;
   }
 
+  private _safety() {
+    const t = this._t;
+    const d = this._draft!;
+    return html`<section class="tile" aria-labelledby="hx-s-safety">
+      <h2 id="hx-s-safety">${t("settings_screen.external")}</h2>
+      <div class="choice-grid" role="group" aria-labelledby="hx-s-safety">
+        ${(["close", "allow"] as const).map(
+          (mode) => html`<button
+            type="button"
+            class="choice"
+            aria-pressed=${d.external_open === mode ? "true" : "false"}
+            @click=${() => this._set({ external_open: mode })}
+          >
+            <span class="strong">${t(`settings_screen.external_${mode}`)}</span>
+            <span class="tiny">${t(`settings_screen.external_${mode}_desc`)}</span>
+          </button>`,
+        )}
+      </div>
+    </section>`;
+  }
+
   private _alerts() {
     const t = this._t;
     const d = this._draft!;
@@ -253,7 +276,7 @@ export class HydraxooSettingsForm extends LitElement {
           <h1>${t("settings")}</h1>
         </div>
       </div>
-      ${this._weather()} ${this._order()} ${this._pause()} ${this._alerts()}
+      ${this._weather()} ${this._order()} ${this._pause()} ${this._safety()} ${this._alerts()}
       ${this._message ? html`<div class="small" role="status">${this._message}</div>` : nothing}
       ${this._error ? html`<div class="error-text" role="alert">${this._error}</div>` : nothing}
       <button type="button" class="btn primary" ?disabled=${this._saving} @click=${this._save}>

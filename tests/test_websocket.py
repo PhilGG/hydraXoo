@@ -131,12 +131,6 @@ async def test_invalid_zone_refused(
     result = await call("zone/save", zone=NEW_ZONE | {"switch_entity": "light.x"})
     assert result["error"]["code"] == "invalid_format"
 
-    too_long = NEW_ZONE | {
-        "cycles": [{"start_time": "07:15", "duration_min": 25, "weekdays": [1]}]
-    }
-    result = await call("zone/save", zone=too_long)
-    assert result["error"]["code"] == "duration_exceeds_max"
-
     no_day = NEW_ZONE | {
         "cycles": [{"start_time": "07:15", "duration_min": 5, "weekdays": []}]
     }
@@ -276,6 +270,12 @@ async def test_save_settings_live_without_reload(
         "notify_services": ["mobile_app_pixel"],
     }
 
+    # The unexpected-opening choice is saved too
+    result = await call("settings/save", external_open="allow")
+    assert result["success"]
+    assert engine.external_mode == "allow"
+    assert entry.runtime_data is engine
+
     # Clearing the weather entity removes it from the options
     result = await call("settings/save", weather_entity=None)
     assert result["success"]
@@ -335,3 +335,46 @@ async def test_state_lists_phones_by_name(
         {"value": "mobile_app_iphone_de_phil", "label": "iPhone de Phil"}
     ]
     assert settings["notify_services"] == ["mobile_app_iphone_de_phil"]
+
+
+async def test_allowed_external_opening_shown_to_card(
+    hass: HomeAssistant,
+    hass_storage: dict[str, Any],
+    hass_ws_client,
+    valve: MockValve,
+) -> None:
+    """In 'allow' mode the card is told the valve is open and when it closes."""
+    store_zones(hass_storage, [zone_data()])
+    await setup_entry(hass, {"external_open": "allow"})
+    client, call = await _client(hass, hass_ws_client)
+    await call("subscribe")
+    await client.receive_json()
+    await hass.services.async_call(
+        "switch", "turn_on", {"entity_id": "switch.valve"}, blocking=True
+    )
+    while True:
+        zone = (await client.receive_json())["event"]["zones"][0]
+        if zone["external_open"]:
+            break
+    assert zone["running"] is False
+    assert zone["external_open"]["ends"] > zone["external_open"]["since"]
+
+
+async def test_cycle_longer_than_cutoff_saved_and_capped(
+    hass: HomeAssistant,
+    hass_storage: dict[str, Any],
+    hass_ws_client,
+    valve: MockValve,
+) -> None:
+    """Allowed, but the next watering announces what will really run."""
+    store_zones(hass_storage, [zone_data(max_runtime_min=5)])
+    await setup_entry(hass)
+    client, call = await _client(hass, hass_ws_client)
+    zone = zone_data(max_runtime_min=5)
+    zone["cycles"][0]["duration_min"] = 15
+    result = await call("zone/save", zone=zone)
+    assert result["success"], result
+    await call("subscribe")
+    state = (await client.receive_json())["event"]
+    assert state["zones"][0]["next_run"]["duration_min"] == 15
+    assert state["zones"][0]["next_run"]["adjusted_duration_min"] == 5

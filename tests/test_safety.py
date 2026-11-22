@@ -359,8 +359,8 @@ async def test_unexpected_consumption_while_idle(
 async def test_no_check_when_switched_on_on_purpose(
     hass: HomeAssistant, hass_storage: dict[str, Any], clock: Clock
 ) -> None:
-    """Valve switched on by hand: consumption is expected, nothing is fought."""
-    valve = await _setup(hass, hass_storage)
+    """'Allow' mode: a valve switched on by hand is left alone (cut-off later)."""
+    valve = await _setup(hass, hass_storage, options={"external_open": "allow"})
     await hass.services.async_call(
         "switch", "turn_on", {"entity_id": VALVE}, blocking=True
     )

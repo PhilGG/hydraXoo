@@ -29,11 +29,11 @@ var e = globalThis, t = e.ShadowRoot && (e.ShadyCSS === void 0 || e.ShadyCSS.nat
 	let t = "";
 	for (let n of e.cssRules) t += n.cssText;
 	return a(t);
-})(e) : e, { is: l, defineProperty: u, getOwnPropertyDescriptor: d, getOwnPropertyNames: ee, getOwnPropertySymbols: te, getPrototypeOf: ne } = Object, f = globalThis, re = f.trustedTypes, ie = re ? re.emptyScript : "", ae = f.reactiveElementPolyfillSupport, p = (e, t) => e, m = {
+})(e) : e, { is: l, defineProperty: u, getOwnPropertyDescriptor: d, getOwnPropertyNames: ee, getOwnPropertySymbols: te, getPrototypeOf: ne } = Object, f = globalThis, p = f.trustedTypes, re = p ? p.emptyScript : "", ie = f.reactiveElementPolyfillSupport, m = (e, t) => e, h = {
 	toAttribute(e, t) {
 		switch (t) {
 			case Boolean:
-				e = e ? ie : null;
+				e = e ? re : null;
 				break;
 			case Object:
 			case Array: e = e == null ? e : JSON.stringify(e);
@@ -58,13 +58,13 @@ var e = globalThis, t = e.ShadowRoot && (e.ShadyCSS === void 0 || e.ShadyCSS.nat
 		}
 		return n;
 	}
-}, h = (e, t) => !l(e, t), g = {
+}, g = (e, t) => !l(e, t), ae = {
 	attribute: !0,
 	type: String,
-	converter: m,
+	converter: h,
 	reflect: !1,
 	useDefault: !1,
-	hasChanged: h
+	hasChanged: g
 };
 Symbol.metadata ??= Symbol("metadata"), f.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
 var _ = class extends HTMLElement {
@@ -74,7 +74,7 @@ var _ = class extends HTMLElement {
 	static get observedAttributes() {
 		return this.finalize(), this._$Eh && [...this._$Eh.keys()];
 	}
-	static createProperty(e, t = g) {
+	static createProperty(e, t = ae) {
 		if (t.state && (t.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((t = Object.create(t)).wrapped = !0), this.elementProperties.set(e, t), !t.noAccessor) {
 			let n = Symbol(), r = this.getPropertyDescriptor(e, n, t);
 			r !== void 0 && u(this.prototype, e, r);
@@ -100,16 +100,16 @@ var _ = class extends HTMLElement {
 		};
 	}
 	static getPropertyOptions(e) {
-		return this.elementProperties.get(e) ?? g;
+		return this.elementProperties.get(e) ?? ae;
 	}
 	static _$Ei() {
-		if (this.hasOwnProperty(p("elementProperties"))) return;
+		if (this.hasOwnProperty(m("elementProperties"))) return;
 		let e = ne(this);
 		e.finalize(), e.l !== void 0 && (this.l = [...e.l]), this.elementProperties = new Map(e.elementProperties);
 	}
 	static finalize() {
-		if (this.hasOwnProperty(p("finalized"))) return;
-		if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(p("properties"))) {
+		if (this.hasOwnProperty(m("finalized"))) return;
+		if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(m("properties"))) {
 			let e = this.properties, t = [...ee(e), ...te(e)];
 			for (let n of t) this.createProperty(n, e[n]);
 		}
@@ -171,14 +171,14 @@ var _ = class extends HTMLElement {
 	_$ET(e, t) {
 		let n = this.constructor.elementProperties.get(e), r = this.constructor._$Eu(e, n);
 		if (r !== void 0 && !0 === n.reflect) {
-			let i = (n.converter?.toAttribute === void 0 ? m : n.converter).toAttribute(t, n.type);
+			let i = (n.converter?.toAttribute === void 0 ? h : n.converter).toAttribute(t, n.type);
 			this._$Em = e, i == null ? this.removeAttribute(r) : this.setAttribute(r, i), this._$Em = null;
 		}
 	}
 	_$AK(e, t) {
 		let n = this.constructor, r = n._$Eh.get(e);
 		if (r !== void 0 && this._$Em !== r) {
-			let e = n.getPropertyOptions(r), i = typeof e.converter == "function" ? { fromAttribute: e.converter } : e.converter?.fromAttribute === void 0 ? m : e.converter;
+			let e = n.getPropertyOptions(r), i = typeof e.converter == "function" ? { fromAttribute: e.converter } : e.converter?.fromAttribute === void 0 ? h : e.converter;
 			this._$Em = r;
 			let a = i.fromAttribute(t, e.type);
 			this[r] = a ?? this._$Ej?.get(r) ?? a, this._$Em = null;
@@ -187,7 +187,7 @@ var _ = class extends HTMLElement {
 	requestUpdate(e, t, n, r = !1, i) {
 		if (e !== void 0) {
 			let a = this.constructor;
-			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? h)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
+			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? g)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
 			this.C(e, t, n);
 		}
 		!1 === this.isUpdatePending && (this._$ES = this._$EP());
@@ -251,39 +251,39 @@ var _ = class extends HTMLElement {
 	updated(e) {}
 	firstUpdated(e) {}
 };
-_.elementStyles = [], _.shadowRootOptions = { mode: "open" }, _[p("elementProperties")] = /* @__PURE__ */ new Map(), _[p("finalized")] = /* @__PURE__ */ new Map(), ae?.({ ReactiveElement: _ }), (f.reactiveElementVersions ??= []).push("2.1.2");
+_.elementStyles = [], _.shadowRootOptions = { mode: "open" }, _[m("elementProperties")] = /* @__PURE__ */ new Map(), _[m("finalized")] = /* @__PURE__ */ new Map(), ie?.({ ReactiveElement: _ }), (f.reactiveElementVersions ??= []).push("2.1.2");
 // node_modules/lit-html/lit-html.js
-var v = globalThis, y = (e) => e, b = v.trustedTypes, oe = b ? b.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, se = "$lit$", x = `lit$${Math.random().toFixed(9).slice(2)}$`, ce = "?" + x, le = `<${ce}>`, S = document, C = () => S.createComment(""), w = (e) => e === null || typeof e != "object" && typeof e != "function", T = Array.isArray, ue = (e) => T(e) || typeof e?.[Symbol.iterator] == "function", E = "[ 	\n\f\r]", D = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, O = /-->/g, k = />/g, A = RegExp(`>|${E}(?:([^\\s"'>=/]+)(${E}*=${E}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), j = /'/g, M = /"/g, N = /^(?:script|style|textarea|title)$/i, P = ((e) => (t, ...n) => ({
+var v = globalThis, y = (e) => e, b = v.trustedTypes, x = b ? b.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, S = "$lit$", C = `lit$${Math.random().toFixed(9).slice(2)}$`, oe = "?" + C, se = `<${oe}>`, w = document, T = () => w.createComment(""), E = (e) => e === null || typeof e != "object" && typeof e != "function", D = Array.isArray, ce = (e) => D(e) || typeof e?.[Symbol.iterator] == "function", O = "[ 	\n\f\r]", k = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, A = /-->/g, j = />/g, M = RegExp(`>|${O}(?:([^\\s"'>=/]+)(${O}*=${O}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), le = /'/g, ue = /"/g, de = /^(?:script|style|textarea|title)$/i, N = ((e) => (t, ...n) => ({
 	_$litType$: e,
 	strings: t,
 	values: n
-}))(1), F = Symbol.for("lit-noChange"), I = Symbol.for("lit-nothing"), L = /* @__PURE__ */ new WeakMap(), R = S.createTreeWalker(S, 129);
-function de(e, t) {
-	if (!T(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
-	return oe === void 0 ? t : oe.createHTML(t);
+}))(1), P = Symbol.for("lit-noChange"), F = Symbol.for("lit-nothing"), I = /* @__PURE__ */ new WeakMap(), L = w.createTreeWalker(w, 129);
+function R(e, t) {
+	if (!D(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
+	return x === void 0 ? t : x.createHTML(t);
 }
 var fe = (e, t) => {
-	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = D;
+	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = k;
 	for (let t = 0; t < n; t++) {
 		let n = e[t], s, c, l = -1, u = 0;
-		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === D ? c[1] === "!--" ? o = O : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = A) : (N.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = A) : o = k : o === A ? c[0] === ">" ? (o = i ?? D, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? A : c[3] === "\"" ? M : j) : o === M || o === j ? o = A : o === O || o === k ? o = D : (o = A, i = void 0);
-		let d = o === A && e[t + 1].startsWith("/>") ? " " : "";
-		a += o === D ? n + le : l >= 0 ? (r.push(s), n.slice(0, l) + se + n.slice(l) + x + d) : n + x + (l === -2 ? t : d);
+		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === k ? c[1] === "!--" ? o = A : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = M) : (de.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = M) : o = j : o === M ? c[0] === ">" ? (o = i ?? k, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? M : c[3] === "\"" ? ue : le) : o === ue || o === le ? o = M : o === A || o === j ? o = k : (o = M, i = void 0);
+		let d = o === M && e[t + 1].startsWith("/>") ? " " : "";
+		a += o === k ? n + se : l >= 0 ? (r.push(s), n.slice(0, l) + S + n.slice(l) + C + d) : n + C + (l === -2 ? t : d);
 	}
-	return [de(e, a + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
+	return [R(e, a + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
 }, z = class e {
 	constructor({ strings: t, _$litType$: n }, r) {
 		let i;
 		this.parts = [];
 		let a = 0, o = 0, s = t.length - 1, c = this.parts, [l, u] = fe(t, n);
-		if (this.el = e.createElement(l, r), R.currentNode = this.el.content, n === 2 || n === 3) {
+		if (this.el = e.createElement(l, r), L.currentNode = this.el.content, n === 2 || n === 3) {
 			let e = this.el.content.firstChild;
 			e.replaceWith(...e.childNodes);
 		}
-		for (; (i = R.nextNode()) !== null && c.length < s;) {
+		for (; (i = L.nextNode()) !== null && c.length < s;) {
 			if (i.nodeType === 1) {
-				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(se)) {
-					let t = u[o++], n = i.getAttribute(e).split(x), r = /([.?@])?(.*)/.exec(t);
+				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(S)) {
+					let t = u[o++], n = i.getAttribute(e).split(C), r = /([.?@])?(.*)/.exec(t);
 					c.push({
 						type: 1,
 						index: a,
@@ -291,45 +291,45 @@ var fe = (e, t) => {
 						strings: n,
 						ctor: r[1] === "." ? me : r[1] === "?" ? he : r[1] === "@" ? ge : H
 					}), i.removeAttribute(e);
-				} else e.startsWith(x) && (c.push({
+				} else e.startsWith(C) && (c.push({
 					type: 6,
 					index: a
 				}), i.removeAttribute(e));
-				if (N.test(i.tagName)) {
-					let e = i.textContent.split(x), t = e.length - 1;
+				if (de.test(i.tagName)) {
+					let e = i.textContent.split(C), t = e.length - 1;
 					if (t > 0) {
 						i.textContent = b ? b.emptyScript : "";
-						for (let n = 0; n < t; n++) i.append(e[n], C()), R.nextNode(), c.push({
+						for (let n = 0; n < t; n++) i.append(e[n], T()), L.nextNode(), c.push({
 							type: 2,
 							index: ++a
 						});
-						i.append(e[t], C());
+						i.append(e[t], T());
 					}
 				}
 			} else if (i.nodeType === 8) {
-				if (i.data === ce) c.push({
+				if (i.data === oe) c.push({
 					type: 2,
 					index: a
 				});
 				else {
 					let e = -1;
-					for (; (e = i.data.indexOf(x, e + 1)) !== -1;) c.push({
+					for (; (e = i.data.indexOf(C, e + 1)) !== -1;) c.push({
 						type: 7,
 						index: a
-					}), e += x.length - 1;
+					}), e += C.length - 1;
 				}
 			}
 			a++;
 		}
 	}
 	static createElement(e, t) {
-		let n = S.createElement("template");
+		let n = w.createElement("template");
 		return n.innerHTML = e, n;
 	}
 };
 function B(e, t, n = e, r) {
-	if (t === F) return t;
-	let i = r === void 0 ? n._$Cl : n._$Co?.[r], a = w(t) ? void 0 : t._$litDirective$;
+	if (t === P) return t;
+	let i = r === void 0 ? n._$Cl : n._$Co?.[r], a = E(t) ? void 0 : t._$litDirective$;
 	return i?.constructor !== a && (i?._$AO?.(!1), a === void 0 ? i = void 0 : (i = new a(e), i._$AT(e, n, r)), r === void 0 ? n._$Cl = i : (n._$Co ??= [])[r] = i), i !== void 0 && (t = B(e, i._$AS(e, t.values), i, r)), t;
 }
 var pe = class {
@@ -343,17 +343,17 @@ var pe = class {
 		return this._$AM._$AU;
 	}
 	u(e) {
-		let { el: { content: t }, parts: n } = this._$AD, r = (e?.creationScope ?? S).importNode(t, !0);
-		R.currentNode = r;
-		let i = R.nextNode(), a = 0, o = 0, s = n[0];
+		let { el: { content: t }, parts: n } = this._$AD, r = (e?.creationScope ?? w).importNode(t, !0);
+		L.currentNode = r;
+		let i = L.nextNode(), a = 0, o = 0, s = n[0];
 		for (; s !== void 0;) {
 			if (a === s.index) {
 				let t;
 				s.type === 2 ? t = new V(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new _e(i, this, e)), this._$AV.push(t), s = n[++o];
 			}
-			a !== s?.index && (i = R.nextNode(), a++);
+			a !== s?.index && (i = L.nextNode(), a++);
 		}
-		return R.currentNode = S, r;
+		return L.currentNode = w, r;
 	}
 	p(e) {
 		let t = 0;
@@ -364,7 +364,7 @@ var pe = class {
 		return this._$AM?._$AU ?? this._$Cv;
 	}
 	constructor(e, t, n, r) {
-		this.type = 2, this._$AH = I, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = n, this.options = r, this._$Cv = r?.isConnected ?? !0;
+		this.type = 2, this._$AH = F, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = n, this.options = r, this._$Cv = r?.isConnected ?? !0;
 	}
 	get parentNode() {
 		let e = this._$AA.parentNode, t = this._$AM;
@@ -377,7 +377,7 @@ var pe = class {
 		return this._$AB;
 	}
 	_$AI(e, t = this) {
-		e = B(this, e, t), w(e) ? e === I || e == null || e === "" ? (this._$AH !== I && this._$AR(), this._$AH = I) : e !== this._$AH && e !== F && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? ue(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
+		e = B(this, e, t), E(e) ? e === F || e == null || e === "" ? (this._$AH !== F && this._$AR(), this._$AH = F) : e !== this._$AH && e !== P && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? ce(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
 	}
 	O(e) {
 		return this._$AA.parentNode.insertBefore(e, this._$AB);
@@ -386,10 +386,10 @@ var pe = class {
 		this._$AH !== e && (this._$AR(), this._$AH = this.O(e));
 	}
 	_(e) {
-		this._$AH !== I && w(this._$AH) ? this._$AA.nextSibling.data = e : this.T(S.createTextNode(e)), this._$AH = e;
+		this._$AH !== F && E(this._$AH) ? this._$AA.nextSibling.data = e : this.T(w.createTextNode(e)), this._$AH = e;
 	}
 	$(e) {
-		let { values: t, _$litType$: n } = e, r = typeof n == "number" ? this._$AC(e) : (n.el === void 0 && (n.el = z.createElement(de(n.h, n.h[0]), this.options)), n);
+		let { values: t, _$litType$: n } = e, r = typeof n == "number" ? this._$AC(e) : (n.el === void 0 && (n.el = z.createElement(R(n.h, n.h[0]), this.options)), n);
 		if (this._$AH?._$AD === r) this._$AH.p(t);
 		else {
 			let e = new pe(r, this), n = e.u(this.options);
@@ -397,13 +397,13 @@ var pe = class {
 		}
 	}
 	_$AC(e) {
-		let t = L.get(e.strings);
-		return t === void 0 && L.set(e.strings, t = new z(e)), t;
+		let t = I.get(e.strings);
+		return t === void 0 && I.set(e.strings, t = new z(e)), t;
 	}
 	k(t) {
-		T(this._$AH) || (this._$AH = [], this._$AR());
+		D(this._$AH) || (this._$AH = [], this._$AR());
 		let n = this._$AH, r, i = 0;
-		for (let a of t) i === n.length ? n.push(r = new e(this.O(C()), this.O(C()), this, this.options)) : r = n[i], r._$AI(a), i++;
+		for (let a of t) i === n.length ? n.push(r = new e(this.O(T()), this.O(T()), this, this.options)) : r = n[i], r._$AI(a), i++;
 		i < n.length && (this._$AR(r && r._$AB.nextSibling, i), n.length = i);
 	}
 	_$AR(e = this._$AA.nextSibling, t) {
@@ -423,41 +423,41 @@ var pe = class {
 		return this._$AM._$AU;
 	}
 	constructor(e, t, n, r, i) {
-		this.type = 1, this._$AH = I, this._$AN = void 0, this.element = e, this.name = t, this._$AM = r, this.options = i, n.length > 2 || n[0] !== "" || n[1] !== "" ? (this._$AH = Array(n.length - 1).fill(/* @__PURE__ */ new String()), this.strings = n) : this._$AH = I;
+		this.type = 1, this._$AH = F, this._$AN = void 0, this.element = e, this.name = t, this._$AM = r, this.options = i, n.length > 2 || n[0] !== "" || n[1] !== "" ? (this._$AH = Array(n.length - 1).fill(/* @__PURE__ */ new String()), this.strings = n) : this._$AH = F;
 	}
 	_$AI(e, t = this, n, r) {
 		let i = this.strings, a = !1;
-		if (i === void 0) e = B(this, e, t, 0), a = !w(e) || e !== this._$AH && e !== F, a && (this._$AH = e);
+		if (i === void 0) e = B(this, e, t, 0), a = !E(e) || e !== this._$AH && e !== P, a && (this._$AH = e);
 		else {
 			let r = e, o, s;
-			for (e = i[0], o = 0; o < i.length - 1; o++) s = B(this, r[n + o], t, o), s === F && (s = this._$AH[o]), a ||= !w(s) || s !== this._$AH[o], s === I ? e = I : e !== I && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
+			for (e = i[0], o = 0; o < i.length - 1; o++) s = B(this, r[n + o], t, o), s === P && (s = this._$AH[o]), a ||= !E(s) || s !== this._$AH[o], s === F ? e = F : e !== F && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
 		}
 		a && !r && this.j(e);
 	}
 	j(e) {
-		e === I ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
+		e === F ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
 	}
 }, me = class extends H {
 	constructor() {
 		super(...arguments), this.type = 3;
 	}
 	j(e) {
-		this.element[this.name] = e === I ? void 0 : e;
+		this.element[this.name] = e === F ? void 0 : e;
 	}
 }, he = class extends H {
 	constructor() {
 		super(...arguments), this.type = 4;
 	}
 	j(e) {
-		this.element.toggleAttribute(this.name, !!e && e !== I);
+		this.element.toggleAttribute(this.name, !!e && e !== F);
 	}
 }, ge = class extends H {
 	constructor(e, t, n, r, i) {
 		super(e, t, n, r, i), this.type = 5;
 	}
 	_$AI(e, t = this) {
-		if ((e = B(this, e, t, 0) ?? I) === F) return;
-		let n = this._$AH, r = e === I && n !== I || e.capture !== n.capture || e.once !== n.once || e.passive !== n.passive, i = e !== I && (n === I || r);
+		if ((e = B(this, e, t, 0) ?? F) === P) return;
+		let n = this._$AH, r = e === F && n !== F || e.capture !== n.capture || e.once !== n.once || e.passive !== n.passive, i = e !== F && (n === F || r);
 		r && this.element.removeEventListener(this.name, this, n), i && this.element.addEventListener(this.name, this, e), this._$AH = e;
 	}
 	handleEvent(e) {
@@ -479,7 +479,7 @@ var ye = (e, t, n) => {
 	let r = n?.renderBefore ?? t, i = r._$litPart$;
 	if (i === void 0) {
 		let e = n?.renderBefore ?? null;
-		r._$litPart$ = i = new V(t.insertBefore(C(), e), e, void 0, n ?? {});
+		r._$litPart$ = i = new V(t.insertBefore(T(), e), e, void 0, n ?? {});
 	}
 	return i._$AI(e), i;
 }, U = globalThis, W = class extends _ {
@@ -501,7 +501,7 @@ var ye = (e, t, n) => {
 		super.disconnectedCallback(), this._$Do?.setConnected(!1);
 	}
 	render() {
-		return F;
+		return P;
 	}
 };
 W._$litElement$ = !0, W.finalized = !0, U.litElementHydrateSupport?.({ LitElement: W });
@@ -592,7 +592,9 @@ var xe = {
 			zone_disabled: "Übersprungen · Zone aus",
 			fault: "Übersprungen · Störung",
 			stopped: "Übersprungen · gestoppt"
-		}
+		},
+		external: "Außerhalb von hydraXoo geöffnet · schließt in {left}",
+		capped: "Durch die Sicherheitsabschaltung auf {cutoff} Min. begrenzt"
 	},
 	new_zone: "Neue Zone",
 	editor: {
@@ -681,7 +683,9 @@ var xe = {
 		no_rain_desc: "Gewächshaus, überdachter Bereich: Regen wird ignoriert",
 		weather_title: "Wetter",
 		rain_hint: "Dauer an gefallenen und erwarteten Regen angepasst",
-		no_rain_detail: "Regen ignoriert: Nur Hitze kann die Dauer ändern"
+		no_rain_detail: "Regen ignoriert: Nur Hitze kann die Dauer ändern",
+		cutoff_warning: "Dieser Zyklus wird nach {cutoff} Min. von der Sicherheitsabschaltung gestoppt. Damit er {min} Min. dauert, erhöhen Sie die Sicherheitsabschaltung.",
+		raise_cutoff: "Abschaltung auf {min} Min. setzen"
 	},
 	days: {
 		short: [
@@ -731,7 +735,16 @@ var xe = {
 		test: "Testbenachrichtigung senden",
 		test_sent: "Testbenachrichtigung gesendet.",
 		test_failed: "Senden fehlgeschlagen an: {names}",
-		advanced: "Erweiterte Einstellungen der Integration"
+		advanced: "Erweiterte Einstellungen der Integration",
+		external: "Ventil außerhalb von hydraXoo eingeschaltet",
+		external_close: "Sofort schließen",
+		external_close_desc: "Als Störung behandelt und gemeldet",
+		external_allow: "Offen lassen",
+		external_allow_desc: "Durch die Sicherheitsabschaltung geschlossen"
+	},
+	unexpected: {
+		title: "{zone}: unerwartete Öffnung um {time}",
+		detail: "Das Ventil wurde außerhalb von hydraXoo eingeschaltet und wieder geschlossen."
 	}
 }, G = {
 	title: "Watering",
@@ -818,7 +831,9 @@ var xe = {
 			zone_disabled: "Skipped · zone off",
 			fault: "Skipped · fault",
 			stopped: "Skipped · stopped"
-		}
+		},
+		external: "Open outside hydraXoo · closes in {left}",
+		capped: "Limited to {cutoff} min by the safety cut-off"
 	},
 	new_zone: "New zone",
 	editor: {
@@ -907,7 +922,9 @@ var xe = {
 		no_rain_desc: "Greenhouse, covered area: rain is ignored",
 		weather_title: "Weather",
 		rain_hint: "Duration adjusted to the rain fallen and expected",
-		no_rain_detail: "Rain ignored: only heat can change the duration"
+		no_rain_detail: "Rain ignored: only heat can change the duration",
+		cutoff_warning: "This cycle will be stopped after {cutoff} min by the safety cut-off. For it to last {min} min, raise the safety cut-off.",
+		raise_cutoff: "Set the cut-off to {min} min"
 	},
 	days: {
 		short: [
@@ -957,7 +974,16 @@ var xe = {
 		test: "Send a test notification",
 		test_sent: "Test notification sent.",
 		test_failed: "Could not send to: {names}",
-		advanced: "Advanced settings of the integration"
+		advanced: "Advanced settings of the integration",
+		external: "Valve switched on outside hydraXoo",
+		external_close: "Close it at once",
+		external_close_desc: "Treated as a fault and reported",
+		external_allow: "Leave it open",
+		external_allow_desc: "Closed by the safety cut-off"
+	},
+	unexpected: {
+		title: "{zone}: unexpected opening at {time}",
+		detail: "The valve was switched on outside hydraXoo and has been closed."
 	}
 }, Se = {
 	de: xe,
@@ -1047,7 +1073,9 @@ var xe = {
 				zone_disabled: "Omitido · zona inactiva",
 				fault: "Omitido · fallo",
 				stopped: "Omitido · detenido"
-			}
+			},
+			external: "Abierta fuera de hydraXoo · se cierra en {left}",
+			capped: "Limitado a {cutoff} min por el corte de seguridad"
 		},
 		new_zone: "Nueva zona",
 		editor: {
@@ -1136,7 +1164,9 @@ var xe = {
 			no_rain_desc: "Invernadero, zona cubierta: se ignora la lluvia",
 			weather_title: "Meteorología",
 			rain_hint: "Duración ajustada a la lluvia caída y prevista",
-			no_rain_detail: "Lluvia ignorada: solo el calor puede cambiar la duración"
+			no_rain_detail: "Lluvia ignorada: solo el calor puede cambiar la duración",
+			cutoff_warning: "Este ciclo se detendrá a los {cutoff} min por el corte de seguridad. Para que dure {min} min, aumente el corte de seguridad.",
+			raise_cutoff: "Poner el corte en {min} min"
 		},
 		days: {
 			short: [
@@ -1186,7 +1216,16 @@ var xe = {
 			test: "Enviar una notificación de prueba",
 			test_sent: "Notificación de prueba enviada.",
 			test_failed: "No se pudo enviar a: {names}",
-			advanced: "Ajustes avanzados de la integración"
+			advanced: "Ajustes avanzados de la integración",
+			external: "Válvula encendida fuera de hydraXoo",
+			external_close: "Cerrarla al instante",
+			external_close_desc: "Tratado como fallo y avisado",
+			external_allow: "Dejarla abierta",
+			external_allow_desc: "La cierra el corte de seguridad"
+		},
+		unexpected: {
+			title: "{zone}: apertura no ordenada a las {time}",
+			detail: "La válvula se encendió fuera de hydraXoo y se ha cerrado."
 		}
 	},
 	fr: {
@@ -1274,7 +1313,9 @@ var xe = {
 				zone_disabled: "Sauté · zone inactive",
 				fault: "Sauté · défaut",
 				stopped: "Sauté · arrêté"
-			}
+			},
+			external: "Ouverte hors hydraXoo · fermeture dans {left}",
+			capped: "Limité à {cutoff} min par la coupure de sécurité"
 		},
 		new_zone: "Nouvelle zone",
 		editor: {
@@ -1363,7 +1404,9 @@ var xe = {
 			no_rain_desc: "Serre, terrasse couverte : la pluie est ignorée",
 			weather_title: "Météo",
 			rain_hint: "Durée ajustée selon la pluie tombée et prévue",
-			no_rain_detail: "Pluie ignorée : seule la chaleur peut changer la durée"
+			no_rain_detail: "Pluie ignorée : seule la chaleur peut changer la durée",
+			cutoff_warning: "Ce cycle sera arrêté au bout de {cutoff} min par la coupure de sécurité. Pour qu'il dure {min} min, augmentez la coupure de sécurité.",
+			raise_cutoff: "Passer la coupure à {min} min"
 		},
 		days: {
 			short: [
@@ -1413,7 +1456,16 @@ var xe = {
 			test: "Envoyer une notification de test",
 			test_sent: "Notification de test envoyée.",
 			test_failed: "Envoi impossible vers : {names}",
-			advanced: "Réglages avancés de l'intégration"
+			advanced: "Réglages avancés de l'intégration",
+			external: "Vanne allumée hors hydraXoo",
+			external_close: "La refermer immédiatement",
+			external_close_desc: "Traité comme un défaut et signalé",
+			external_allow: "La laisser ouverte",
+			external_allow_desc: "Refermée par la coupure de sécurité"
+		},
+		unexpected: {
+			title: "{zone} : ouverture non commandée à {time}",
+			detail: "La vanne a été allumée en dehors de hydraXoo et a été refermée."
 		}
 	},
 	it: {
@@ -1501,7 +1553,9 @@ var xe = {
 				zone_disabled: "Saltato · zona disattivata",
 				fault: "Saltato · guasto",
 				stopped: "Saltato · fermato"
-			}
+			},
+			external: "Aperta fuori da hydraXoo · si chiude tra {left}",
+			capped: "Limitato a {cutoff} min dallo spegnimento di sicurezza"
 		},
 		new_zone: "Nuova zona",
 		editor: {
@@ -1590,7 +1644,9 @@ var xe = {
 			no_rain_desc: "Serra, zona coperta: la pioggia viene ignorata",
 			weather_title: "Meteo",
 			rain_hint: "Durata adattata alla pioggia caduta e prevista",
-			no_rain_detail: "Pioggia ignorata: solo il caldo può cambiare la durata"
+			no_rain_detail: "Pioggia ignorata: solo il caldo può cambiare la durata",
+			cutoff_warning: "Questo ciclo verrà fermato dopo {cutoff} min dallo spegnimento di sicurezza. Perché duri {min} min, aumentare lo spegnimento di sicurezza.",
+			raise_cutoff: "Porta lo spegnimento a {min} min"
 		},
 		days: {
 			short: [
@@ -1640,7 +1696,16 @@ var xe = {
 			test: "Invia una notifica di prova",
 			test_sent: "Notifica di prova inviata.",
 			test_failed: "Invio impossibile a: {names}",
-			advanced: "Impostazioni avanzate dell'integrazione"
+			advanced: "Impostazioni avanzate dell'integrazione",
+			external: "Valvola accesa fuori da hydraXoo",
+			external_close: "Chiuderla subito",
+			external_close_desc: "Trattato come guasto e segnalato",
+			external_allow: "Lasciarla aperta",
+			external_allow_desc: "Chiusa dallo spegnimento di sicurezza"
+		},
+		unexpected: {
+			title: "{zone}: apertura non comandata alle {time}",
+			detail: "La valvola è stata accesa fuori da hydraXoo ed è stata chiusa."
 		}
 	}
 };
@@ -1743,9 +1808,9 @@ var Ee = class extends W {
 		}));
 	}
 	render() {
-		if (!this.hass) return I;
+		if (!this.hass) return F;
 		let e = q(this.hass);
-		return P`<ha-form
+		return N`<ha-form
       .hass=${this.hass}
       .data=${{
 			compact: !1,
@@ -1852,12 +1917,14 @@ function Pe(e, t, n, r) {
 			inMinutes: a - t.minutes,
 			startMinutes: a
 		};
-		return {
+		let l = s > e.max_runtime_min && c.kind !== "done";
+		return l && (s = e.max_runtime_min), {
 			cycle: i,
 			start: a,
 			base: o,
 			adjusted: s,
-			status: c
+			status: c,
+			capped: l
 		};
 	}).sort((e, t) => e.start - t.start);
 }
@@ -2452,6 +2519,36 @@ var Q = o`
   .cycle-card.off {
     opacity: 0.6;
   }
+  .warning-box {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--hx-warning-soft);
+    color: var(--hx-text);
+    font-size: 13px;
+    --mdc-icon-size: 20px;
+  }
+  .warning-box ha-icon,
+  ha-icon.capped {
+    color: var(--hx-warning);
+    flex-shrink: 0;
+  }
+  ha-icon.capped {
+    --mdc-icon-size: 16px;
+  }
+  .link-button {
+    align-self: flex-start;
+    min-height: 44px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--hx-primary);
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+  }
   .meter {
     height: 8px;
     border-radius: 4px;
@@ -2504,7 +2601,8 @@ var Q = o`
 				weather_entity: e.weather_entity,
 				rain_sensor: e.rain_sensor,
 				sequential: e.sequential,
-				notify_services: [...e.notify_services]
+				notify_services: [...e.notify_services],
+				external_open: e.external_open ?? "close"
 			};
 		}
 	}
@@ -2518,7 +2616,7 @@ var Q = o`
 		}, this._message = "";
 	}
 	_picker(e, t, n, r, i) {
-		if (customElements.get("ha-selector")) return P`<ha-selector
+		if (customElements.get("ha-selector")) return N`<ha-selector
         .hass=${this.hass}
         .selector=${{ entity: { filter: t } }}
         .value=${e ?? ""}
@@ -2526,11 +2624,11 @@ var Q = o`
         @value-changed=${(e) => i(e.detail.value || null)}
       ></ha-selector>`;
 		let a = Object.values(this.hass.states).filter((e) => e.entity_id.startsWith(`${t.domain}.`) && (!t.device_class || e.attributes.device_class === t.device_class)).sort((e, t) => e.entity_id.localeCompare(t.entity_id));
-		return P`<label class="field">
+		return N`<label class="field">
       ${n}
       <select @change=${(e) => i(e.target.value || null)}>
         <option value="" ?selected=${!e}>${r}</option>
-        ${a.map((t) => P`<option value=${t.entity_id} ?selected=${t.entity_id === e}>
+        ${a.map((t) => N`<option value=${t.entity_id} ?selected=${t.entity_id === e}>
             ${t.attributes.friendly_name ?? t.entity_id}
           </option>`)}
       </select>
@@ -2538,7 +2636,7 @@ var Q = o`
 	}
 	_weather() {
 		let e = this._t, t = this._draft;
-		return P`<section class="tile" aria-labelledby="hx-s-weather">
+		return N`<section class="tile" aria-labelledby="hx-s-weather">
       <h2 id="hx-s-weather">${e("settings_screen.weather")}</h2>
       ${this._picker(t.weather_entity, { domain: "weather" }, e("settings_screen.weather_entity"), e("settings_screen.none"), (e) => this._set({ weather_entity: e }))}
       <span class="tiny">${e("settings_screen.weather_hint")}</span>
@@ -2551,10 +2649,10 @@ var Q = o`
 	}
 	_order() {
 		let e = this._t, t = this._draft;
-		return P`<section class="tile" aria-labelledby="hx-s-order">
+		return N`<section class="tile" aria-labelledby="hx-s-order">
       <h2 id="hx-s-order">${e("settings_screen.order")}</h2>
       <div class="choice-grid" role="group" aria-labelledby="hx-s-order">
-        ${[!0, !1].map((n) => P`<button
+        ${[!0, !1].map((n) => N`<button
             type="button"
             class="choice"
             aria-pressed=${t.sequential === n ? "true" : "false"}
@@ -2568,9 +2666,9 @@ var Q = o`
 	}
 	_pause() {
 		let e = this._t, t = this.state.settings, n = this.hass.config.time_zone, r = Z(this.hass);
-		return P`<section class="tile" aria-labelledby="hx-s-pause">
+		return N`<section class="tile" aria-labelledby="hx-s-pause">
       <h2 id="hx-s-pause">${e("settings_screen.pause")}</h2>
-      ${t.paused ? P`<div class="row">
+      ${t.paused ? N`<div class="row">
             <span class="stack grow">
               <span class="strong">${e("pause.paused")}</span>
               <span class="small">${t.pause_until ? e("pause.until", { date: `${X(t.pause_until, n, r)} ${Y(t.pause_until, n, r, Le(this.hass))}` }) : e("pause.indefinite")}</span>
@@ -2578,13 +2676,13 @@ var Q = o`
             <button type="button" class="btn" @click=${() => this._call({ type: "hydraxoo/resume" })}>
               ${e("pause.resume")}
             </button>
-          </div>` : P`<span class="small">${e("settings_screen.pause_off")}</span>
+          </div>` : N`<span class="small">${e("settings_screen.pause_off")}</span>
             <div class="actions">
               ${[
 			1,
 			3,
 			7
-		].map((t) => P`<button
+		].map((t) => N`<button
                   type="button"
                   class="btn"
                   @click=${() => this._call({
@@ -2598,15 +2696,32 @@ var Q = o`
             </div>`}
     </section>`;
 	}
+	_safety() {
+		let e = this._t, t = this._draft;
+		return N`<section class="tile" aria-labelledby="hx-s-safety">
+      <h2 id="hx-s-safety">${e("settings_screen.external")}</h2>
+      <div class="choice-grid" role="group" aria-labelledby="hx-s-safety">
+        ${["close", "allow"].map((n) => N`<button
+            type="button"
+            class="choice"
+            aria-pressed=${t.external_open === n ? "true" : "false"}
+            @click=${() => this._set({ external_open: n })}
+          >
+            <span class="strong">${e(`settings_screen.external_${n}`)}</span>
+            <span class="tiny">${e(`settings_screen.external_${n}_desc`)}</span>
+          </button>`)}
+      </div>
+    </section>`;
+	}
 	_alerts() {
 		let e = this._t, t = this._draft, n = this.state.settings.notify_options;
-		return P`<section class="tile" aria-labelledby="hx-s-alerts">
+		return N`<section class="tile" aria-labelledby="hx-s-alerts">
       <h2 id="hx-s-alerts">${e("settings_screen.alerts")}</h2>
       <span class="tiny">${e("settings_screen.alerts_hint")}</span>
-      ${n.length ? P`<div class="stack" role="group" aria-labelledby="hx-s-alerts">
+      ${n.length ? N`<div class="stack" role="group" aria-labelledby="hx-s-alerts">
             ${n.map((e) => {
 			let n = t.notify_services.includes(e.value);
-			return P`<label class="check-row">
+			return N`<label class="check-row">
                 <input
                   type="checkbox"
                   .checked=${n}
@@ -2615,7 +2730,7 @@ var Q = o`
                 <span>${e.label}</span>
               </label>`;
 		})}
-          </div>` : P`<span class="small">${e("settings_screen.no_phone")}</span>`}
+          </div>` : N`<span class="small">${e("settings_screen.no_phone")}</span>`}
       <button
         type="button"
         class="btn"
@@ -2653,9 +2768,9 @@ var Q = o`
 		history.pushState(null, "", "/config/integrations/integration/hydraxoo"), window.dispatchEvent(new CustomEvent("location-changed"));
 	}
 	render() {
-		if (!this._draft || !this.state) return I;
+		if (!this._draft || !this.state) return F;
 		let e = this._t;
-		return P`<div style="display:flex;flex-direction:column;gap:14px">
+		return N`<div style="display:flex;flex-direction:column;gap:14px">
       <div class="header">
         <div class="header-left">
           <button type="button" class="icon-button" aria-label=${e("editor.back")} @click=${this._close}>
@@ -2664,9 +2779,9 @@ var Q = o`
           <h1>${e("settings")}</h1>
         </div>
       </div>
-      ${this._weather()} ${this._order()} ${this._pause()} ${this._alerts()}
-      ${this._message ? P`<div class="small" role="status">${this._message}</div>` : I}
-      ${this._error ? P`<div class="error-text" role="alert">${this._error}</div>` : I}
+      ${this._weather()} ${this._order()} ${this._pause()} ${this._safety()} ${this._alerts()}
+      ${this._message ? N`<div class="small" role="status">${this._message}</div>` : F}
+      ${this._error ? N`<div class="error-text" role="alert">${this._error}</div>` : F}
       <button type="button" class="btn primary" ?disabled=${this._saving} @click=${this._save}>
         ${this._saving ? e("editor.saving") : e("editor.save")}
       </button>
@@ -2725,7 +2840,7 @@ function qe() {
 		enabled: !0,
 		switch_entity: "",
 		power_entity: null,
-		max_runtime_min: 30,
+		max_runtime_min: 5,
 		receives_rain: !0,
 		safety: { ...Ue },
 		weather_rules: { ...We },
@@ -2738,7 +2853,7 @@ var Je = class extends W {
 			let e = this._draft.cycles.at(-1), t = {
 				enabled: !0,
 				start_time: e ? e.start_time : "06:00",
-				duration_min: Math.min(10, this._draft.max_runtime_min),
+				duration_min: Math.min(5, this._draft.max_runtime_min),
 				weekdays: [
 					0,
 					1,
@@ -2803,7 +2918,7 @@ var Je = class extends W {
 	}
 	_stepper(e, t, n) {
 		let r = this._t, i = t.step ?? 1, a = t.fine && e <= (t.fineBelow ?? 0) ? t.fine : i, o = t.fine && e < (t.fineBelow ?? 0) ? t.fine : i, s = (e) => Math.round(e * 10) / 10, c = (e) => n(s(Math.min(t.max, Math.max(t.min, e))));
-		return P`<span class="stepper">
+		return N`<span class="stepper">
       <button
         type="button"
         aria-label=${r("editor.decrease", { what: t.what })}
@@ -2822,7 +2937,7 @@ var Je = class extends W {
     </span>`;
 	}
 	_switch(e, t, n) {
-		return P`<button
+		return N`<button
       type="button"
       class="switch"
       role="switch"
@@ -2832,7 +2947,7 @@ var Je = class extends W {
     ></button>`;
 	}
 	_entityPicker(e, t, n, r, i) {
-		if (customElements.get("ha-selector")) return P`<ha-selector
+		if (customElements.get("ha-selector")) return N`<ha-selector
         .hass=${this.hass}
         .selector=${{ entity: { filter: t } }}
         .value=${e ?? ""}
@@ -2840,11 +2955,11 @@ var Je = class extends W {
         @value-changed=${(e) => i(e.detail.value || null)}
       ></ha-selector>`;
 		let a = Object.values(this.hass.states).filter((e) => e.entity_id.startsWith(`${t.domain}.`) && (!t.device_class || e.attributes.device_class === t.device_class)).sort((e, t) => e.entity_id.localeCompare(t.entity_id));
-		return P`<label class="field">
+		return N`<label class="field">
       ${n}
       <select @change=${(e) => i(e.target.value || null)}>
         <option value="" ?selected=${!e}>${r}</option>
-        ${a.map((t) => P`<option value=${t.entity_id} ?selected=${t.entity_id === e}>
+        ${a.map((t) => N`<option value=${t.entity_id} ?selected=${t.entity_id === e}>
             ${t.attributes.friendly_name ?? t.entity_id} (${t.entity_id})
           </option>`)}
       </select>
@@ -2852,7 +2967,7 @@ var Je = class extends W {
 	}
 	_general(e) {
 		let t = this._t, n = this._draft;
-		return P`<section class="tile" aria-labelledby="hx-general">
+		return N`<section class="tile" aria-labelledby="hx-general">
       <h3 id="hx-general">${t("editor.general")}</h3>
       <label class="field">
         ${t("editor.name")}
@@ -2866,7 +2981,7 @@ var Je = class extends W {
       <div class="stack" role="group" aria-label=${t("editor.icon")}>
         <span class="small strong">${t("editor.icon")}</span>
         <div class="icon-grid">
-          ${Ge.map((e) => P`<button
+          ${Ge.map((e) => N`<button
               type="button"
               class="choice"
               aria-pressed=${n.icon === e.icon ? "true" : "false"}
@@ -2875,10 +2990,10 @@ var Je = class extends W {
             ><ha-icon .icon=${e.icon}></ha-icon></button>`)}
         </div>
       </div>
-      ${e ? P`<div class="stack" role="group" aria-label=${t("editor.rain_choice")}>
+      ${e ? N`<div class="stack" role="group" aria-label=${t("editor.rain_choice")}>
             <span class="small strong">${t("editor.rain_choice")}</span>
             <div class="choice-grid">
-              ${[!0, !1].map((e) => P`<button
+              ${[!0, !1].map((e) => N`<button
                   type="button"
                   class="choice"
                   aria-pressed=${n.receives_rain === e ? "true" : "false"}
@@ -2888,27 +3003,27 @@ var Je = class extends W {
                   <span class="tiny">${t(e ? "editor.receives_rain_desc" : "editor.no_rain_desc")}</span>
                 </button>`)}
             </div>
-          </div>` : I}
+          </div>` : F}
     </section>`;
 	}
 	_hardware(e) {
 		let t = this._t, n = this._draft, r = n.switch_entity ? this.hass.states[n.switch_entity] : void 0, i = r && r.state !== "unavailable", a = n.power_entity !== null, o = n.safety;
-		return P`<section class="tile" aria-labelledby="hx-hw">
+		return N`<section class="tile" aria-labelledby="hx-hw">
       <h3 id="hx-hw">${t(e ? "editor.valve" : "editor.hardware")}</h3>
       ${this._entityPicker(n.switch_entity || null, { domain: "switch" }, t("editor.switch"), t("editor.switch_choose"), (e) => this._set({ switch_entity: e ?? "" }))}
-      ${n.switch_entity ? P`<span class="chip ${i ? "success" : "error"}"
+      ${n.switch_entity ? N`<span class="chip ${i ? "success" : "error"}"
             >${t(i ? "editor.online" : "editor.offline")}</span
-          >` : I}
-      ${e ? P`<div class="row">
+          >` : F}
+      ${e ? N`<div class="row">
             <span class="grow strong">${t("editor.check")}</span>
             ${this._switch(a, t("editor.check"), (e) => this._set({ power_entity: e ? n.power_entity ?? "" : null }))}
-          </div>` : I}
+          </div>` : F}
       ${!e || a ? this._entityPicker(n.power_entity || null, {
 			domain: "sensor",
 			device_class: "power"
-		}, t("editor.power"), t("editor.power_choose"), (t) => this._set({ power_entity: t ?? (e ? "" : null) })) : I}
+		}, t("editor.power"), t("editor.power_choose"), (t) => this._set({ power_entity: t ?? (e ? "" : null) })) : F}
       <span class="tiny">${t("editor.power_hint")}</span>
-      ${e && a ? P`<div>
+      ${e && a ? N`<div>
             ${this._setting(t("editor.threshold"), t("editor.threshold_hint"), this._stepper(o.threshold_w, {
 			min: .1,
 			max: 100,
@@ -2948,31 +3063,31 @@ var Je = class extends W {
 			...o,
 			max_attempts: e
 		} })))}
-          </div>` : I}
+          </div>` : F}
       ${e ? this._setting(t("editor.cutoff"), t("editor.cutoff_hint"), this._stepper(n.max_runtime_min, {
 			min: 1,
 			max: 240,
 			unit: "min",
 			what: t("editor.cutoff")
-		}, (e) => this._set({ max_runtime_min: e }))) : I}
+		}, (e) => this._set({ max_runtime_min: e }))) : F}
     </section>`;
 	}
 	_setting(e, t, n) {
-		return P`<div class="setting">
+		return N`<div class="setting">
       <span class="stack"><span class="strong">${e}</span><span class="tiny">${t}</span></span>
       ${n}
     </div>`;
 	}
 	_cycles() {
 		let e = this._t, t = we(this.hass), n = this._draft.cycles;
-		return P`<section class="tile" aria-labelledby="hx-cycles">
+		return N`<section class="tile" aria-labelledby="hx-cycles">
       <div class="row">
         <h2 id="hx-cycles" class="grow">${e("editor.cycles")}</h2>
       </div>
-      ${n.length === 0 ? P`<span class="small">${e("editor.no_cycle")}</span>` : I}
+      ${n.length === 0 ? N`<span class="small">${e("editor.no_cycle")}</span>` : F}
       ${n.map((r, i) => {
 			let a = i + 1, o = Ie(r.weekdays);
-			return P`<div class="cycle-card ${r.enabled ? "" : "off"}">
+			return N`<div class="cycle-card ${r.enabled ? "" : "off"}">
           <div class="row">
             ${this._switch(r.enabled, e("editor.enable_cycle", { n: a }), (e) => this._setCycle(i, { enabled: e }))}
             <span class="stack grow">
@@ -2996,15 +3111,29 @@ var Je = class extends W {
             <span class="grow"></span>
             ${this._stepper(r.duration_min, {
 				min: 1,
-				max: this._draft.max_runtime_min,
+				max: 240,
 				unit: "min",
 				what: e("editor.duration_of", { n: a })
 			}, (e) => this._setCycle(i, { duration_min: e }))}
           </div>
+          ${r.duration_min > this._draft.max_runtime_min ? N`<div class="warning-box" role="status">
+                <ha-icon icon="mdi:alert-outline"></ha-icon>
+                <span class="stack grow">
+                  <span>${e("editor.cutoff_warning", {
+				cutoff: this._draft.max_runtime_min,
+				min: r.duration_min
+			})}</span>
+                  <button
+                    type="button"
+                    class="link-button"
+                    @click=${() => this._set({ max_runtime_min: r.duration_min })}
+                  >${e("editor.raise_cutoff", { min: r.duration_min })}</button>
+                </span>
+              </div>` : F}
           <div class="days">
             ${Be(this.hass).map((n) => {
 				let o = t.short[n];
-				return P`<button
+				return N`<button
                 type="button"
                 class="choice"
                 aria-pressed=${r.weekdays.includes(n) ? "true" : "false"}
@@ -3029,12 +3158,12 @@ var Je = class extends W {
 	}
 	_weather() {
 		let e = this._t, t = this._draft, n = t.receives_rain, r = t.weather_rules, i = this.state?.settings, a = this.zone?.weather;
-		return P`<section class="tile" aria-labelledby="hx-weather">
+		return N`<section class="tile" aria-labelledby="hx-weather">
       <span class="stack">
         <h2 id="hx-weather">${e("editor.weather_title")}</h2>
         <span class="tiny">${i?.weather_entity ? e("editor.rain_source", { name: i.weather_name ?? i.weather_entity }) : e("editor.rain_none")}</span>
       </span>
-      ${a && i?.weather_entity ? P`<div class="stack">
+      ${a && i?.weather_entity ? N`<div class="stack">
             <div class="row">
               <span class="grow small">${e("editor.today")}</span>
               <span class="strong">${a.coefficient_pct} %</span>
@@ -3046,7 +3175,7 @@ var Je = class extends W {
 			past: a.past_rain_mm ?? 0,
 			forecast: a.forecast_rain_mm ?? 0
 		}) : e("editor.no_rain_detail")}</span>
-          </div>` : I}
+          </div>` : F}
       <div>
         <div class="setting">
           <span class="stack"
@@ -3055,7 +3184,7 @@ var Je = class extends W {
           >
           ${this._switch(n, e("editor.rain"), (e) => this._set({ receives_rain: e }))}
         </div>
-        ${n ? P`${this._setting(e("editor.skip"), e("editor.skip_hint"), this._stepper(r.skip_mm, {
+        ${n ? N`${this._setting(e("editor.skip"), e("editor.skip_hint"), this._stepper(r.skip_mm, {
 			min: .5,
 			max: 50,
 			step: .5,
@@ -3074,7 +3203,7 @@ var Je = class extends W {
 		}, (e) => this._set({ weather_rules: {
 			...r,
 			past_window_h: e
-		} })))}` : I}
+		} })))}` : F}
         ${this._setting(e("editor.heat"), e("editor.heat_hint"), this._stepper(r.heat_bonus_pct, {
 			min: 0,
 			max: 100,
@@ -3095,17 +3224,17 @@ var Je = class extends W {
 		}, (e) => this._set({ weather_rules: {
 			...r,
 			heat_threshold_c: e
-		} }))) : I}
+		} }))) : F}
       </div>
-      ${r.heat_bonus_pct > 0 ? P`<span class="tiny">${e("editor.heat_summary", {
+      ${r.heat_bonus_pct > 0 ? N`<span class="tiny">${e("editor.heat_summary", {
 			t: r.heat_threshold_c.toLocaleString(K(this.hass)),
 			pct: r.heat_bonus_pct
-		})}</span>` : I}
+		})}</span>` : F}
     </section>`;
 	}
 	_validate() {
 		let e = this._t, t = this._draft;
-		return t.name.trim() ? t.switch_entity ? t.cycles.some((e) => e.weekdays.length === 0) ? e("editor.errors.no_day") : t.cycles.some((e) => e.duration_min > t.max_runtime_min) ? e("editor.errors.duration_exceeds_max") : "" : e("editor.errors.switch") : e("editor.errors.name");
+		return t.name.trim() ? t.switch_entity ? t.cycles.some((e) => e.weekdays.length === 0) ? e("editor.errors.no_day") : "" : e("editor.errors.switch") : e("editor.errors.name");
 	}
 	async _save() {
 		let e = this._t;
@@ -3150,7 +3279,7 @@ var Je = class extends W {
 	}
 	render() {
 		let e = this._t, t = !this.zone;
-		return P`<div class="form" style="display:flex;flex-direction:column;gap:14px">
+		return N`<div class="form" style="display:flex;flex-direction:column;gap:14px">
       <div class="header">
         <div class="header-left">
           <button
@@ -3161,25 +3290,25 @@ var Je = class extends W {
           ><ha-icon icon=${t ? "mdi:close" : "mdi:arrow-left"}></ha-icon></button>
           <div class="stack">
             <h1>${t ? e("new_zone") : this.zone.name}</h1>
-            ${t ? I : P`<span class="sub">${e("editor.subtitle")}</span>`}
+            ${t ? F : N`<span class="sub">${e("editor.subtitle")}</span>`}
           </div>
         </div>
       </div>
       ${this._general(t)}
       ${this._hardware(!t)}
-      ${t ? I : this._cycles()}
-      ${t ? I : this._weather()}
-      ${this._error ? P`<div class="error-text" role="alert">${this._error}</div>` : I}
+      ${t ? F : this._cycles()}
+      ${t ? F : this._weather()}
+      ${this._error ? N`<div class="error-text" role="alert">${this._error}</div>` : F}
       <button type="button" class="btn primary" ?disabled=${this._saving} @click=${this._save}>
         ${this._saving ? e("editor.saving") : e(t ? "editor.create" : "editor.save")}
       </button>
-      ${t ? P`<span class="tiny" style="text-align:center">${e("editor.create_hint")}</span>` : P`<button type="button" class="btn danger" @click=${this._delete}>${e("editor.delete")}</button>`}
+      ${t ? N`<span class="tiny" style="text-align:center">${e("editor.create_hint")}</span>` : N`<button type="button" class="btn danger" @click=${this._delete}>${e("editor.delete")}</button>`}
     </div>`;
 	}
 };
 customElements.get("hydraxoo-zone-form") || customElements.define("hydraxoo-zone-form", Je);
 // src/hydraxoo-card.ts
-var Ye = "0.1.2", $ = class extends W {
+var Ye = "0.1.3", $ = class extends W {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:hydraxoo-card" }, this._state = null, this._view = { name: "dashboard" }, this._error = "", this._runFor = null, this._runMinutes = 10, this._subscribing = !1;
 	}
@@ -3218,7 +3347,7 @@ var Ye = "0.1.2", $ = class extends W {
 	}
 	connectedCallback() {
 		super.connectedCallback(), this._ticker = window.setInterval(() => {
-			this._state?.zones.some((e) => e.running) && this.requestUpdate();
+			this._state?.zones.some((e) => e.running || e.external_open) && this.requestUpdate();
 		}, 1e3);
 	}
 	disconnectedCallback() {
@@ -3280,14 +3409,14 @@ var Ye = "0.1.2", $ = class extends W {
 		this._view = { name: "settings" };
 	}
 	render() {
-		if (!this.hass) return I;
+		if (!this.hass) return F;
 		let e = this._t;
-		if (this._error === "not_loaded") return P`<ha-card><div class="small">${e("not_loaded")}</div></ha-card>`;
-		if (!this._state) return P`<ha-card><div class="small">${e("loading")}</div></ha-card>`;
+		if (this._error === "not_loaded") return N`<ha-card><div class="small">${e("not_loaded")}</div></ha-card>`;
+		if (!this._state) return N`<ha-card><div class="small">${e("loading")}</div></ha-card>`;
 		let t = this._view;
 		if (t.name === "zone") {
 			let e = this._state.zones.find((e) => e.id === t.id);
-			if (e) return P`<ha-card>
+			if (e) return N`<ha-card>
           <hydraxoo-zone-form
             .hass=${this.hass}
             .zone=${e}
@@ -3297,13 +3426,13 @@ var Ye = "0.1.2", $ = class extends W {
           ></hydraxoo-zone-form>
         </ha-card>`;
 		}
-		return t.name === "settings" ? P`<ha-card>
+		return t.name === "settings" ? N`<ha-card>
         <hydraxoo-settings-form
           .hass=${this.hass}
           .state=${this._state}
           @close=${() => this._view = { name: "dashboard" }}
         ></hydraxoo-settings-form>
-      </ha-card>` : t.name === "new" ? P`<ha-card>
+      </ha-card>` : t.name === "new" ? N`<ha-card>
         <hydraxoo-zone-form
           .hass=${this.hass}
           .zone=${null}
@@ -3318,31 +3447,32 @@ var Ye = "0.1.2", $ = class extends W {
 	}
 	_dashboard() {
 		let e = this._t, t = this._state, n = /* @__PURE__ */ new Date(), r = J(n, this._tz), i = this._zones(), a = !!this._config.compact, o = new Map(i.map((e) => [e.id, Pe(e, r, t.history, this._tz)]));
-		return P`<ha-card class=${a ? "compact" : ""}>
+		return N`<ha-card class=${a ? "compact" : ""}>
       <div class="header">
         <div class="stack">
           <h1>${this._config.title || e("title")}</h1>
           <span class="sub">${X(n, this._tz, this._lang)} · ${this._time(n)}</span>
         </div>
-        ${this._isAdmin ? P`<button type="button" class="icon-button" aria-label=${e("settings")} @click=${this._openSettings}>
+        ${this._isAdmin ? N`<button type="button" class="icon-button" aria-label=${e("settings")} @click=${this._openSettings}>
               <ha-icon icon="mdi:cog-outline"></ha-icon>
-            </button>` : I}
+            </button>` : F}
       </div>
       ${this._pauseBanner()}
       ${this._weatherBanner()}
       ${this._faultBanners(i)}
+      ${this._unexpectedBanner(i)}
       ${this._safetyBanner()}
-      ${a ? I : this._timeline(i, o, r)}
+      ${a ? F : this._timeline(i, o, r)}
       ${i.map((e) => this._zoneCard(e, o.get(e.id) ?? []))}
-      ${this._isAdmin ? P`<button type="button" class="btn ghost-dashed" @click=${() => this._view = { name: "new" }}>
+      ${this._isAdmin ? N`<button type="button" class="btn ghost-dashed" @click=${() => this._view = { name: "new" }}>
             <ha-icon icon="mdi:plus"></ha-icon>${e("new_zone")}
-          </button>` : I}
-      ${this._error && this._error !== "not_loaded" ? P`<div class="error-text" role="alert">${this._error}</div>` : I}
+          </button>` : F}
+      ${this._error && this._error !== "not_loaded" ? N`<div class="error-text" role="alert">${this._error}</div>` : F}
     </ha-card>`;
 	}
 	_pauseBanner() {
 		let e = this._t, t = this._state.settings;
-		return t.paused ? P`<div class="tile">
+		return t.paused ? N`<div class="tile">
       <div class="row">
         <div class="badge-icon warning"><ha-icon icon="mdi:pause"></ha-icon></div>
         <span class="stack grow">
@@ -3351,13 +3481,13 @@ var Ye = "0.1.2", $ = class extends W {
         </span>
         <button type="button" class="btn" @click=${() => this._call("resume")}>${e("pause.resume")}</button>
       </div>
-    </div>` : I;
+    </div>` : F;
 	}
 	_weatherBanner() {
 		let e = this._t, t = this._state;
-		if (!t.settings.weather_entity) return I;
+		if (!t.settings.weather_entity) return F;
 		let n = t.weather;
-		if (n.warnings.includes("weather_unavailable")) return P`<div class="tile"><div class="row">
+		if (n.warnings.includes("weather_unavailable")) return N`<div class="tile"><div class="row">
         <div class="badge-icon warning"><ha-icon icon="mdi:weather-cloudy-alert"></ha-icon></div>
         <span class="stack grow">
           <span class="strong">${e("weather.unavailable")}</span>
@@ -3372,7 +3502,7 @@ var Ye = "0.1.2", $ = class extends W {
 			bonus: n.heat_bonus_pct,
 			temp: n.temperature_c ?? ""
 		}) : e("weather.adjusted");
-		return P`<div class="tile"><div class="row">
+		return N`<div class="tile"><div class="row">
       <div class="badge-icon warning"><ha-icon icon=${i || r ? "mdi:weather-rainy" : "mdi:weather-partly-cloudy"}></ha-icon></div>
       <span class="stack grow">
         <span class="strong">${a}</span>
@@ -3386,7 +3516,7 @@ var Ye = "0.1.2", $ = class extends W {
 	}
 	_faultBanners(e) {
 		let t = this._t;
-		return e.filter((e) => e.fault).map((e) => P`<div class="tile" role="alert"><div class="row">
+		return e.filter((e) => e.fault).map((e) => N`<div class="tile" role="alert"><div class="row">
           <div class="badge-icon error"><ha-icon icon="mdi:valve-closed"></ha-icon></div>
           <span class="stack grow">
             <span class="strong">${t("safety.failed", { zone: e.name })}</span>
@@ -3400,9 +3530,22 @@ var Ye = "0.1.2", $ = class extends W {
           </button>
         </div></div>`);
 	}
+	_unexpectedBanner(e) {
+		let t = this._t, n = new Set(e.map((e) => e.id)), r = Date.now() - 864e5, i = [...this._state.history].reverse().find((e) => e.kind === "unexpected" && n.has(e.zone_id) && new Date(e.started).getTime() >= r);
+		return i ? N`<div class="tile"><div class="row">
+      <div class="badge-icon warning"><ha-icon icon="mdi:alert-outline"></ha-icon></div>
+      <span class="stack grow">
+        <span class="strong">${t("unexpected.title", {
+			zone: e.find((e) => e.id === i.zone_id).name,
+			time: this._time(i.started)
+		})}</span>
+        <span class="tiny">${t("unexpected.detail")}</span>
+      </span>
+    </div></div>` : F;
+	}
 	_safetyBanner() {
 		let e = this._t, t = this._state.last_check;
-		if (!t || t.result === "failed") return I;
+		if (!t || t.result === "failed") return F;
 		let n = this._state.zones.find((e) => e.id === t.zone_id), r = this._time(t.time), i, a, o = "success";
 		return t.result === "sensor_unavailable" ? (i = e("safety.unavailable", { zone: t.zone_name }), a = e("safety.unavailable_detail", { time: r }), o = "warning") : t.retries > 0 ? (i = e("safety.retried", {
 			zone: t.zone_name,
@@ -3410,7 +3553,7 @@ var Ye = "0.1.2", $ = class extends W {
 		}), a = Te(e, "safety.retried_detail", t.retries, { s: n?.safety.retry_pulse_s ?? 5 }), o = "warning") : (i = e("safety.confirmed", {
 			zone: t.zone_name,
 			time: r
-		}), a = e("safety.confirmed_detail")), P`<div class="tile"><div class="row">
+		}), a = e("safety.confirmed_detail")), N`<div class="tile"><div class="row">
       <div class="badge-icon ${o}"><ha-icon icon="mdi:shield-check-outline"></ha-icon></div>
       <span class="stack grow">
         <span class="strong">${i}</span>
@@ -3420,9 +3563,9 @@ var Ye = "0.1.2", $ = class extends W {
 	}
 	_timeline(e, t, n) {
 		let r = this._t;
-		if (!e.length) return I;
+		if (!e.length) return F;
 		let i = [...t.values()].reduce((e, t) => e + Fe(t), 0), a = n.minutes / 1440 * 100, o = new Set([...t.values()].flat().map((e) => e.status.kind));
-		return P`<section class="tile" aria-labelledby="hx-today">
+		return N`<section class="tile" aria-labelledby="hx-today">
       <div class="row">
         <h2 id="hx-today" class="grow">${r("timeline.title")}</h2>
         <span class="small">${r("timeline.total", { min: i })}</span>
@@ -3430,14 +3573,14 @@ var Ye = "0.1.2", $ = class extends W {
       <div class="timeline">
         ${e.map((e) => {
 			let n = t.get(e.id) ?? [];
-			return P`<span class="label">${e.name}</span>
+			return N`<span class="label">${e.name}</span>
             <div class="track" role="img" aria-label=${r("timeline.label", {
 				zone: e.name,
 				count: n.length
 			})}>
               ${n.map((e) => {
 				let t = e.start / 1440 * 100, n = Math.max(e.adjusted, e.base) / 1440 * 100;
-				return P`<div
+				return N`<div
                   class="mark ${e.status.kind}"
                   style="left: ${t}%; width: ${n}%"
                   title="${ke(e.cycle.start_time, this._lang, this._h12)} · ${e.status.kind === "skipped" ? r(`zone.skip.${e.status.reason}`) : `${e.adjusted} min`}"
@@ -3454,13 +3597,13 @@ var Ye = "0.1.2", $ = class extends W {
 			12,
 			18,
 			24
-		].map((e) => P`<span>${Ae(e, this._lang, this._h12)}</span>`)}
+		].map((e) => N`<span>${Ae(e, this._lang, this._h12)}</span>`)}
         </div>
       </div>
       <div class="legend">
-        ${o.has("running") ? P`<span><span class="swatch running"></span>${r("timeline.running")}</span>` : I}
+        ${o.has("running") ? N`<span><span class="swatch running"></span>${r("timeline.running")}</span>` : F}
         <span><span class="swatch done"></span>${r("timeline.done")}</span>
-        ${o.has("skipped") ? P`<span><span class="swatch skipped"></span>${r("timeline.skipped")}</span>` : I}
+        ${o.has("skipped") ? N`<span><span class="swatch skipped"></span>${r("timeline.skipped")}</span>` : F}
         <span><span class="swatch"></span>${r("timeline.upcoming")}</span>
         <span><span class="swatch disabled"></span>${r("timeline.disabled")}</span>
         <span><span class="swatch nowline"></span>${r("timeline.now")}</span>
@@ -3472,37 +3615,41 @@ var Ye = "0.1.2", $ = class extends W {
 	}
 	_chips(e) {
 		let t = this._t, n = [];
-		if (e.fault && n.push(P`<span class="chip error">${t("zone.fault")}</span>`), e.running && n.push(P`<span class="chip success"><ha-icon icon="mdi:water"></ha-icon>${t("zone.running", { left: je(this._remaining(e)) })}</span>`), e.queued && n.push(P`<span class="chip warning">${t("zone.queued")}</span>`), e.checking && n.push(P`<span class="chip warning">${t("zone.checking")}</span>`), e.enabled || n.push(P`<span class="chip muted">${t("zone.disabled")}</span>`), e.next_run && !e.running) {
+		if (e.fault && n.push(N`<span class="chip error">${t("zone.fault")}</span>`), e.running && n.push(N`<span class="chip success"><ha-icon icon="mdi:water"></ha-icon>${t("zone.running", { left: je(this._remaining(e)) })}</span>`), e.external_open) {
+			let r = Math.max(0, (new Date(e.external_open.ends).getTime() - Date.now()) / 1e3);
+			n.push(N`<span class="chip warning"><ha-icon icon="mdi:alert-outline"></ha-icon>${t("zone.external", { left: je(r) })}</span>`);
+		}
+		if (e.queued && n.push(N`<span class="chip warning">${t("zone.queued")}</span>`), e.checking && n.push(N`<span class="chip warning">${t("zone.checking")}</span>`), e.enabled || n.push(N`<span class="chip muted">${t("zone.disabled")}</span>`), e.next_run && !e.running) {
 			let r = new Date(e.next_run.time), i = J(r, this._tz).dateKey === J(/* @__PURE__ */ new Date(), this._tz).dateKey, a = this._time(r), o = e.next_run.adjusted_duration_min, s = we(this.hass).long[J(r, this._tz).weekday], c = `zone.${i ? "next" : "next_day"}${o === 0 ? "_skipped" : ""}`;
-			n.push(P`<span class="chip ${o === 0 ? "muted" : ""}"><ha-icon icon="mdi:clock-outline"></ha-icon>${t(c, {
+			n.push(N`<span class="chip ${o === 0 ? "muted" : ""}"><ha-icon icon="mdi:clock-outline"></ha-icon>${t(c, {
 				time: a,
 				min: o,
 				day: s
 			})}</span>`);
-		} else !e.next_run && e.enabled && !e.running && n.push(P`<span class="chip muted">${t("zone.nothing")}</span>`);
+		} else !e.next_run && e.enabled && !e.running && n.push(N`<span class="chip muted">${t("zone.nothing")}</span>`);
 		if (this._state.settings.weather_entity) {
 			let r = e.weather;
-			r.skip || r.coefficient_pct === 0 ? n.push(P`<span class="chip warning"><ha-icon icon="mdi:weather-rainy"></ha-icon>${t("zone.weather_skip")}</span>`) : r.coefficient_pct !== 100 && n.push(P`<span class="chip warning">${t("zone.weather", { pct: r.coefficient_pct })}</span>`);
+			r.skip || r.coefficient_pct === 0 ? n.push(N`<span class="chip warning"><ha-icon icon="mdi:weather-rainy"></ha-icon>${t("zone.weather_skip")}</span>`) : r.coefficient_pct !== 100 && n.push(N`<span class="chip warning">${t("zone.weather", { pct: r.coefficient_pct })}</span>`);
 		}
 		return n;
 	}
 	_statusLabel(e) {
 		let t = this._t, n = e.status;
 		switch (n.kind) {
-			case "running": return P`<span class="status running">${t("zone.status.running")}</span>`;
-			case "done": return P`<span class="status"><ha-icon icon="mdi:check"></ha-icon>${t("zone.status.done")}</span>`;
-			case "skipped": return P`<span class="status skipped"><ha-icon icon="mdi:close"></ha-icon>${t(`zone.skip.${n.reason}`)}</span>`;
-			case "disabled": return P`<span class="status">${t("zone.status.disabled")}</span>`;
-			case "past": return P`<span class="status">—</span>`;
+			case "running": return N`<span class="status running">${t("zone.status.running")}</span>`;
+			case "done": return N`<span class="status"><ha-icon icon="mdi:check"></ha-icon>${t("zone.status.done")}</span>`;
+			case "skipped": return N`<span class="status skipped"><ha-icon icon="mdi:close"></ha-icon>${t(`zone.skip.${n.reason}`)}</span>`;
+			case "disabled": return N`<span class="status">${t("zone.status.disabled")}</span>`;
+			case "past": return N`<span class="status">—</span>`;
 			case "upcoming": {
 				let e;
-				return e = n.inMinutes < 60 ? t("zone.status.in_min", { m: n.inMinutes }) : n.startMinutes >= 1080 && n.inMinutes >= 180 ? t("zone.status.tonight") : t("zone.status.in_h", { h: Math.round(n.inMinutes / 60) }), P`<span class="status upcoming">${e}</span>`;
+				return e = n.inMinutes < 60 ? t("zone.status.in_min", { m: n.inMinutes }) : n.startMinutes >= 1080 && n.inMinutes >= 180 ? t("zone.status.tonight") : t("zone.status.in_h", { h: Math.round(n.inMinutes / 60) }), N`<span class="status upcoming">${e}</span>`;
 			}
 		}
 	}
 	_zoneCard(e, t) {
-		let n = this._t, r = e.running || e.queued;
-		return P`<section class="tile" aria-labelledby="hx-zone-${e.id}">
+		let n = this._t, r = e.running || e.queued || !!e.external_open;
+		return N`<section class="tile" aria-labelledby="hx-zone-${e.id}">
       <div class="row">
         <div class="badge-icon"><ha-icon .icon=${e.icon}></ha-icon></div>
         <span class="stack grow">
@@ -3525,26 +3672,32 @@ var Ye = "0.1.2", $ = class extends W {
       </div>
       <div class="chips">${this._chips(e)}</div>
       <div class="cycles">
-        ${t.length ? t.map((e) => {
-			let t = [
+        ${t.length ? t.map((t) => {
+			let r = [
 				"done",
 				"past",
 				"disabled",
 				"skipped"
-			].includes(e.status.kind), n = e.adjusted !== e.base && e.status.kind !== "skipped";
-			return P`<div class="cycle-row ${t ? "muted" : ""}">
-                <span class="time">${ke(e.cycle.start_time, this._lang, this._h12)}</span>
+			].includes(t.status.kind), i = t.adjusted !== t.base && t.status.kind !== "skipped", a = n("zone.capped", { cutoff: e.max_runtime_min });
+			return N`<div class="cycle-row ${r ? "muted" : ""}">
+                <span class="time">${ke(t.cycle.start_time, this._lang, this._h12)}</span>
                 <span class="dur">
-                  ${e.status.kind === "skipped" ? P`<s>${e.base} min</s>` : P`${n ? P`<s>${e.base} min</s>` : I}<b>${n ? e.adjusted : e.base} min</b>`}
+                  ${t.status.kind === "skipped" ? N`<s>${t.base} min</s>` : N`${i ? N`<s>${t.base} min</s>` : F}<b>${i ? t.adjusted : t.base} min</b>${t.capped ? N`<ha-icon
+                            class="capped"
+                            icon="mdi:alert-outline"
+                            role="img"
+                            aria-label=${a}
+                            title=${a}
+                          ></ha-icon>` : F}`}
                 </span>
-                ${this._statusLabel(e)}
+                ${this._statusLabel(t)}
               </div>`;
-		}) : P`<div class="cycle-row muted"><span class="small" style="grid-column: 1 / -1">${n("zone.no_cycle_today")}</span></div>`}
+		}) : N`<div class="cycle-row muted"><span class="small" style="grid-column: 1 / -1">${n("zone.no_cycle_today")}</span></div>`}
       </div>
-      ${this._runFor === e.id ? this._runPicker(e) : P`<div class="actions">
-        ${r ? P`<button type="button" class="btn grow" @click=${() => this._call("zone/stop", { zone_id: e.id })}>
+      ${this._runFor === e.id ? this._runPicker(e) : N`<div class="actions">
+        ${r ? N`<button type="button" class="btn grow" @click=${() => this._call("zone/stop", { zone_id: e.id })}>
               <ha-icon icon="mdi:stop"></ha-icon>${n("zone.stop")}
-            </button>` : P`<button
+            </button>` : N`<button
               type="button"
               class="btn primary grow"
               ?disabled=${e.fault}
@@ -3552,16 +3705,16 @@ var Ye = "0.1.2", $ = class extends W {
 			this._runFor = e.id, this._runMinutes = Math.min(e.cycles.find((e) => e.enabled)?.duration_min ?? 10, e.max_runtime_min);
 		}}
             ><ha-icon icon="mdi:play"></ha-icon>${n("zone.water_now")}</button>`}
-        ${this._isAdmin ? P`<button type="button" class="btn" @click=${() => this._view = {
+        ${this._isAdmin ? N`<button type="button" class="btn" @click=${() => this._view = {
 			name: "zone",
 			id: e.id
-		}}>${n("zone.edit")}</button>` : I}
+		}}>${n("zone.edit")}</button>` : F}
       </div>`}
     </section>`;
 	}
 	_runPicker(e) {
 		let t = this._t, n = (t) => this._runMinutes = Math.min(e.max_runtime_min, Math.max(1, t));
-		return P`<div class="row" style="flex-wrap: wrap">
+		return N`<div class="row" style="flex-wrap: wrap">
       <span class="strong">${t("zone.duration")}</span>
       <span class="stepper">
         <button type="button" aria-label=${t("editor.decrease", { what: t("zone.duration") })} @click=${() => n(this._runMinutes - 1)}>−</button>

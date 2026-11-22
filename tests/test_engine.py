@@ -16,6 +16,7 @@ from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import (
     async_capture_events,
     async_fire_time_changed,
+    async_mock_service,
     setup_test_component_platform,
 )
 
@@ -253,7 +254,9 @@ async def test_duration_capped_by_max_runtime(
 async def test_valve_opened_elsewhere_is_cut_off(
     hass: HomeAssistant, freezer: FrozenDateTimeFactory, started: MockValve
 ) -> None:
-    """Valve switched on by hand: closed after max_runtime anyway."""
+    """'Allow' mode: a valve switched on by hand closes after max_runtime."""
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    entry.runtime_data.external_mode = "allow"
     await hass.services.async_call(
         "switch", "turn_on", {"entity_id": VALVE}, blocking=True
     )
@@ -325,3 +328,52 @@ async def test_unload_closes_valve(hass: HomeAssistant, started: MockValve) -> N
     assert await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()
     assert hass.states.get(VALVE).state == STATE_OFF
+
+
+async def test_unexpected_opening_closed_at_once(
+    hass: HomeAssistant, freezer: FrozenDateTimeFactory, started: MockValve
+) -> None:
+    """Default: a valve switched on outside hydraXoo is closed and reported."""
+    events = async_capture_events(hass, "hydraxoo_unexpected_open")
+    phone = async_mock_service(hass, "notify", "mobile_app_pixel")
+    engine = hass.config_entries.async_entries(DOMAIN)[0].runtime_data
+    engine.notify_services = ["mobile_app_pixel"]
+
+    await hass.services.async_call(
+        "switch", "turn_on", {"entity_id": VALVE}, blocking=True
+    )
+    await hass.async_block_till_done()
+    assert hass.states.get(VALVE).state == STATE_OFF
+    assert events[0].data["zone_name"] == "Lawn"
+    assert engine.history[-1]["kind"] == "unexpected"
+    assert "Lawn" in phone[0].data["message"]
+    assert "priority" not in phone[0].data["data"]  # closed already: not urgent
+
+    # A relay switching itself on again right away: closed again, no new alert
+    await hass.services.async_call(
+        "switch", "turn_on", {"entity_id": VALVE}, blocking=True
+    )
+    await hass.async_block_till_done()
+    assert hass.states.get(VALVE).state == STATE_OFF
+    assert len(events) == 2
+    assert len(phone) == 1
+    # ...but a new alert after 10 minutes
+    await _go_to(hass, freezer, MONDAY_0559 + timedelta(minutes=11))
+    await hass.services.async_call(
+        "switch", "turn_on", {"entity_id": VALVE}, blocking=True
+    )
+    await hass.async_block_till_done()
+    assert len(phone) == 2
+
+
+async def test_own_watering_not_taken_for_unexpected(
+    hass: HomeAssistant, started: MockValve
+) -> None:
+    """hydraXoo's own openings are never closed as unexpected."""
+    events = async_capture_events(hass, "hydraxoo_unexpected_open")
+    await hass.services.async_call(
+        DOMAIN, "run_zone", {"zone": _zone_device(hass), "duration": 3}, blocking=True
+    )
+    await hass.async_block_till_done()
+    assert hass.states.get(VALVE).state == STATE_ON
+    assert events == []

@@ -83,7 +83,9 @@
       "zone_disabled": "Skipped · zone off",
       "fault": "Skipped · fault",
       "stopped": "Skipped · stopped"
-    }
+    },
+    "external": "Open outside hydraXoo · closes in {left}",
+    "capped": "Limited to {cutoff} min by the safety cut-off"
   },
   "new_zone": "New zone",
   "editor": {
@@ -172,7 +174,9 @@
     "no_rain_desc": "Greenhouse, covered area: rain is ignored",
     "weather_title": "Weather",
     "rain_hint": "Duration adjusted to the rain fallen and expected",
-    "no_rain_detail": "Rain ignored: only heat can change the duration"
+    "no_rain_detail": "Rain ignored: only heat can change the duration",
+    "cutoff_warning": "This cycle will be stopped after {cutoff} min by the safety cut-off. For it to last {min} min, raise the safety cut-off.",
+    "raise_cutoff": "Set the cut-off to {min} min"
   },
   "days": {
     "short": [
@@ -222,6 +226,15 @@
     "test": "Send a test notification",
     "test_sent": "Test notification sent.",
     "test_failed": "Could not send to: {names}",
-    "advanced": "Advanced settings of the integration"
+    "advanced": "Advanced settings of the integration",
+    "external": "Valve switched on outside hydraXoo",
+    "external_close": "Close it at once",
+    "external_close_desc": "Treated as a fault and reported",
+    "external_allow": "Leave it open",
+    "external_allow_desc": "Closed by the safety cut-off"
+  },
+  "unexpected": {
+    "title": "{zone}: unexpected opening at {time}",
+    "detail": "The valve was switched on outside hydraXoo and has been closed."
   }
 }

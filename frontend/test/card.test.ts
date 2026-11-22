@@ -71,6 +71,17 @@ describe("dashboard", () => {
     expect(root(card).querySelectorAll(".track .now").length).toBe(2);
   });
 
+  it("shows the real duration of a cycle cut short by the safety cut-off", async () => {
+    const zone = makeZone({ max_runtime_min: 5, weather: { ...makeZone().weather, coefficient_pct: 100 } });
+    const card = await mount(makeHass(makeState({ zones: [zone] })));
+    const row = [...root(card).querySelectorAll(".cycle-row")][1]; // 13:00, 5 min: not capped
+    expect(row.querySelector("ha-icon.capped")).toBeNull();
+    const evening = [...root(card).querySelectorAll(".cycle-row")][2]; // 20:30, 12 min (disabled)
+    const icon = evening.querySelector("ha-icon.capped")!;
+    expect(icon.getAttribute("aria-label")).toBe("Limité à 5 min par la coupure de sécurité");
+    expect(evening.textContent).toMatch(/12 min.*5 min/);
+  });
+
   it("shows skipped cycles differently from finished ones", async () => {
     const state = makeState();
     state.history.push({
@@ -352,6 +363,37 @@ describe("zone settings", () => {
     expect(hass.callWS.mock.calls[0][0].zone.receives_rain).toBe(false);
   });
 
+  it("warns when a cycle is longer than the safety cut-off, and fixes it", async () => {
+    const zone = makeZone({ max_runtime_min: 5 });
+    const hass = makeHass(makeState({ zones: [zone] }));
+    const card = await mount(hass);
+    buttonByText(root(card), "Modifier").click();
+    const el = await form(card);
+    const scope = el.shadowRoot!;
+    // Cycle 1 lasts 15 min: warning, and saving is still possible
+    const warning = scope.querySelector(".warning-box")!;
+    expect(warning.textContent).toContain("arrêté au bout de 5 min");
+    expect(warning.textContent).toContain("Pour qu'il dure 15 min");
+    buttonByText(warning, "Passer la coupure à 15 min").click();
+    await el.updateComplete;
+    expect(scope.querySelectorAll(".warning-box").length).toBe(0);
+    expect(scope.textContent).toContain("15 min");
+    buttonByText(scope, "Enregistrer").click();
+    await vi.waitFor(() => expect(hass.callWS).toHaveBeenCalled());
+    expect(hass.callWS.mock.calls[0][0].zone.max_runtime_min).toBe(15);
+  });
+
+  it("lets a cycle go past the cut-off with only a warning", async () => {
+    const zone = makeZone({ max_runtime_min: 5 });
+    const hass = makeHass(makeState({ zones: [zone] }));
+    const card = await mount(hass);
+    buttonByText(root(card), "Modifier").click();
+    const el = await form(card);
+    buttonByText(el.shadowRoot!, "Enregistrer").click();
+    await vi.waitFor(() => expect(hass.callWS).toHaveBeenCalled());
+    expect(el.shadowRoot!.querySelector('[role="alert"]')).toBeNull();
+  });
+
   it("adds and deletes cycles", async () => {
     const hass = makeHass(makeState());
     const card = await mount(hass);
@@ -425,6 +467,13 @@ describe("new zone", () => {
     });
   });
 
+  it("proposes a 5 minute safety cut-off", async () => {
+    const card = await mount(makeHass(makeState()));
+    buttonByText(root(card), "Nouvelle zone").click();
+    const el = await form(card);
+    expect((el as any)._draft.max_runtime_min).toBe(5);
+  });
+
   it("requires a name and a valve", async () => {
     const hass = makeHass(makeState());
     const card = await mount(hass);
@@ -434,6 +483,33 @@ describe("new zone", () => {
     await el.updateComplete;
     expect(el.shadowRoot!.querySelector('[role="alert"]')!.textContent).toContain("Saisissez un nom");
     expect(hass.callWS).not.toHaveBeenCalled();
+  });
+});
+
+describe("valve opened outside hydraXoo", () => {
+  it("reports an unexpected opening that was closed", async () => {
+    const state = makeState();
+    state.history.push({
+      zone_id: "z1",
+      kind: "unexpected",
+      cycle_id: null,
+      started: "2026-11-23T09:30:00+00:00",
+      reason: "unexpected_open",
+    });
+    const card = await mount(makeHass(state));
+    expect(text(card)).toContain("Potager : ouverture non commandée à 10:30");
+    expect(text(card)).toContain("a été refermée");
+  });
+
+  it("shows an allowed opening with its countdown and a stop button", async () => {
+    const zone = makeZone({
+      external_open: { since: "2026-11-23T09:38:00Z", ends: "2026-11-23T10:08:00Z" },
+    });
+    const hass = makeHass(makeState({ zones: [zone] }));
+    const card = await mount(hass);
+    expect(text(card)).toContain("Ouverte hors hydraXoo · fermeture dans 28:00");
+    buttonByText(root(card), "Arrêter").click();
+    expect(hass.callWS).toHaveBeenCalledWith({ type: "hydraxoo/zone/stop", zone_id: "z1" });
   });
 });
 
@@ -473,6 +549,7 @@ describe("general settings", () => {
       rain_sensor: null,
       sequential: false,
       notify_services: ["mobile_app_iphone_de_phil", "mobile_app_ipad_de_philippe"],
+      external_open: "close",
     });
   });
 
@@ -489,6 +566,17 @@ describe("general settings", () => {
     );
     await el.updateComplete;
     await vi.waitFor(() => expect(scope.textContent).toContain("Notification de test envoyée."));
+  });
+
+  it("lets the admin leave valves opened outside hydraXoo", async () => {
+    const hass = makeHass(makeState());
+    const { scope, el } = await openSettings(hass);
+    expect(scope.textContent).toContain("Vanne allumée hors hydraXoo");
+    buttonByText(scope, "La laisser ouverte").click();
+    await el.updateComplete;
+    buttonByText(scope, "Enregistrer").click();
+    await vi.waitFor(() => expect(hass.callWS).toHaveBeenCalled());
+    expect(hass.callWS.mock.calls[0][0].external_open).toBe("allow");
   });
 
   it("pauses for 3 days at once", async () => {

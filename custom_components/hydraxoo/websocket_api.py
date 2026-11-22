@@ -8,6 +8,7 @@ apply at once: nothing is reloaded.
 from __future__ import annotations
 
 import re
+from datetime import timedelta
 from typing import Any
 
 import voluptuous as vol
@@ -17,6 +18,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    CONF_EXTERNAL_OPEN,
     CONF_NOTIFY_SERVICES,
     CONF_RAIN_SENSOR,
     CONF_SEQUENCE_MODE,
@@ -24,6 +26,8 @@ from .const import (
     DEFAULT_ICON,
     DEFAULT_MAX_RUNTIME,
     DOMAIN,
+    EXTERNAL_ALLOW,
+    EXTERNAL_CLOSE,
     MAX_PAUSE_DAYS,
     MAX_RUNTIME_LIMIT,
     MODE_PARALLEL,
@@ -187,7 +191,10 @@ def serialize(hass: HomeAssistant, engine: HydraxooEngine) -> dict[str, Any]:
                     "time": nxt[0].isoformat(),
                     "cycle_id": nxt[1].id,
                     "duration_min": nxt[1].duration_min,
-                    "adjusted_duration_min": result.adjust(nxt[1].duration_min),
+                    # What will really run: never more than the safety cut-off
+                    "adjusted_duration_min": min(
+                        result.adjust(nxt[1].duration_min), zone.max_runtime_min
+                    ),
                 },
                 "last_check": None
                 if last is None
@@ -196,6 +203,14 @@ def serialize(hass: HomeAssistant, engine: HydraxooEngine) -> dict[str, Any]:
                     "retries": last.retries,
                     "power_w": last.power_w,
                     "time": last.finished.isoformat(),
+                },
+                "external_open": None
+                if (since := engine.external_open.get(zone.id)) is None
+                else {
+                    "since": since.isoformat(),
+                    "ends": (
+                        since + timedelta(minutes=zone.max_runtime_min)
+                    ).isoformat(),
                 },
                 "switch": friendly(zone.switch_entity),
                 "power": friendly(zone.power_entity),
@@ -217,6 +232,7 @@ def serialize(hass: HomeAssistant, engine: HydraxooEngine) -> dict[str, Any]:
             "rain_sensor": engine.weather.rain_sensor,
             "rain_name": (friendly(engine.weather.rain_sensor) or {}).get("name"),
             "notify_services": list(engine.notify_services),
+            "external_open": engine.external_mode,
             "notify_options": notify_options(hass),
             "sequential": engine.sequential,
             "paused": engine.paused,
@@ -305,11 +321,6 @@ async def ws_save_zone(
         data = ZONE_SCHEMA(msg["zone"])
     except vol.Invalid as err:
         connection.send_error(msg["id"], "invalid_format", str(err))
-        return
-    if any(c["duration_min"] > data["max_runtime_min"] for c in data["cycles"]):
-        connection.send_error(
-            msg["id"], "duration_exceeds_max", "A cycle exceeds the safety cut-off"
-        )
         return
     if data.get("id") and data["id"] not in engine.zones:
         connection.send_error(msg["id"], "not_found", "Unknown zone")
@@ -449,6 +460,7 @@ async def ws_resume(hass, connection, msg) -> None:
         vol.Optional("rain_sensor"): vol.Any(None, cv.entity_domain("sensor")),
         vol.Optional("sequential"): cv.boolean,
         vol.Optional("notify_services"): [cv.string],
+        vol.Optional("external_open"): vol.In([EXTERNAL_CLOSE, EXTERNAL_ALLOW]),
     }
 )
 @websocket_api.require_admin
@@ -472,6 +484,8 @@ async def ws_save_settings(hass, connection, msg) -> None:
         )
     if "notify_services" in msg:
         options[CONF_NOTIFY_SERVICES] = msg["notify_services"]
+    if "external_open" in msg:
+        options[CONF_EXTERNAL_OPEN] = msg["external_open"]
     options = {k: v for k, v in options.items() if v is not None}
     # Engine first: the entry's update listener then sees nothing to reload.
     await engine.async_apply_settings(options)

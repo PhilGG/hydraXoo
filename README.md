@@ -147,7 +147,9 @@ A zone that **does not receive rain** ignores steps 1 and 2: only the heat bonus
 
 ## Safety
 
-**Safety cut-off** (per zone, 30 min by default): the valve is always closed after this time, even if it was switched on outside hydraXoo.
+**Safety cut-off** (per zone, 5 min by default — raise it for longer cycles): the valve is always closed after this time, whatever happens. A cycle longer than the cut-off is accepted but stopped at the cut-off: the card warns about it in the zone settings (with a button to raise the cut-off) and shows ⚠ next to the real duration on the dashboard.
+
+**Valve switched on outside hydraXoo**: valves should only be opened by hydraXoo. By default such an opening is **closed at once**, checked, shown on the card ("unexpected opening at 10:42") and sent to the chosen phones (at most one alert per zone every 10 minutes; event `hydraxoo_unexpected_open`). If you use the plug's own button on purpose, choose *Leave it open* in **General settings**: the valve then stays open until the safety cut-off, with a countdown and a Stop button on the card.
 
 **Valve-closing check** — active when the zone has a power sensor. An open solenoid valve draws power, so after each closing hydraXoo:
 
@@ -208,6 +210,7 @@ Events:
 | `hydraxoo_cycle_skipped` | `zone_id`, `zone_name`, `cycle_id`, `reason` (`weather`, `paused`, `zone_disabled`, `fault`, `stopped`), `weather` (details) |
 | `hydraxoo_safety_retry` | `zone_id`, `zone_name`, `attempt`, `max_attempts`, `power_w` |
 | `hydraxoo_safety_failed` | `zone_id`, `zone_name`, `attempts`, `power_w` |
+| `hydraxoo_unexpected_open` | `zone_id`, `zone_name` |
 
 ## Automation examples
 

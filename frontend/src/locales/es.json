@@ -83,7 +83,9 @@
       "zone_disabled": "Omitido · zona inactiva",
       "fault": "Omitido · fallo",
       "stopped": "Omitido · detenido"
-    }
+    },
+    "external": "Abierta fuera de hydraXoo · se cierra en {left}",
+    "capped": "Limitado a {cutoff} min por el corte de seguridad"
   },
   "new_zone": "Nueva zona",
   "editor": {
@@ -172,7 +174,9 @@
     "no_rain_desc": "Invernadero, zona cubierta: se ignora la lluvia",
     "weather_title": "Meteorología",
     "rain_hint": "Duración ajustada a la lluvia caída y prevista",
-    "no_rain_detail": "Lluvia ignorada: solo el calor puede cambiar la duración"
+    "no_rain_detail": "Lluvia ignorada: solo el calor puede cambiar la duración",
+    "cutoff_warning": "Este ciclo se detendrá a los {cutoff} min por el corte de seguridad. Para que dure {min} min, aumente el corte de seguridad.",
+    "raise_cutoff": "Poner el corte en {min} min"
   },
   "days": {
     "short": [
@@ -222,6 +226,15 @@
     "test": "Enviar una notificación de prueba",
     "test_sent": "Notificación de prueba enviada.",
     "test_failed": "No se pudo enviar a: {names}",
-    "advanced": "Ajustes avanzados de la integración"
+    "advanced": "Ajustes avanzados de la integración",
+    "external": "Válvula encendida fuera de hydraXoo",
+    "external_close": "Cerrarla al instante",
+    "external_close_desc": "Tratado como fallo y avisado",
+    "external_allow": "Dejarla abierta",
+    "external_allow_desc": "La cierra el corte de seguridad"
+  },
+  "unexpected": {
+    "title": "{zone}: apertura no ordenada a las {time}",
+    "detail": "La válvula se encendió fuera de hydraXoo y se ha cerrado."
   }
 }

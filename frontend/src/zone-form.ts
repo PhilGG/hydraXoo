@@ -26,7 +26,7 @@ function emptyZone(): ZoneConfig {
     enabled: true,
     switch_entity: "",
     power_entity: null,
-    max_runtime_min: 30,
+    max_runtime_min: 5,
     receives_rain: true,
     safety: { ...DEFAULT_SAFETY },
     weather_rules: { ...DEFAULT_WEATHER },
@@ -335,10 +335,26 @@ export class HydraxooZoneForm extends LitElement {
             />
             <span class="grow"></span>
             ${this._stepper(c.duration_min, {
-              min: 1, max: this._draft.max_runtime_min, unit: "min",
+              min: 1, max: 240, unit: "min",
               what: t("editor.duration_of", { n }),
             }, (v) => this._setCycle(i, { duration_min: v }))}
           </div>
+          ${c.duration_min > this._draft.max_runtime_min
+            ? html`<div class="warning-box" role="status">
+                <ha-icon icon="mdi:alert-outline"></ha-icon>
+                <span class="stack grow">
+                  <span>${t("editor.cutoff_warning", {
+                    cutoff: this._draft.max_runtime_min,
+                    min: c.duration_min,
+                  })}</span>
+                  <button
+                    type="button"
+                    class="link-button"
+                    @click=${() => this._set({ max_runtime_min: c.duration_min })}
+                  >${t("editor.raise_cutoff", { min: c.duration_min })}</button>
+                </span>
+              </div>`
+            : nothing}
           <div class="days">
             ${weekOrder(this.hass).map((day) => {
               const letter = days.short[day];
@@ -375,7 +391,7 @@ export class HydraxooZoneForm extends LitElement {
     const cycle: Cycle = {
       enabled: true,
       start_time: last ? last.start_time : "06:00",
-      duration_min: Math.min(10, this._draft.max_runtime_min),
+      duration_min: Math.min(5, this._draft.max_runtime_min),
       weekdays: [0, 1, 2, 3, 4, 5, 6],
     };
     this._set({ cycles: [...this._draft.cycles, cycle] });
@@ -454,8 +470,6 @@ export class HydraxooZoneForm extends LitElement {
     if (!d.name.trim()) return t("editor.errors.name");
     if (!d.switch_entity) return t("editor.errors.switch");
     if (d.cycles.some((c) => c.weekdays.length === 0)) return t("editor.errors.no_day");
-    if (d.cycles.some((c) => c.duration_min > d.max_runtime_min))
-      return t("editor.errors.duration_exceeds_max");
     return "";
   }
 

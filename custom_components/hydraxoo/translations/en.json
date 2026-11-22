@@ -8,13 +8,15 @@
           "weather_entity": "Weather entity",
           "rain_sensor": "Rain sensor (optional)",
           "sequence_mode": "Watering order",
-          "notify_services": "Mobile notifications"
+          "notify_services": "Mobile notifications",
+          "external_open": "When a valve is switched on outside hydraXoo"
         },
         "data_description": {
           "weather_entity": "Optional. Used to adjust watering to rain and heat; hourly forecasts give the best results.",
           "rain_sensor": "Cumulative rain gauge in mm. Without it, the rain fallen is estimated from the hourly forecast.",
           "sequence_mode": "With one zone at a time, a watering that comes up while another zone is watering waits its turn.",
-          "notify_services": "Phones (Home Assistant app) alerted with high priority when a valve stays open despite the retries. The alert is removed once acknowledged."
+          "notify_services": "Phones (Home Assistant app) alerted with high priority when a valve stays open despite the retries. The alert is removed once acknowledged.",
+          "external_open": "Valves should only be opened by hydraXoo: by default such an opening is closed at once and reported."
         }
       }
     },
@@ -39,13 +41,15 @@
           "weather_entity": "Weather entity",
           "sequence_mode": "Watering order",
           "rain_sensor": "Rain sensor (optional)",
-          "notify_services": "Mobile notifications"
+          "notify_services": "Mobile notifications",
+          "external_open": "When a valve is switched on outside hydraXoo"
         },
         "data_description": {
           "sequence_mode": "With one zone at a time, a watering that comes up while another zone is watering waits its turn.",
           "rain_sensor": "Cumulative rain gauge in mm. Without it, the rain fallen is estimated from the hourly forecast.",
           "weather_entity": "Optional. Used to adjust watering to rain and heat; hourly forecasts give the best results.",
-          "notify_services": "Phones (Home Assistant app) alerted with high priority when a valve stays open despite the retries. The alert is removed once acknowledged."
+          "notify_services": "Phones (Home Assistant app) alerted with high priority when a valve stays open despite the retries. The alert is removed once acknowledged.",
+          "external_open": "Valves should only be opened by hydraXoo: by default such an opening is closed at once and reported."
         }
       },
       "add_zone": {
@@ -66,7 +70,8 @@
           "switch_entity": "The plug or relay that opens the solenoid valve.",
           "max_runtime_min": "The valve is always closed after this time, whatever happens.",
           "power_entity": "Consumption of the plug, in W. When set, hydraXoo checks after each closing that the valve really closed.",
-          "receives_rain": "Turn off for a zone sheltered from rain (greenhouse, covered area): rain is ignored, the heat bonus still applies."
+          "receives_rain": "Turn off for a zone sheltered from rain (greenhouse, covered area): rain is ignored, the heat bonus still applies.",
+          "duration_min": "If longer than the safety cut-off, watering stops at the cut-off."
         },
         "sections": {
           "safety": {
@@ -187,6 +192,9 @@
           "start_time": "Start time",
           "duration_min": "Duration",
           "weekdays": "Days"
+        },
+        "data_description": {
+          "duration_min": "If longer than the safety cut-off, watering stops at the cut-off."
         }
       },
       "pick_cycle": {
@@ -202,6 +210,9 @@
           "start_time": "Start time",
           "duration_min": "Duration",
           "weekdays": "Days"
+        },
+        "data_description": {
+          "duration_min": "If longer than the safety cut-off, watering stops at the cut-off."
         }
       },
       "remove_cycle": {
@@ -234,6 +245,12 @@
       "options": {
         "sequential": "One zone at a time",
         "parallel": "Zones in parallel"
+      }
+    },
+    "external_open": {
+      "options": {
+        "close": "Close it at once (fault)",
+        "allow": "Leave it until the safety cut-off"
       }
     }
   },
@@ -344,6 +361,12 @@
     },
     "test_notification": {
       "message": "Valve alerts will arrive like this one."
+    },
+    "unexpected_open_title": {
+      "message": "hydraXoo: valve {zone} opened unexpectedly"
+    },
+    "unexpected_open": {
+      "message": "Zone {zone}: the valve was switched on outside hydraXoo and has been closed. Check what switched the plug on."
     }
   }
 }

@@ -147,7 +147,9 @@ Une zone qui **ne reçoit pas la pluie** ignore les étapes 1 et 2 : seul le bon
 
 ## Sécurité
 
-**Coupure de sécurité** (par zone, 30 min par défaut) : la vanne est toujours fermée après ce délai, même si elle a été ouverte en dehors de hydraXoo.
+**Coupure de sécurité** (par zone, 5 min par défaut — à augmenter pour des cycles plus longs) : la vanne est toujours fermée après ce délai, quoi qu'il arrive. Un cycle plus long que la coupure est accepté mais arrêté à la coupure : la carte le signale dans les réglages de la zone (avec un bouton pour augmenter la coupure) et affiche ⚠ à côté de la durée réelle sur le tableau de bord.
+
+**Vanne allumée hors hydraXoo** : les vannes ne devraient être ouvertes que par hydraXoo. Par défaut, une telle ouverture est **refermée immédiatement**, contrôlée, signalée sur la carte (« ouverture non commandée à 10:42 ») et envoyée aux téléphones choisis (au plus une alerte par zone toutes les 10 minutes ; événement `hydraxoo_unexpected_open`). Si vous vous servez volontairement du bouton de la prise, choisissez *La laisser ouverte* dans les **Réglages généraux** : la vanne reste alors ouverte jusqu'à la coupure de sécurité, avec un compte à rebours et un bouton Arrêter sur la carte.
 
 **Contrôle de fermeture** — actif quand la zone a un capteur de consommation. Une électrovanne ouverte consomme de l'électricité ; après chaque fermeture, hydraXoo :
 
@@ -208,6 +210,7 @@ Services :
 | `hydraxoo_cycle_skipped` | `zone_id`, `zone_name`, `cycle_id`, `reason` (`weather`, `paused`, `zone_disabled`, `fault`, `stopped`), `weather` (détails) |
 | `hydraxoo_safety_retry` | `zone_id`, `zone_name`, `attempt`, `max_attempts`, `power_w` |
 | `hydraxoo_safety_failed` | `zone_id`, `zone_name`, `attempts`, `power_w` |
+| `hydraxoo_unexpected_open` | `zone_id`, `zone_name` |
 
 ## Exemples d'automatisations
 

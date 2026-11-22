@@ -12,6 +12,12 @@ CONF_RAIN_SENSOR: Final = "rain_sensor"
 CONF_SEQUENCE_MODE: Final = "sequence_mode"
 # notify services (e.g. "mobile_app_pixel_8") alerted when a valve stays open
 CONF_NOTIFY_SERVICES: Final = "notify_services"
+# What to do when a valve is switched on outside hydraXoo
+CONF_EXTERNAL_OPEN: Final = "external_open"
+EXTERNAL_CLOSE: Final = "close"  # close at once: it is a fault (default)
+EXTERNAL_ALLOW: Final = "allow"  # leave it, the safety cut-off applies
+# At most one "unexpected opening" phone alert per zone in this time
+UNEXPECTED_NOTIFY_MINUTES: Final = 10
 MODE_SEQUENTIAL: Final = "sequential"  # one zone at a time (default)
 MODE_PARALLEL: Final = "parallel"
 
@@ -48,8 +54,8 @@ CONF_DURATION: Final = "duration_min"
 CONF_WEEKDAYS: Final = "weekdays"
 
 DEFAULT_ICON: Final = "mdi:sprinkler-variant"
-DEFAULT_MAX_RUNTIME: Final = 30
-DEFAULT_DURATION: Final = 10
+DEFAULT_MAX_RUNTIME: Final = 5
+DEFAULT_DURATION: Final = 5
 DEFAULT_START_TIME: Final = "06:00"
 MAX_RUNTIME_LIMIT: Final = 240
 
@@ -98,6 +104,7 @@ EVENT_CYCLE_FINISHED: Final = f"{DOMAIN}_cycle_finished"
 EVENT_CYCLE_SKIPPED: Final = f"{DOMAIN}_cycle_skipped"
 EVENT_SAFETY_RETRY: Final = f"{DOMAIN}_safety_retry"
 EVENT_SAFETY_FAILED: Final = f"{DOMAIN}_safety_failed"
+EVENT_UNEXPECTED_OPEN: Final = f"{DOMAIN}_unexpected_open"
 
 # Result of a closing check
 CHECK_CONFIRMED: Final = "confirmed"  # closed (possibly after retries)

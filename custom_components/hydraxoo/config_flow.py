@@ -19,6 +19,7 @@ from homeassistant.helpers import selector
 from .const import (
     CONF_CHECK_DELAY_S,
     CONF_DURATION,
+    CONF_EXTERNAL_OPEN,
     CONF_FORECAST_WINDOW_H,
     CONF_HEAT_BONUS_PCT,
     CONF_HEAT_THRESHOLD_C,
@@ -48,6 +49,8 @@ from .const import (
     DEFAULT_MAX_RUNTIME,
     DEFAULT_START_TIME,
     DOMAIN,
+    EXTERNAL_ALLOW,
+    EXTERNAL_CLOSE,
     MAX_RUNTIME_LIMIT,
     MODE_PARALLEL,
     MODE_SEQUENTIAL,
@@ -120,6 +123,16 @@ def _settings_schema(
                     options=notify,
                     multiple=True,
                     mode=selector.SelectSelectorMode.LIST,
+                )
+            ),
+            vol.Required(
+                CONF_EXTERNAL_OPEN,
+                default=defaults.get(CONF_EXTERNAL_OPEN, EXTERNAL_CLOSE),
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[EXTERNAL_CLOSE, EXTERNAL_ALLOW],
+                    mode=selector.SelectSelectorMode.LIST,
+                    translation_key="external_open",
                 )
             ),
         }
@@ -262,8 +275,8 @@ def _validate_cycle(user_input: dict[str, Any], max_runtime: int) -> dict[str, s
     errors: dict[str, str] = {}
     if not user_input.get(CONF_WEEKDAYS):
         errors[CONF_WEEKDAYS] = "no_weekday"
-    if int(user_input[CONF_DURATION]) > max_runtime:
-        errors[CONF_DURATION] = "duration_exceeds_max"
+    # A cycle longer than the safety cut-off is allowed: it is stopped at the
+    # cut-off (the field's help text says so; the card shows a warning).
     return errors
 
 

@@ -42,6 +42,7 @@ export function makeZone(overrides: Partial<Zone> = {}): Zone {
       adjusted_duration_min: 3,
     },
     last_check: null,
+    external_open: null,
     switch: { entity_id: "switch.vanne_potager", name: "Vanne potager", state: "off" },
     power: null,
     ...overrides,
@@ -57,6 +58,7 @@ export function makeState(overrides: Partial<HydraxooState> = {}): HydraxooState
       rain_sensor: null,
       rain_name: null,
       notify_services: ["mobile_app_iphone_de_phil"],
+      external_open: "close",
       notify_options: [
         { value: "mobile_app_iphone_de_phil", label: "iPhone de Phil" },
         { value: "mobile_app_ipad_de_philippe", label: "iPad de Philippe" },

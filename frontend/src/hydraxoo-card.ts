@@ -26,7 +26,7 @@ type View =
   | { name: "new" }
   | { name: "settings" };
 
-const VERSION = "0.1.2";
+const VERSION = "0.1.3";
 
 export class HydraxooCard extends LitElement {
   static properties = {
@@ -80,7 +80,7 @@ export class HydraxooCard extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     this._ticker = window.setInterval(() => {
-      if (this._state?.zones.some((z) => z.running)) this.requestUpdate();
+      if (this._state?.zones.some((z) => z.running || z.external_open)) this.requestUpdate();
     }, 1000);
   }
 
@@ -245,6 +245,7 @@ export class HydraxooCard extends LitElement {
       ${this._pauseBanner()}
       ${this._weatherBanner()}
       ${this._faultBanners(zones)}
+      ${this._unexpectedBanner(zones)}
       ${this._safetyBanner()}
       ${compact ? nothing : this._timeline(zones, perZone, zoned)}
       ${zones.map((z) => this._zoneCard(z, perZone.get(z.id) ?? []))}
@@ -338,6 +339,25 @@ export class HydraxooCard extends LitElement {
       );
   }
 
+  /** Latest valve opening not ordered by hydraXoo, in the last 24 hours. */
+  private _unexpectedBanner(zones: Zone[]) {
+    const t = this._t;
+    const ids = new Set(zones.map((z) => z.id));
+    const since = Date.now() - 24 * 3600 * 1000;
+    const last = [...this._state!.history]
+      .reverse()
+      .find((h) => h.kind === "unexpected" && ids.has(h.zone_id) && new Date(h.started).getTime() >= since);
+    if (!last) return nothing;
+    const zone = zones.find((z) => z.id === last.zone_id)!;
+    return html`<div class="tile"><div class="row">
+      <div class="badge-icon warning"><ha-icon icon="mdi:alert-outline"></ha-icon></div>
+      <span class="stack grow">
+        <span class="strong">${t("unexpected.title", { zone: zone.name, time: this._time(last.started) })}</span>
+        <span class="tiny">${t("unexpected.detail")}</span>
+      </span>
+    </div></div>`;
+  }
+
   private _safetyBanner() {
     const t = this._t;
     const last = this._state!.last_check;
@@ -429,6 +449,10 @@ export class HydraxooCard extends LitElement {
     if (zone.fault) chips.push(html`<span class="chip error">${t("zone.fault")}</span>`);
     if (zone.running)
       chips.push(html`<span class="chip success"><ha-icon icon="mdi:water"></ha-icon>${t("zone.running", { left: formatClock(this._remaining(zone)) })}</span>`);
+    if (zone.external_open) {
+      const left = Math.max(0, (new Date(zone.external_open.ends).getTime() - Date.now()) / 1000);
+      chips.push(html`<span class="chip warning"><ha-icon icon="mdi:alert-outline"></ha-icon>${t("zone.external", { left: formatClock(left) })}</span>`);
+    }
     if (zone.queued) chips.push(html`<span class="chip warning">${t("zone.queued")}</span>`);
     if (zone.checking) chips.push(html`<span class="chip warning">${t("zone.checking")}</span>`);
     if (!zone.enabled) chips.push(html`<span class="chip muted">${t("zone.disabled")}</span>`);
@@ -483,7 +507,7 @@ export class HydraxooCard extends LitElement {
 
   private _zoneCard(zone: Zone, cycles: TodayCycle[]) {
     const t = this._t;
-    const busy = zone.running || zone.queued;
+    const busy = zone.running || zone.queued || !!zone.external_open;
     return html`<section class="tile" aria-labelledby="hx-zone-${zone.id}">
       <div class="row">
         <div class="badge-icon"><ha-icon .icon=${zone.icon}></ha-icon></div>
@@ -510,12 +534,21 @@ export class HydraxooCard extends LitElement {
           ? cycles.map((c) => {
               const muted = ["done", "past", "disabled", "skipped"].includes(c.status.kind);
               const changed = c.adjusted !== c.base && c.status.kind !== "skipped";
+              const cappedNote = t("zone.capped", { cutoff: zone.max_runtime_min });
               return html`<div class="cycle-row ${muted ? "muted" : ""}">
                 <span class="time">${formatHHMM(c.cycle.start_time, this._lang, this._h12)}</span>
                 <span class="dur">
                   ${c.status.kind === "skipped"
                     ? html`<s>${c.base} min</s>`
-                    : html`${changed ? html`<s>${c.base} min</s>` : nothing}<b>${changed ? c.adjusted : c.base} min</b>`}
+                    : html`${changed ? html`<s>${c.base} min</s>` : nothing}<b>${changed ? c.adjusted : c.base} min</b>${c.capped
+                        ? html`<ha-icon
+                            class="capped"
+                            icon="mdi:alert-outline"
+                            role="img"
+                            aria-label=${cappedNote}
+                            title=${cappedNote}
+                          ></ha-icon>`
+                        : nothing}`}
                 </span>
                 ${this._statusLabel(c)}
               </div>`;

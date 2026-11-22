@@ -104,6 +104,8 @@ export interface TodayCycle {
   start: number; // minutes since midnight
   base: number;
   adjusted: number;
+  /** Longer than the zone's safety cut-off: will be stopped at the cut-off. */
+  capped: boolean;
   status: CycleStatus;
 }
 
@@ -159,7 +161,9 @@ export function todayCycles(
       } else {
         status = { kind: "upcoming", inMinutes: start - now.minutes, startMinutes: start };
       }
-      return { cycle, start, base, adjusted, status };
+      const capped = adjusted > zone.max_runtime_min && status.kind !== "done";
+      if (capped) adjusted = zone.max_runtime_min;
+      return { cycle, start, base, adjusted, status, capped };
     })
     .sort((a, b) => a.start - b.start);
 }

@@ -549,6 +549,36 @@ export const styles = css`
   .cycle-card.off {
     opacity: 0.6;
   }
+  .warning-box {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--hx-warning-soft);
+    color: var(--hx-text);
+    font-size: 13px;
+    --mdc-icon-size: 20px;
+  }
+  .warning-box ha-icon,
+  ha-icon.capped {
+    color: var(--hx-warning);
+    flex-shrink: 0;
+  }
+  ha-icon.capped {
+    --mdc-icon-size: 16px;
+  }
+  .link-button {
+    align-self: flex-start;
+    min-height: 44px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--hx-primary);
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+  }
   .meter {
     height: 8px;
     border-radius: 4px;

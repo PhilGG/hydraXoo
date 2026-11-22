@@ -89,13 +89,15 @@ export interface Zone extends ZoneConfig {
     adjusted_duration_min: number;
   } | null;
   last_check: CheckInfo | null;
+  /** Valve switched on outside hydraXoo and left open ("allow" mode). */
+  external_open: { since: string; ends: string } | null;
   switch: EntityRef | null;
   power: EntityRef | null;
 }
 
 export interface HistoryItem {
   zone_id: string;
-  kind: "run" | "skipped";
+  kind: "run" | "skipped" | "unexpected";
   cycle_id: string | null;
   started: string;
   reason: string;
@@ -111,6 +113,7 @@ export interface HydraxooState {
     rain_sensor: string | null;
     rain_name: string | null;
     notify_services: string[];
+    external_open: "close" | "allow";
     notify_options: { value: string; label: string }[];
     sequential: boolean;
     paused: boolean;

@@ -45,6 +45,7 @@ from .const import (
     CHECK_CONFIRMED,
     CHECK_FAILED,
     CHECK_SENSOR_UNAVAILABLE,
+    CONF_EXTERNAL_OPEN,
     CONF_NOTIFY_SERVICES,
     CONF_RAIN_SENSOR,
     CONF_SEQUENCE_MODE,
@@ -62,6 +63,9 @@ from .const import (
     EVENT_CYCLE_STARTED,
     EVENT_SAFETY_FAILED,
     EVENT_SAFETY_RETRY,
+    EVENT_UNEXPECTED_OPEN,
+    EXTERNAL_ALLOW,
+    EXTERNAL_CLOSE,
     MODE_PARALLEL,
     MODE_SEQUENTIAL,
     REMAINING_REFRESH_SECONDS,
@@ -72,6 +76,7 @@ from .const import (
     SKIP_ZONE_DISABLED,
     SOURCE_MANUAL,
     SOURCE_SCHEDULE,
+    UNEXPECTED_NOTIFY_MINUTES,
 )
 from .models import Cycle, WeatherRules, Zone
 from .safety import CheckResult, ClosingCheck
@@ -126,6 +131,7 @@ class HydraxooEngine:
         weather_entity: str | None = None,
         rain_sensor: str | None = None,
         notify_services: list[str] | None = None,
+        external_open: str = EXTERNAL_CLOSE,
     ) -> None:
         """Initialize the engine."""
         self.hass = hass
@@ -147,6 +153,10 @@ class HydraxooEngine:
         self.weather_results: dict[str, WeatherResult] = {}
         # Phones (notify services) alerted when a valve cannot be closed
         self.notify_services: list[str] = list(notify_services or [])
+        # Valve switched on outside hydraXoo: close at once, or allow it
+        self.external_mode = external_open
+        self.external_open: dict[str, datetime] = {}  # allowed openings, by zone
+        self._unexpected_notified: dict[str, datetime] = {}
         self._pause_timer: CALLBACK_TYPE | None = None
         # Safety cut-off for valves switched on outside hydraXoo
         self._external_cutoff: dict[str, CALLBACK_TYPE] = {}
@@ -627,8 +637,11 @@ class HydraxooEngine:
                     # The device just came back and reports an open valve:
                     # same situation as finding it open at startup.
                     await self._async_close_interrupted(zone)
+                elif self.external_mode == EXTERNAL_CLOSE:
+                    await self._async_close_unexpected(zone)
                 else:
                     self._start_external_cutoff(zone)
+                    self._notify()
             elif new_value == STATE_OFF:
                 self._cancel_external_cutoff(zone.id)
                 run = self.runs.pop(zone.id, None)
@@ -643,9 +656,11 @@ class HydraxooEngine:
         """Valve opened by someone else: still close it after max_runtime."""
         if zone.id in self._external_cutoff:
             return
+        self.external_open[zone.id] = dt_util.utcnow()
 
         async def _async_cutoff(_now: datetime) -> None:
             self._external_cutoff.pop(zone.id, None)
+            self.external_open.pop(zone.id, None)
             _LOGGER.warning(
                 "Valve %s of zone %s open for %s min, closing it",
                 zone.switch_entity,
@@ -660,7 +675,50 @@ class HydraxooEngine:
             self.hass, zone.max_runtime_min * 60, _async_cutoff
         )
 
+    async def _async_close_unexpected(self, zone: Zone) -> None:
+        """A valve switched on outside hydraXoo is a fault: close it now."""
+        _LOGGER.warning(
+            "Valve %s of zone %s was switched on outside hydraXoo, closing it",
+            zone.switch_entity,
+            zone.name,
+        )
+        await self._async_switch(zone.switch_entity, SERVICE_TURN_OFF)
+        now = dt_util.utcnow()
+        self._record(
+            zone.id,
+            kind="unexpected",
+            cycle_id=None,
+            started=now.isoformat(),
+            reason="unexpected_open",
+        )
+        self._fire(EVENT_UNEXPECTED_OPEN, zone)
+        self._start_check(zone)
+        self._notify()
+        last = self._unexpected_notified.get(zone.id)
+        if last is None or now - last >= timedelta(minutes=UNEXPECTED_NOTIFY_MINUTES):
+            self._unexpected_notified[zone.id] = now
+            texts = await async_get_translations(
+                self.hass, self.hass.config.language, "exceptions", [DOMAIN]
+            )
+            prefix = f"component.{DOMAIN}.exceptions"
+            title = texts.get(f"{prefix}.unexpected_open_title.message", "hydraXoo")
+            message = texts.get(
+                f"{prefix}.unexpected_open.message",
+                "Zone {zone}: the valve was switched on outside hydraXoo and has been closed.",
+            )
+            await self._async_notify_phones(
+                {
+                    "title": title.format(zone=zone.name),
+                    "message": message.format(zone=zone.name),
+                    "data": {
+                        "tag": f"{DOMAIN}_unexpected_{zone.id}",
+                        "channel": "hydraXoo",
+                    },
+                }
+            )
+
     def _cancel_external_cutoff(self, zone_id: str) -> None:
+        self.external_open.pop(zone_id, None)
         cancel = self._external_cutoff.pop(zone_id, None)
         if cancel is not None:
             cancel()
@@ -881,6 +939,7 @@ class HydraxooEngine:
             CONF_RAIN_SENSOR: self.weather.rain_sensor,
             CONF_SEQUENCE_MODE: MODE_SEQUENTIAL if self.sequential else MODE_PARALLEL,
             CONF_NOTIFY_SERVICES: list(self.notify_services),
+            CONF_EXTERNAL_OPEN: self.external_mode,
         }
 
     def matches_options(self, options: dict[str, Any]) -> bool:
@@ -894,6 +953,11 @@ class HydraxooEngine:
                 else MODE_SEQUENTIAL
             ),
             CONF_NOTIFY_SERVICES: list(options.get(CONF_NOTIFY_SERVICES) or []),
+            CONF_EXTERNAL_OPEN: (
+                EXTERNAL_ALLOW
+                if options.get(CONF_EXTERNAL_OPEN) == EXTERNAL_ALLOW
+                else EXTERNAL_CLOSE
+            ),
         }
         return wanted == self.settings_options()
 
@@ -906,6 +970,11 @@ class HydraxooEngine:
         self.weather.rain_sensor = rain_sensor
         self.weather.weather_entity = options.get(CONF_WEATHER_ENTITY) or None
         self.notify_services = list(options.get(CONF_NOTIFY_SERVICES) or [])
+        self.external_mode = (
+            EXTERNAL_ALLOW
+            if options.get(CONF_EXTERNAL_OPEN) == EXTERNAL_ALLOW
+            else EXTERNAL_CLOSE
+        )
         await self.async_update_weather(force=True)
         await self._async_process_queue()
 
