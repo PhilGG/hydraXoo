@@ -1,6 +1,7 @@
 // Screens 2 and 3: zone settings (edit) and zone creation (new).
 import { LitElement, html, nothing, type TemplateResult } from "lit";
 import { dayNames, language, translator, type Translate } from "./i18n";
+import { weekOrder } from "./locale";
 import { daysSummary } from "./schedule";
 import { styles } from "./styles";
 import {
@@ -339,7 +340,8 @@ export class HydraxooZoneForm extends LitElement {
             }, (v) => this._setCycle(i, { duration_min: v }))}
           </div>
           <div class="days">
-            ${days.short.map((letter, day) => {
+            ${weekOrder(this.hass).map((day) => {
+              const letter = days.short[day];
               const on = c.weekdays.includes(day);
               return html`<button
                 type="button"

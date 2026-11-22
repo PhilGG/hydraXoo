@@ -36,14 +36,34 @@ export function toMinutes(hhmm: string): number {
   return h * 60 + m;
 }
 
-export function formatTime(iso: string | Date, timeZone: string, lang: string): string {
+export function formatTime(
+  iso: string | Date,
+  timeZone: string,
+  lang: string,
+  hour12 = false,
+): string {
   const date = typeof iso === "string" ? new Date(iso) : iso;
   return new Intl.DateTimeFormat(lang, {
     timeZone,
-    hour: "2-digit",
+    hour: hour12 ? "numeric" : "2-digit",
     minute: "2-digit",
-    hourCycle: "h23",
+    hourCycle: hour12 ? "h12" : "h23",
   }).format(date);
+}
+
+/** A cycle's "HH:MM" in the user's clock format ("13:00" or "1:00 PM"). */
+export function formatHHMM(hhmm: string, lang: string, hour12 = false): string {
+  if (!hour12) return hhmm;
+  const [h, m] = hhmm.split(":").map(Number);
+  return formatTime(new Date(Date.UTC(1970, 0, 1, h, m)), "UTC", lang, true);
+}
+
+/** Label of an hour mark on the timeline ("6 h" or "6 AM"). */
+export function formatHourMark(hour: number, lang: string, hour12 = false): string {
+  if (!hour12) return `${hour} h`;
+  return new Intl.DateTimeFormat(lang, { hour: "numeric", hourCycle: "h12", timeZone: "UTC" }).format(
+    new Date(Date.UTC(1970, 0, 1, hour % 24)),
+  );
 }
 
 export function formatDate(iso: string | Date, timeZone: string, lang: string): string {

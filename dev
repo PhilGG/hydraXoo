@@ -7,6 +7,7 @@
 #   ./dev shell    open a shell in the container
 #   ./dev card     install, test and build the Lovelace card
 #   ./dev card-test / card-build   one step only
+#   ./dev screenshots   retake the README screenshots (headless Chromium in Docker)
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -21,5 +22,10 @@ case "${1:-}" in
   card)   docker compose run --rm node sh -c "npm install --no-audit --no-fund && npx tsc --noEmit && npm test && npm run build" ;;
   card-test)  docker compose run --rm node sh -c "npm install --no-audit --no-fund >/dev/null && npm test" ;;
   card-build) docker compose run --rm node sh -c "npm install --no-audit --no-fund >/dev/null && npm run build" ;;
-  *) sed -n '2,10p' "$0"; exit 1 ;;
+  screenshots) docker run --rm -v "$PWD:/work" -w /tmp node:22-bookworm-slim sh -c '
+      apt-get update -qq >/dev/null && apt-get install -y -qq fonts-roboto >/dev/null 2>&1
+      npm init -y >/dev/null && npm i --silent playwright@1.49.1 >/dev/null
+      npx playwright install --with-deps chromium >/dev/null 2>&1
+      cp /work/tools/screenshots/shoot.mjs /tmp/ && node /tmp/shoot.mjs' ;;
+  *) sed -n '2,11p' "$0"; exit 1 ;;
 esac

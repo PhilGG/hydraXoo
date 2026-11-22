@@ -11,6 +11,19 @@ Arrosage automatique par zones pour Home Assistant, libre et gratuit. Tout se r�
 - **Sécurité** : coupure après une durée maximale, contrôle de fermeture par la consommation électrique de la prise, alerte sur votre téléphone si une vanne reste ouverte.
 - **Carte** : tableau de bord, réglages et création de zones, thèmes clair et sombre, en français, anglais, allemand, espagnol et italien.
 
+<table>
+  <tr>
+    <td><img src="docs/images/dashboard-fr.png" width="260" alt="Tableau de bord : bandeau météo, dernier contrôle de fermeture, frise du jour et une carte par zone"></td>
+    <td><img src="docs/images/zone-fr.png" width="260" alt="Réglages d'une zone : électrovanne et contrôle de fermeture, cycles et jours, règle météo"></td>
+    <td><img src="docs/images/new-fr.png" width="260" alt="Nouvelle zone : nom, icône, pluie, interrupteur de la vanne et capteur de consommation"></td>
+  </tr>
+  <tr>
+    <td align="center">Tableau de bord</td>
+    <td align="center">Réglages d'une zone</td>
+    <td align="center">Nouvelle zone</td>
+  </tr>
+</table>
+
 ## Sommaire
 
 - [Prérequis](#prérequis)
@@ -88,6 +101,8 @@ Ces options existent aussi dans l'éditeur visuel de la carte.
 **Nouvelle zone** : nom, cinq icônes, reçoit la pluie ou non, interrupteur de la vanne, capteur de consommation.
 
 La modification et les réglages sont réservés aux administrateurs ; les autres utilisateurs peuvent arroser, arrêter et activer les zones.
+
+Les heures suivent le **format de l'heure** de votre profil (12 ou 24 heures) et les jours suivent son **premier jour de la semaine**. Le champ d'heure d'un cycle est le sélecteur d'heure du navigateur : son format suit la langue de votre navigateur ou de votre téléphone.
 
 ## Programmation
 
@@ -255,6 +270,7 @@ Tout tourne dans Docker ; rien d'autre n'est nécessaire sur votre machine.
 ./dev test    # lancer les tests de l'intégration
 ./dev lint    # vérifier le style du code
 ./dev card    # vérifier, tester et compiler la carte (Node tourne aussi dans Docker)
+./dev screenshots   # refaire les captures du README (Chromium sans interface, dans Docker)
 ```
 
 Les sources de la carte sont dans `frontend/` (TypeScript + Lit). `custom_components/hydraxoo/frontend/hydraxoo-card.js` est généré par `./dev card` : ne pas le modifier à la main. L'historique des versions est dans [CHANGELOG.md](CHANGELOG.md).

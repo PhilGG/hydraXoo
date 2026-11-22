@@ -357,7 +357,7 @@ export const styles = css`
   }
   .cycle-row {
     display: grid;
-    grid-template-columns: 64px 1fr auto;
+    grid-template-columns: minmax(64px, auto) 1fr auto;
     align-items: center;
     gap: 8px;
     padding: 10px 0;
@@ -420,7 +420,7 @@ export const styles = css`
     cursor: pointer;
   }
   .stepper .value {
-    min-width: 64px;
+    min-width: 56px;
     text-align: center;
     font-weight: 600;
     font-size: 15px;
@@ -473,6 +473,7 @@ export const styles = css`
   }
   input[type="time"] {
     width: auto;
+    padding: 0 10px;
     font-size: 18px;
     font-weight: 600;
   }
@@ -526,6 +527,10 @@ export const styles = css`
     display: flex;
     flex-direction: column;
     gap: 10px;
+  }
+  /* Time and duration wrap onto two lines on narrow screens */
+  .cycle-card .row {
+    flex-wrap: wrap;
   }
   .cycle-card.off {
     opacity: 0.6;

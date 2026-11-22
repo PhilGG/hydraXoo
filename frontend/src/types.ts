@@ -130,7 +130,11 @@ export interface CardConfig {
 // Minimal part of Home Assistant's `hass` object used by the card.
 export interface Hass {
   language: string;
-  locale?: { language: string };
+  locale?: {
+    language: string;
+    time_format?: "language" | "system" | "12" | "24";
+    first_weekday?: string;
+  };
   config: { time_zone: string };
   user?: { is_admin: boolean };
   states: Record<string, { entity_id: string; state: string; attributes: Record<string, any> }>;

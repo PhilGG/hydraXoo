@@ -1,10 +1,12 @@
 // hydraXoo Lovelace card: dashboard, zone settings and zone creation.
 import { LitElement, html, nothing, type TemplateResult } from "lit";
 import "./editor";
-import { dayNames, language, plural, translator, type Translate } from "./i18n";
+import { dayNames, plural, translator, type Translate } from "./i18n";
 import {
   formatClock,
   formatDate,
+  formatHHMM,
+  formatHourMark,
   formatTime,
   todayCycles,
   totalToday,
@@ -12,13 +14,14 @@ import {
   type TodayCycle,
   type ZonedNow,
 } from "./schedule";
+import { fullLanguage, uses12h } from "./locale";
 import { styles } from "./styles";
 import type { CardConfig, Hass, HydraxooState, Zone } from "./types";
 import "./zone-form";
 
 type View = { name: "dashboard" } | { name: "zone"; id: string } | { name: "new" };
 
-const VERSION = "0.1.0";
+const VERSION = "0.1.1";
 
 export class HydraxooCard extends LitElement {
   static properties = {
@@ -136,8 +139,17 @@ export class HydraxooCard extends LitElement {
     return this.hass.config.time_zone;
   }
 
+  /** Full language tag for formats (e.g. "en-US"). */
   private get _lang(): string {
-    return language(this.hass);
+    return fullLanguage(this.hass);
+  }
+
+  private get _h12(): boolean {
+    return uses12h(this.hass);
+  }
+
+  private _time(iso: string | Date): string {
+    return formatTime(iso, this._tz, this._lang, this._h12);
   }
 
   private get _isAdmin(): boolean {
@@ -209,7 +221,7 @@ export class HydraxooCard extends LitElement {
       <div class="header">
         <div class="stack">
           <h1>${this._config.title || t("title")}</h1>
-          <span class="sub">${formatDate(now, this._tz, this._lang)} · ${formatTime(now, this._tz, this._lang)}</span>
+          <span class="sub">${formatDate(now, this._tz, this._lang)} · ${this._time(now)}</span>
         </div>
         ${this._isAdmin
           ? html`<button type="button" class="icon-button" aria-label=${t("settings")} @click=${this._openSettings}>
@@ -244,7 +256,7 @@ export class HydraxooCard extends LitElement {
         <span class="stack grow">
           <span class="strong">${t("pause.paused")}</span>
           <span class="small">${s.pause_until
-            ? t("pause.until", { date: `${formatDate(s.pause_until, this._tz, this._lang)} ${formatTime(s.pause_until, this._tz, this._lang)}` })
+            ? t("pause.until", { date: `${formatDate(s.pause_until, this._tz, this._lang)} ${this._time(s.pause_until)}` })
             : t("pause.indefinite")}</span>
         </span>
         <button type="button" class="btn" @click=${() => this._call("resume")}>${t("pause.resume")}</button>
@@ -318,7 +330,7 @@ export class HydraxooCard extends LitElement {
     const last = this._state!.last_check;
     if (!last || last.result === "failed") return nothing;
     const zone = this._state!.zones.find((z) => z.id === last.zone_id);
-    const time = formatTime(last.time, this._tz, this._lang);
+    const time = this._time(last.time);
     let title: string;
     let detail: string;
     let tone = "success";
@@ -365,7 +377,7 @@ export class HydraxooCard extends LitElement {
                 return html`<div
                   class="mark ${c.status.kind}"
                   style="left: ${left}%; width: ${width}%"
-                  title="${c.cycle.start_time} · ${c.status.kind === "skipped"
+                  title="${formatHHMM(c.cycle.start_time, this._lang, this._h12)} · ${c.status.kind === "skipped"
                     ? t(`zone.skip.${c.status.reason}`)
                     : `${c.adjusted} min`}"
                 ></div>`;
@@ -374,7 +386,9 @@ export class HydraxooCard extends LitElement {
             </div>`;
         })}
         <span></span>
-        <div class="hours"><span>0 h</span><span>6 h</span><span>12 h</span><span>18 h</span><span>24 h</span></div>
+        <div class="hours">
+          ${[0, 6, 12, 18, 24].map((h) => html`<span>${formatHourMark(h, this._lang, this._h12)}</span>`)}
+        </div>
       </div>
       <div class="legend">
         ${kinds.has("running")
@@ -408,7 +422,7 @@ export class HydraxooCard extends LitElement {
     if (zone.next_run && !zone.running) {
       const next = new Date(zone.next_run.time);
       const sameDay = zonedParts(next, this._tz).dateKey === zonedParts(new Date(), this._tz).dateKey;
-      const time = formatTime(next, this._tz, this._lang);
+      const time = this._time(next);
       const min = zone.next_run.adjusted_duration_min;
       const day = dayNames(this.hass).long[zonedParts(next, this._tz).weekday];
       // 0 min means the weather will skip it: say so instead of "0 min".
@@ -484,7 +498,7 @@ export class HydraxooCard extends LitElement {
               const muted = ["done", "past", "disabled", "skipped"].includes(c.status.kind);
               const changed = c.adjusted !== c.base && c.status.kind !== "skipped";
               return html`<div class="cycle-row ${muted ? "muted" : ""}">
-                <span class="time">${c.cycle.start_time}</span>
+                <span class="time">${formatHHMM(c.cycle.start_time, this._lang, this._h12)}</span>
                 <span class="dur">
                   ${c.status.kind === "skipped"
                     ? html`<s>${c.base} min</s>`

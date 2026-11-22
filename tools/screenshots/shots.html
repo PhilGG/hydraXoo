@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hydraXoo screenshots</title>
+<style>
+  :root {
+    --primary-background-color: #fafafa; --card-background-color: #fff; --primary-text-color: #212121;
+    --secondary-text-color: #5f6368; --divider-color: #e0e0e0; --primary-color: #039be5;
+    --warning-color: #b45309; --success-color: #2e7d32; --error-color: #c62828;
+    --ha-card-border-radius: 16px;
+  }
+  body { margin: 0; padding: 16px; background: var(--primary-background-color); font-family: Roboto, "Noto Sans", sans-serif; -webkit-font-smoothing: antialiased; }
+  .shot { width: 400px; }
+  ha-card { display: block; background: var(--card-background-color); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+</style>
+<script>
+  // Fixed clock: Thursday 16 July 2026, 10:40 in Paris
+  const FIXED = Date.parse("2026-07-16T08:40:00Z");
+  const RealDate = Date;
+  class FixedDate extends RealDate {
+    constructor(...a) { super(...(a.length ? a : [FIXED])); }
+    static now() { return FIXED; }
+  }
+  window.Date = FixedDate;
+</script>
+<script type="module">
+  const icons = await (await fetch("./icons.json")).json();
+  customElements.define("ha-card", class extends HTMLElement {});
+  customElements.define("ha-icon", class extends HTMLElement {
+    static get observedAttributes() { return ["icon"]; }
+    set icon(v) { this._i = v; this.render(); }
+    attributeChangedCallback(_, __, v) { this._i = v; this.render(); }
+    connectedCallback() { this.render(); }
+    render() {
+      const d = icons[this._i || this.getAttribute("icon")] || "";
+      this.style.display = "inline-flex";
+      // Like the real ha-icon: draw in a shadow root, never in light DOM.
+      const root = this.shadowRoot || this.attachShadow({ mode: "open" });
+      root.innerHTML = `<svg viewBox="0 0 24 24" style="width:var(--mdc-icon-size,24px);height:var(--mdc-icon-size,24px)"><path fill="currentColor" d="${d}"/></svg>`;
+    }
+  });
+  await import("/card/hydraxoo-card.js");
+
+  const params = new URLSearchParams(location.search);
+  const lang = params.get("lang") || "en";
+  const view = params.get("view") || "dashboard";
+  const L = lang === "fr"
+    ? { veg: "Potager", lawn: "Pelouse", terrace: "Terrasse couverte", title: "Arrosage", weather: "Météo-France Maison" }
+    : { veg: "Vegetable garden", lawn: "Lawn", terrace: "Covered terrace", title: "Watering", weather: "Forecast Home" };
+  const at = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return new RealDate(Date.UTC(2026, 6, 16, h - 2, m)).toISOString(); };
+  const weather = (pct, extra = {}) => ({ coefficient_pct: pct, skip: false, reason: "adjusted", past_rain_mm: 2, forecast_rain_mm: 0, temperature_c: 31, heat_bonus_pct: 0, warnings: [], ...extra });
+  const base = {
+    enabled: true, max_runtime_min: 30, fault: false, running: false, run: null, remaining_s: 0, queued: false, checking: false,
+    last_check: null, power: null,
+    safety: { threshold_w: 1, check_delay_s: 10, retry_pulse_s: 5, max_attempts: 5 },
+    weather_rules: { skip_mm: 5, past_window_h: 48, forecast_window_h: 24, heat_threshold_c: 30, heat_bonus_pct: 0, min_pct: 0, max_pct: 150 },
+  };
+  const zones = [
+    { ...base, id: "veg", name: L.veg, icon: "mdi:sprout", receives_rain: true, switch_entity: "switch.valve_vegetables", power_entity: "sensor.valve_vegetables_power",
+      cycles: [
+        { id: "v1", enabled: true, start_time: "06:00", duration_min: 15, weekdays: [0,1,2,3,4,5,6] },
+        { id: "v2", enabled: true, start_time: "13:00", duration_min: 5, weekdays: [0,1,2,3,4] },
+        { id: "v3", enabled: true, start_time: "20:30", duration_min: 12, weekdays: [1,3,5] },
+      ],
+      weather: weather(60), next_run: { time: at("13:00"), cycle_id: "v2", duration_min: 5, adjusted_duration_min: 3 },
+      switch: { entity_id: "switch.valve_vegetables", name: "Valve", state: "off" } },
+    { ...base, id: "lawn", name: L.lawn, icon: "mdi:grass", receives_rain: true, switch_entity: "switch.valve_lawn", power_entity: null,
+      cycles: [{ id: "l1", enabled: true, start_time: "10:30", duration_min: 12, weekdays: [0,2,3,5] }],
+      running: true, run: { source: "schedule", started: at("10:30"), ends: new RealDate(FIXED + 272000).toISOString(), duration_min: 7, cycle_id: "l1", base_duration_min: 12, coefficient_pct: 60 },
+      weather: weather(60), next_run: null, switch: { entity_id: "switch.valve_lawn", name: "Valve", state: "on" } },
+    { ...base, id: "ter", name: L.terrace, icon: "mdi:flower", receives_rain: false, switch_entity: "switch.valve_terrace", power_entity: "sensor.valve_terrace_power",
+      weather_rules: { ...base.weather_rules, heat_bonus_pct: 20 },
+      cycles: [
+        { id: "t1", enabled: true, start_time: "07:00", duration_min: 8, weekdays: [0,1,2,3,4,5,6] },
+        { id: "t2", enabled: false, start_time: "12:30", duration_min: 4, weekdays: [0,1,2,3,4,5,6] },
+        { id: "t3", enabled: true, start_time: "19:00", duration_min: 8, weekdays: [0,1,2,3,4,5,6] },
+      ],
+      weather: weather(120, { past_rain_mm: null, forecast_rain_mm: null, heat_bonus_pct: 20 }),
+      next_run: { time: at("19:00"), cycle_id: "t3", duration_min: 8, adjusted_duration_min: 10 },
+      switch: { entity_id: "switch.valve_terrace", name: "Valve", state: "off" } },
+  ];
+  const state = {
+    now: new RealDate(FIXED).toISOString(),
+    settings: { weather_entity: "weather.home", weather_name: L.weather, rain_sensor: null, sequential: true, paused: false, pause_until: null },
+    weather: weather(60),
+    last_check: { zone_id: "ter", zone_name: L.terrace, result: "confirmed", retries: 1, power_w: 0, time: at("07:10") },
+    queue: [], zones,
+    history: [
+      { zone_id: "veg", kind: "run", cycle_id: "v1", started: at("06:00"), reason: "completed", duration_min: 9 },
+      { zone_id: "ter", kind: "run", cycle_id: "t1", started: at("07:00"), reason: "completed", duration_min: 10 },
+    ],
+  };
+  const hass = {
+    language: lang, locale: { language: lang === "fr" ? "fr" : "en-GB", time_format: "language", first_weekday: "language" },
+    config: { time_zone: "Europe/Paris" }, user: { is_admin: true },
+    states: {
+      "switch.valve_vegetables": { entity_id: "switch.valve_vegetables", state: "off", attributes: { friendly_name: lang === "fr" ? "Vanne potager" : "Vegetable garden valve" } },
+      "switch.valve_lawn": { entity_id: "switch.valve_lawn", state: "on", attributes: {} },
+      "switch.valve_terrace": { entity_id: "switch.valve_terrace", state: "off", attributes: {} },
+      "switch.valve_roses": { entity_id: "switch.valve_roses", state: "off", attributes: { friendly_name: lang === "fr" ? "Vanne rosiers" : "Rose bed valve" } },
+      "sensor.valve_vegetables_power": { entity_id: "sensor.valve_vegetables_power", state: "0", attributes: { device_class: "power", friendly_name: lang === "fr" ? "Consommation vanne potager" : "Vegetable garden valve power" } },
+    },
+    connection: { subscribeMessage: async (cb) => { cb(state); return () => {}; } },
+    callWS: async () => ({ id: "x" }),
+  };
+  const card = document.createElement("hydraxoo-card");
+  card.setConfig({ type: "custom:hydraxoo-card", title: L.title });
+  card.hass = hass;
+  document.getElementById("shot").appendChild(card);
+  await card.updateComplete;
+  if (view === "zone") card._view = { name: "zone", id: "veg" };
+  if (view === "new") card._view = { name: "new" };
+  await card.updateComplete;
+  if (view === "new") {
+    const form = card.shadowRoot.querySelector("hydraxoo-zone-form");
+    await form.updateComplete;
+    const input = form.shadowRoot.querySelector('input[type="text"]');
+    input.value = lang === "fr" ? "Rosiers" : "Rose bed";
+    input.dispatchEvent(new Event("input"));
+    form.shadowRoot.querySelectorAll(".icon-grid .choice")[3].click();
+    const select = form.shadowRoot.querySelector("select");
+    select.value = "switch.valve_roses"; select.dispatchEvent(new Event("change"));
+    await form.updateComplete;
+  }
+  await new Promise((r) => setTimeout(r, 300));
+  document.body.dataset.ready = "1";
+</script>
+</head>
+<body><div class="shot" id="shot"></div></body>
+</html>

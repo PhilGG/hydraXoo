@@ -109,11 +109,18 @@ export type FakeHass = Hass & {
   callWS: Hass["callWS"] & ReturnType<typeof vi.fn>;
 };
 
-export function makeHass(state: HydraxooState, opts: { admin?: boolean; lang?: string } = {}): FakeHass {
+export function makeHass(
+  state: HydraxooState,
+  opts: { admin?: boolean; lang?: string; timeFormat?: string; firstWeekday?: string } = {},
+): FakeHass {
   let listener: ((message: any) => void) | undefined;
   const hass = {
     language: opts.lang ?? "fr",
-    locale: { language: opts.lang ?? "fr" },
+    locale: {
+      language: opts.lang ?? "fr",
+      time_format: opts.timeFormat ?? "language",
+      first_weekday: opts.firstWeekday ?? "language",
+    },
     config: { time_zone: "Europe/Paris" },
     user: { is_admin: opts.admin ?? true },
     states: {

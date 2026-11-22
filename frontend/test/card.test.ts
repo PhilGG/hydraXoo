@@ -232,6 +232,48 @@ describe("dashboard", () => {
   });
 });
 
+describe("regional formats", () => {
+  it("uses a 12-hour clock in American English", async () => {
+    const card = await mount(makeHass(makeState(), { lang: "en-US" }));
+    const t = text(card);
+    expect(t).toContain("1:00 PM");
+    expect(t).toMatch(/10:40\s?AM/);
+    expect(t).toContain("6 AM");
+    expect(t).not.toContain("13:00");
+  });
+
+  it("keeps 24 hours in French, or when the profile asks for it", async () => {
+    expect(text(await mount(makeHass(makeState())))).toContain("13:00");
+    document.body.innerHTML = "";
+    const card = await mount(makeHass(makeState(), { lang: "en-US", timeFormat: "24" }));
+    expect(text(card)).toContain("13:00");
+  });
+
+  it("follows a 12-hour profile setting even in French", async () => {
+    const card = await mount(makeHass(makeState(), { timeFormat: "12" }));
+    expect(text(card)).toContain("1:00 PM");
+  });
+
+  it("starts the week on Sunday when the profile or the language says so", async () => {
+    for (const opts of [{ firstWeekday: "sunday" }, { lang: "en-US" }]) {
+      document.body.innerHTML = "";
+      const card = await mount(makeHass(makeState(), opts));
+      buttonByText(root(card), opts.lang ? "Edit" : "Modifier").click();
+      const el = await form(card);
+      const first = el.shadowRoot!.querySelector(".days .choice")!;
+      expect(first.getAttribute("aria-label")).toMatch(/^(Dimanche|Sunday), cycle 1$/);
+    }
+  });
+
+  it("starts the week on Monday in French", async () => {
+    const card = await mount(makeHass(makeState()));
+    buttonByText(root(card), "Modifier").click();
+    const el = await form(card);
+    const first = el.shadowRoot!.querySelector(".days .choice")!;
+    expect(first.getAttribute("aria-label")).toBe("Lundi, cycle 1");
+  });
+});
+
 describe("zone settings", () => {
   it("edits a cycle's days and duration, then saves", async () => {
     const hass = makeHass(makeState());

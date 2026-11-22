@@ -2,6 +2,12 @@
 
 All notable changes to hydraXoo. Versions follow [Semantic Versioning](https://semver.org/).
 
+## 0.1.1
+
+- Card follows the profile's time format (12 or 24 hours) and first day of the week.
+- Zone settings: time and duration of a cycle wrap onto two lines on narrow screens instead of overflowing.
+- Screenshots in the README.
+
 ## 0.1.0 — First public release
 
 - German, Spanish and Italian translations, for the integration (setup screens, entities, services, notifications) and the card, alongside English and French.

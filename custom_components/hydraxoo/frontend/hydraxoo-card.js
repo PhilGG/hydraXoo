@@ -58,23 +58,23 @@ var e = globalThis, t = e.ShadowRoot && (e.ShadyCSS === void 0 || e.ShadyCSS.nat
 		}
 		return n;
 	}
-}, g = (e, t) => !l(e, t), _ = {
+}, ae = (e, t) => !l(e, t), g = {
 	attribute: !0,
 	type: String,
 	converter: h,
 	reflect: !1,
 	useDefault: !1,
-	hasChanged: g
+	hasChanged: ae
 };
 Symbol.metadata ??= Symbol("metadata"), f.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
-var v = class extends HTMLElement {
+var _ = class extends HTMLElement {
 	static addInitializer(e) {
 		this._$Ei(), (this.l ??= []).push(e);
 	}
 	static get observedAttributes() {
 		return this.finalize(), this._$Eh && [...this._$Eh.keys()];
 	}
-	static createProperty(e, t = _) {
+	static createProperty(e, t = g) {
 		if (t.state && (t.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((t = Object.create(t)).wrapped = !0), this.elementProperties.set(e, t), !t.noAccessor) {
 			let n = Symbol(), r = this.getPropertyDescriptor(e, n, t);
 			r !== void 0 && u(this.prototype, e, r);
@@ -100,7 +100,7 @@ var v = class extends HTMLElement {
 		};
 	}
 	static getPropertyOptions(e) {
-		return this.elementProperties.get(e) ?? _;
+		return this.elementProperties.get(e) ?? g;
 	}
 	static _$Ei() {
 		if (this.hasOwnProperty(m("elementProperties"))) return;
@@ -187,7 +187,7 @@ var v = class extends HTMLElement {
 	requestUpdate(e, t, n, r = !1, i) {
 		if (e !== void 0) {
 			let a = this.constructor;
-			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? g)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
+			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? ae)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
 			this.C(e, t, n);
 		}
 		!1 === this.isUpdatePending && (this._$ES = this._$EP());
@@ -251,36 +251,36 @@ var v = class extends HTMLElement {
 	updated(e) {}
 	firstUpdated(e) {}
 };
-v.elementStyles = [], v.shadowRootOptions = { mode: "open" }, v[m("elementProperties")] = /* @__PURE__ */ new Map(), v[m("finalized")] = /* @__PURE__ */ new Map(), ie?.({ ReactiveElement: v }), (f.reactiveElementVersions ??= []).push("2.1.2");
+_.elementStyles = [], _.shadowRootOptions = { mode: "open" }, _[m("elementProperties")] = /* @__PURE__ */ new Map(), _[m("finalized")] = /* @__PURE__ */ new Map(), ie?.({ ReactiveElement: _ }), (f.reactiveElementVersions ??= []).push("2.1.2");
 // node_modules/lit-html/lit-html.js
-var y = globalThis, ae = (e) => e, b = y.trustedTypes, x = b ? b.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, S = "$lit$", C = `lit$${Math.random().toFixed(9).slice(2)}$`, w = "?" + C, oe = `<${w}>`, T = document, E = () => T.createComment(""), D = (e) => e === null || typeof e != "object" && typeof e != "function", O = Array.isArray, se = (e) => O(e) || typeof e?.[Symbol.iterator] == "function", k = "[ 	\n\f\r]", A = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, j = /-->/g, ce = />/g, M = RegExp(`>|${k}(?:([^\\s"'>=/]+)(${k}*=${k}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), le = /'/g, N = /"/g, P = /^(?:script|style|textarea|title)$/i, F = ((e) => (t, ...n) => ({
+var v = globalThis, y = (e) => e, b = v.trustedTypes, x = b ? b.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, S = "$lit$", C = `lit$${Math.random().toFixed(9).slice(2)}$`, w = "?" + C, oe = `<${w}>`, T = document, E = () => T.createComment(""), D = (e) => e === null || typeof e != "object" && typeof e != "function", O = Array.isArray, se = (e) => O(e) || typeof e?.[Symbol.iterator] == "function", k = "[ 	\n\f\r]", A = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, j = /-->/g, M = />/g, N = RegExp(`>|${k}(?:([^\\s"'>=/]+)(${k}*=${k}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), ce = /'/g, P = /"/g, F = /^(?:script|style|textarea|title)$/i, I = ((e) => (t, ...n) => ({
 	_$litType$: e,
 	strings: t,
 	values: n
-}))(1), I = Symbol.for("lit-noChange"), L = Symbol.for("lit-nothing"), R = /* @__PURE__ */ new WeakMap(), z = T.createTreeWalker(T, 129);
-function B(e, t) {
+}))(1), L = Symbol.for("lit-noChange"), R = Symbol.for("lit-nothing"), z = /* @__PURE__ */ new WeakMap(), B = T.createTreeWalker(T, 129);
+function V(e, t) {
 	if (!O(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
 	return x === void 0 ? t : x.createHTML(t);
 }
-var ue = (e, t) => {
+var le = (e, t) => {
 	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = A;
 	for (let t = 0; t < n; t++) {
 		let n = e[t], s, c, l = -1, u = 0;
-		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === A ? c[1] === "!--" ? o = j : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = M) : (P.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = M) : o = ce : o === M ? c[0] === ">" ? (o = i ?? A, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? M : c[3] === "\"" ? N : le) : o === N || o === le ? o = M : o === j || o === ce ? o = A : (o = M, i = void 0);
-		let d = o === M && e[t + 1].startsWith("/>") ? " " : "";
+		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === A ? c[1] === "!--" ? o = j : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = N) : (F.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = N) : o = M : o === N ? c[0] === ">" ? (o = i ?? A, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? N : c[3] === "\"" ? P : ce) : o === P || o === ce ? o = N : o === j || o === M ? o = A : (o = N, i = void 0);
+		let d = o === N && e[t + 1].startsWith("/>") ? " " : "";
 		a += o === A ? n + oe : l >= 0 ? (r.push(s), n.slice(0, l) + S + n.slice(l) + C + d) : n + C + (l === -2 ? t : d);
 	}
-	return [B(e, a + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
-}, V = class e {
+	return [V(e, a + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
+}, H = class e {
 	constructor({ strings: t, _$litType$: n }, r) {
 		let i;
 		this.parts = [];
-		let a = 0, o = 0, s = t.length - 1, c = this.parts, [l, u] = ue(t, n);
-		if (this.el = e.createElement(l, r), z.currentNode = this.el.content, n === 2 || n === 3) {
+		let a = 0, o = 0, s = t.length - 1, c = this.parts, [l, u] = le(t, n);
+		if (this.el = e.createElement(l, r), B.currentNode = this.el.content, n === 2 || n === 3) {
 			let e = this.el.content.firstChild;
 			e.replaceWith(...e.childNodes);
 		}
-		for (; (i = z.nextNode()) !== null && c.length < s;) {
+		for (; (i = B.nextNode()) !== null && c.length < s;) {
 			if (i.nodeType === 1) {
 				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(S)) {
 					let t = u[o++], n = i.getAttribute(e).split(C), r = /([.?@])?(.*)/.exec(t);
@@ -289,17 +289,17 @@ var ue = (e, t) => {
 						index: a,
 						name: r[2],
 						strings: n,
-						ctor: r[1] === "." ? fe : r[1] === "?" ? pe : r[1] === "@" ? me : W
+						ctor: r[1] === "." ? de : r[1] === "?" ? fe : r[1] === "@" ? pe : G
 					}), i.removeAttribute(e);
 				} else e.startsWith(C) && (c.push({
 					type: 6,
 					index: a
 				}), i.removeAttribute(e));
-				if (P.test(i.tagName)) {
+				if (F.test(i.tagName)) {
 					let e = i.textContent.split(C), t = e.length - 1;
 					if (t > 0) {
 						i.textContent = b ? b.emptyScript : "";
-						for (let n = 0; n < t; n++) i.append(e[n], E()), z.nextNode(), c.push({
+						for (let n = 0; n < t; n++) i.append(e[n], E()), B.nextNode(), c.push({
 							type: 2,
 							index: ++a
 						});
@@ -327,12 +327,12 @@ var ue = (e, t) => {
 		return n.innerHTML = e, n;
 	}
 };
-function H(e, t, n = e, r) {
-	if (t === I) return t;
+function U(e, t, n = e, r) {
+	if (t === L) return t;
 	let i = r === void 0 ? n._$Cl : n._$Co?.[r], a = D(t) ? void 0 : t._$litDirective$;
-	return i?.constructor !== a && (i?._$AO?.(!1), a === void 0 ? i = void 0 : (i = new a(e), i._$AT(e, n, r)), r === void 0 ? n._$Cl = i : (n._$Co ??= [])[r] = i), i !== void 0 && (t = H(e, i._$AS(e, t.values), i, r)), t;
+	return i?.constructor !== a && (i?._$AO?.(!1), a === void 0 ? i = void 0 : (i = new a(e), i._$AT(e, n, r)), r === void 0 ? n._$Cl = i : (n._$Co ??= [])[r] = i), i !== void 0 && (t = U(e, i._$AS(e, t.values), i, r)), t;
 }
-var de = class {
+var ue = class {
 	constructor(e, t) {
 		this._$AV = [], this._$AN = void 0, this._$AD = e, this._$AM = t;
 	}
@@ -344,27 +344,27 @@ var de = class {
 	}
 	u(e) {
 		let { el: { content: t }, parts: n } = this._$AD, r = (e?.creationScope ?? T).importNode(t, !0);
-		z.currentNode = r;
-		let i = z.nextNode(), a = 0, o = 0, s = n[0];
+		B.currentNode = r;
+		let i = B.nextNode(), a = 0, o = 0, s = n[0];
 		for (; s !== void 0;) {
 			if (a === s.index) {
 				let t;
-				s.type === 2 ? t = new U(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new he(i, this, e)), this._$AV.push(t), s = n[++o];
+				s.type === 2 ? t = new W(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new me(i, this, e)), this._$AV.push(t), s = n[++o];
 			}
-			a !== s?.index && (i = z.nextNode(), a++);
+			a !== s?.index && (i = B.nextNode(), a++);
 		}
-		return z.currentNode = T, r;
+		return B.currentNode = T, r;
 	}
 	p(e) {
 		let t = 0;
 		for (let n of this._$AV) n !== void 0 && (n.strings === void 0 ? n._$AI(e[t]) : (n._$AI(e, n, t), t += n.strings.length - 2)), t++;
 	}
-}, U = class e {
+}, W = class e {
 	get _$AU() {
 		return this._$AM?._$AU ?? this._$Cv;
 	}
 	constructor(e, t, n, r) {
-		this.type = 2, this._$AH = L, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = n, this.options = r, this._$Cv = r?.isConnected ?? !0;
+		this.type = 2, this._$AH = R, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = n, this.options = r, this._$Cv = r?.isConnected ?? !0;
 	}
 	get parentNode() {
 		let e = this._$AA.parentNode, t = this._$AM;
@@ -377,7 +377,7 @@ var de = class {
 		return this._$AB;
 	}
 	_$AI(e, t = this) {
-		e = H(this, e, t), D(e) ? e === L || e == null || e === "" ? (this._$AH !== L && this._$AR(), this._$AH = L) : e !== this._$AH && e !== I && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? se(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
+		e = U(this, e, t), D(e) ? e === R || e == null || e === "" ? (this._$AH !== R && this._$AR(), this._$AH = R) : e !== this._$AH && e !== L && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? se(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
 	}
 	O(e) {
 		return this._$AA.parentNode.insertBefore(e, this._$AB);
@@ -386,19 +386,19 @@ var de = class {
 		this._$AH !== e && (this._$AR(), this._$AH = this.O(e));
 	}
 	_(e) {
-		this._$AH !== L && D(this._$AH) ? this._$AA.nextSibling.data = e : this.T(T.createTextNode(e)), this._$AH = e;
+		this._$AH !== R && D(this._$AH) ? this._$AA.nextSibling.data = e : this.T(T.createTextNode(e)), this._$AH = e;
 	}
 	$(e) {
-		let { values: t, _$litType$: n } = e, r = typeof n == "number" ? this._$AC(e) : (n.el === void 0 && (n.el = V.createElement(B(n.h, n.h[0]), this.options)), n);
+		let { values: t, _$litType$: n } = e, r = typeof n == "number" ? this._$AC(e) : (n.el === void 0 && (n.el = H.createElement(V(n.h, n.h[0]), this.options)), n);
 		if (this._$AH?._$AD === r) this._$AH.p(t);
 		else {
-			let e = new de(r, this), n = e.u(this.options);
+			let e = new ue(r, this), n = e.u(this.options);
 			e.p(t), this.T(n), this._$AH = e;
 		}
 	}
 	_$AC(e) {
-		let t = R.get(e.strings);
-		return t === void 0 && R.set(e.strings, t = new V(e)), t;
+		let t = z.get(e.strings);
+		return t === void 0 && z.set(e.strings, t = new H(e)), t;
 	}
 	k(t) {
 		O(this._$AH) || (this._$AH = [], this._$AR());
@@ -408,14 +408,14 @@ var de = class {
 	}
 	_$AR(e = this._$AA.nextSibling, t) {
 		for (this._$AP?.(!1, !0, t); e !== this._$AB;) {
-			let t = ae(e).nextSibling;
-			ae(e).remove(), e = t;
+			let t = y(e).nextSibling;
+			y(e).remove(), e = t;
 		}
 	}
 	setConnected(e) {
 		this._$AM === void 0 && (this._$Cv = e, this._$AP?.(e));
 	}
-}, W = class {
+}, G = class {
 	get tagName() {
 		return this.element.tagName;
 	}
@@ -423,47 +423,47 @@ var de = class {
 		return this._$AM._$AU;
 	}
 	constructor(e, t, n, r, i) {
-		this.type = 1, this._$AH = L, this._$AN = void 0, this.element = e, this.name = t, this._$AM = r, this.options = i, n.length > 2 || n[0] !== "" || n[1] !== "" ? (this._$AH = Array(n.length - 1).fill(/* @__PURE__ */ new String()), this.strings = n) : this._$AH = L;
+		this.type = 1, this._$AH = R, this._$AN = void 0, this.element = e, this.name = t, this._$AM = r, this.options = i, n.length > 2 || n[0] !== "" || n[1] !== "" ? (this._$AH = Array(n.length - 1).fill(/* @__PURE__ */ new String()), this.strings = n) : this._$AH = R;
 	}
 	_$AI(e, t = this, n, r) {
 		let i = this.strings, a = !1;
-		if (i === void 0) e = H(this, e, t, 0), a = !D(e) || e !== this._$AH && e !== I, a && (this._$AH = e);
+		if (i === void 0) e = U(this, e, t, 0), a = !D(e) || e !== this._$AH && e !== L, a && (this._$AH = e);
 		else {
 			let r = e, o, s;
-			for (e = i[0], o = 0; o < i.length - 1; o++) s = H(this, r[n + o], t, o), s === I && (s = this._$AH[o]), a ||= !D(s) || s !== this._$AH[o], s === L ? e = L : e !== L && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
+			for (e = i[0], o = 0; o < i.length - 1; o++) s = U(this, r[n + o], t, o), s === L && (s = this._$AH[o]), a ||= !D(s) || s !== this._$AH[o], s === R ? e = R : e !== R && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
 		}
 		a && !r && this.j(e);
 	}
 	j(e) {
-		e === L ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
+		e === R ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
 	}
-}, fe = class extends W {
+}, de = class extends G {
 	constructor() {
 		super(...arguments), this.type = 3;
 	}
 	j(e) {
-		this.element[this.name] = e === L ? void 0 : e;
+		this.element[this.name] = e === R ? void 0 : e;
 	}
-}, pe = class extends W {
+}, fe = class extends G {
 	constructor() {
 		super(...arguments), this.type = 4;
 	}
 	j(e) {
-		this.element.toggleAttribute(this.name, !!e && e !== L);
+		this.element.toggleAttribute(this.name, !!e && e !== R);
 	}
-}, me = class extends W {
+}, pe = class extends G {
 	constructor(e, t, n, r, i) {
 		super(e, t, n, r, i), this.type = 5;
 	}
 	_$AI(e, t = this) {
-		if ((e = H(this, e, t, 0) ?? L) === I) return;
-		let n = this._$AH, r = e === L && n !== L || e.capture !== n.capture || e.once !== n.once || e.passive !== n.passive, i = e !== L && (n === L || r);
+		if ((e = U(this, e, t, 0) ?? R) === L) return;
+		let n = this._$AH, r = e === R && n !== R || e.capture !== n.capture || e.once !== n.once || e.passive !== n.passive, i = e !== R && (n === R || r);
 		r && this.element.removeEventListener(this.name, this, n), i && this.element.addEventListener(this.name, this, e), this._$AH = e;
 	}
 	handleEvent(e) {
 		typeof this._$AH == "function" ? this._$AH.call(this.options?.host ?? this.element, e) : this._$AH.handleEvent(e);
 	}
-}, he = class {
+}, me = class {
 	constructor(e, t, n) {
 		this.element = e, this.type = 6, this._$AN = void 0, this._$AM = t, this.options = n;
 	}
@@ -471,18 +471,18 @@ var de = class {
 		return this._$AM._$AU;
 	}
 	_$AI(e) {
-		H(this, e);
+		U(this, e);
 	}
-}, ge = y.litHtmlPolyfillSupport;
-ge?.(V, U), (y.litHtmlVersions ??= []).push("3.3.3");
-var _e = (e, t, n) => {
+}, he = v.litHtmlPolyfillSupport;
+he?.(H, W), (v.litHtmlVersions ??= []).push("3.3.3");
+var ge = (e, t, n) => {
 	let r = n?.renderBefore ?? t, i = r._$litPart$;
 	if (i === void 0) {
 		let e = n?.renderBefore ?? null;
-		r._$litPart$ = i = new U(t.insertBefore(E(), e), e, void 0, n ?? {});
+		r._$litPart$ = i = new W(t.insertBefore(E(), e), e, void 0, n ?? {});
 	}
 	return i._$AI(e), i;
-}, G = globalThis, K = class extends v {
+}, K = globalThis, q = class extends _ {
 	constructor() {
 		super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
 	}
@@ -492,7 +492,7 @@ var _e = (e, t, n) => {
 	}
 	update(e) {
 		let t = this.render();
-		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = _e(t, this.renderRoot, this.renderOptions);
+		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = ge(t, this.renderRoot, this.renderOptions);
 	}
 	connectedCallback() {
 		super.connectedCallback(), this._$Do?.setConnected(!0);
@@ -501,13 +501,13 @@ var _e = (e, t, n) => {
 		super.disconnectedCallback(), this._$Do?.setConnected(!1);
 	}
 	render() {
-		return I;
+		return L;
 	}
 };
-K._$litElement$ = !0, K.finalized = !0, G.litElementHydrateSupport?.({ LitElement: K });
-var ve = G.litElementPolyfillSupport;
-ve?.({ LitElement: K }), (G.litElementVersions ??= []).push("4.2.2");
-var ye = {
+q._$litElement$ = !0, q.finalized = !0, K.litElementHydrateSupport?.({ LitElement: q });
+var _e = K.litElementPolyfillSupport;
+_e?.({ LitElement: q }), (K.litElementVersions ??= []).push("4.2.2");
+var ve = {
 	title: "Bewässerung",
 	loading: "Wird geladen…",
 	not_loaded: "hydraXoo ist nicht geladen. Fügen Sie die Integration unter Einstellungen › Geräte & Dienste hinzu.",
@@ -708,7 +708,7 @@ var ye = {
 		compact: "Kompakte Anzeige",
 		zones: "Angezeigte Zonen (alle, wenn leer)"
 	}
-}, q = {
+}, J = {
 	title: "Watering",
 	loading: "Loading…",
 	not_loaded: "hydraXoo is not loaded. Add the integration in Settings › Devices & services.",
@@ -909,9 +909,9 @@ var ye = {
 		compact: "Compact display",
 		zones: "Zones shown (all when empty)"
 	}
-}, J = {
-	de: ye,
-	en: q,
+}, ye = {
+	de: ve,
+	en: J,
 	es: {
 		title: "Riego",
 		loading: "Cargando…",
@@ -1531,15 +1531,15 @@ function X(e) {
 	return (e?.locale?.language || e?.language || "en").split("-")[0];
 }
 function Z(e) {
-	let t = J[X(e)] ?? q;
+	let t = ye[X(e)] ?? J;
 	return (e, n) => {
-		let r = Y(t, e) ?? Y(q, e) ?? e;
+		let r = Y(t, e) ?? Y(J, e) ?? e;
 		for (let [e, t] of Object.entries(n ?? {})) r = r.replaceAll(`{${e}}`, String(t));
 		return r;
 	};
 }
 function be(e) {
-	return (J[X(e)] ?? q).days ?? q.days;
+	return (ye[X(e)] ?? J).days ?? J.days;
 }
 function xe(e, t, n, r = {}) {
 	return e(`${t}_${n === 1 ? "one" : "other"}`, {
@@ -1548,7 +1548,7 @@ function xe(e, t, n, r = {}) {
 	});
 }
 // src/editor.ts
-var Se = class extends K {
+var Se = class extends q {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:hydraxoo-card" }, this._zones = [], this._loading = !1;
 	}
@@ -1618,9 +1618,9 @@ var Se = class extends K {
 		}));
 	}
 	render() {
-		if (!this.hass) return L;
+		if (!this.hass) return R;
 		let e = Z(this.hass);
-		return F`<ha-form
+		return I`<ha-form
       .hass=${this.hass}
       .data=${{
 			compact: !1,
@@ -1665,16 +1665,28 @@ function we(e) {
 	let [t, n] = e.split(":").map(Number);
 	return t * 60 + n;
 }
-function $(e, t, n) {
-	let r = typeof e == "string" ? new Date(e) : e;
+function Te(e, t, n, r = !1) {
+	let i = typeof e == "string" ? new Date(e) : e;
 	return new Intl.DateTimeFormat(n, {
 		timeZone: t,
-		hour: "2-digit",
+		hour: r ? "numeric" : "2-digit",
 		minute: "2-digit",
-		hourCycle: "h23"
-	}).format(r);
+		hourCycle: r ? "h12" : "h23"
+	}).format(i);
 }
-function Te(e, t, n) {
+function Ee(e, t, n = !1) {
+	if (!n) return e;
+	let [r, i] = e.split(":").map(Number);
+	return Te(new Date(Date.UTC(1970, 0, 1, r, i)), "UTC", t, !0);
+}
+function De(e, t, n = !1) {
+	return n ? new Intl.DateTimeFormat(t, {
+		hour: "numeric",
+		hourCycle: "h12",
+		timeZone: "UTC"
+	}).format(new Date(Date.UTC(1970, 0, 1, e % 24))) : `${e} h`;
+}
+function Oe(e, t, n) {
 	let r = typeof e == "string" ? new Date(e) : e, i = new Intl.DateTimeFormat(n, {
 		timeZone: t,
 		weekday: "long",
@@ -1683,23 +1695,23 @@ function Te(e, t, n) {
 	}).format(r);
 	return i.charAt(0).toUpperCase() + i.slice(1);
 }
-function Ee(e) {
+function ke(e) {
 	let t = Math.max(0, Math.round(e)), n = Math.floor(t / 3600), r = Math.floor(t % 3600 / 60), i = String(t % 60).padStart(2, "0");
 	return n ? `${n}:${String(r).padStart(2, "0")}:${i}` : `${r}:${i}`;
 }
-function De(e, t) {
+function Ae(e, t) {
 	return e.weather.skip ? 0 : Math.round(t * e.weather.coefficient_pct / 100);
 }
-function Oe(e, t, n, r, i) {
+function je(e, t, n, r, i) {
 	return [...e].reverse().find((e) => e.zone_id === t.id && e.cycle_id === n && Q(new Date(e.started), i).dateKey === r);
 }
-function ke(e, t, n, r) {
+function Me(e, t, n, r) {
 	return e.cycles.filter((e) => e.weekdays.includes(t.weekday)).map((i) => {
-		let a = we(i.start_time), o = i.duration_min, s = De(e, o), c;
+		let a = we(i.start_time), o = i.duration_min, s = Ae(e, o), c;
 		if (e.running && e.run && e.run.cycle_id === i.id) c = { kind: "running" }, s = e.run.duration_min;
 		else if (!i.enabled || !e.enabled) c = { kind: "disabled" };
 		else if (a <= t.minutes) {
-			let a = Oe(n, e, i.id, t.dateKey, r);
+			let a = je(n, e, i.id, t.dateKey, r);
 			a?.kind === "run" ? (c = {
 				kind: "done",
 				duration: a.duration_min
@@ -1724,18 +1736,51 @@ function ke(e, t, n, r) {
 		};
 	}).sort((e, t) => e.start - t.start);
 }
-function Ae(e) {
+function Ne(e) {
 	return e.filter((e) => e.status.kind !== "disabled").reduce((e, t) => e + t.adjusted, 0);
 }
-function je(e) {
+function Pe(e) {
 	let t = [...new Set(e)].sort();
 	return t.length === 7 ? { key: "every_day" } : t.join() === "0,1,2,3,4" ? { key: "weekdays_only" } : t.join() === "5,6" ? { key: "weekend" } : t.length === 0 ? { key: "no_day" } : {
 		key: "n_days",
 		n: t.length
 	};
 }
+// src/locale.ts
+function $(e) {
+	return e?.locale?.language || e?.language || "en";
+}
+function Fe(e) {
+	let t = e?.locale?.time_format;
+	if (t === "12") return !0;
+	if (t === "24") return !1;
+	let n = t === "system" ? void 0 : $(e), r = new Intl.DateTimeFormat(n, { hour: "numeric" }).resolvedOptions().hourCycle;
+	return r === "h12" || r === "h11";
+}
+var Ie = {
+	monday: 0,
+	tuesday: 1,
+	wednesday: 2,
+	thursday: 3,
+	friday: 4,
+	saturday: 5,
+	sunday: 6
+};
+function Le(e) {
+	let t = e?.locale?.first_weekday;
+	if (t && t in Ie) return Ie[t];
+	try {
+		let t = new Intl.Locale($(e)), n = t.getWeekInfo?.() ?? t.weekInfo;
+		if (n?.firstDay) return (n.firstDay + 6) % 7;
+	} catch {}
+	return 0;
+}
+function Re(e) {
+	let t = Le(e);
+	return Array.from({ length: 7 }, (e, n) => (t + n) % 7);
+}
 // src/styles.ts
-var Me = o`
+var ze = o`
   :host {
     --hx-primary: var(--primary-color, #1d4ed8);
     --hx-on-primary: var(--text-primary-color, #ffffff);
@@ -2090,7 +2135,7 @@ var Me = o`
   }
   .cycle-row {
     display: grid;
-    grid-template-columns: 64px 1fr auto;
+    grid-template-columns: minmax(64px, auto) 1fr auto;
     align-items: center;
     gap: 8px;
     padding: 10px 0;
@@ -2153,7 +2198,7 @@ var Me = o`
     cursor: pointer;
   }
   .stepper .value {
-    min-width: 64px;
+    min-width: 56px;
     text-align: center;
     font-weight: 600;
     font-size: 15px;
@@ -2206,6 +2251,7 @@ var Me = o`
   }
   input[type="time"] {
     width: auto;
+    padding: 0 10px;
     font-size: 18px;
     font-weight: 600;
   }
@@ -2260,6 +2306,10 @@ var Me = o`
     flex-direction: column;
     gap: 10px;
   }
+  /* Time and duration wrap onto two lines on narrow screens */
+  .cycle-card .row {
+    flex-wrap: wrap;
+  }
   .cycle-card.off {
     opacity: 0.6;
   }
@@ -2283,12 +2333,12 @@ var Me = o`
       transition: none;
     }
   }
-`, Ne = {
+`, Be = {
 	threshold_w: 1,
 	check_delay_s: 10,
 	retry_pulse_s: 5,
 	max_attempts: 5
-}, Pe = {
+}, Ve = {
 	skip_mm: 5,
 	past_window_h: 48,
 	forecast_window_h: 24,
@@ -2296,7 +2346,7 @@ var Me = o`
 	heat_bonus_pct: 0,
 	min_pct: 0,
 	max_pct: 150
-}, Fe = [
+}, He = [
 	{
 		icon: "mdi:sprout",
 		key: "plant"
@@ -2319,26 +2369,26 @@ var Me = o`
 	}
 ];
 // src/zone-form.ts
-function Ie(e) {
+function Ue(e) {
 	return JSON.parse(JSON.stringify(e));
 }
-function Le() {
+function We() {
 	return {
 		name: "",
-		icon: Fe[0].icon,
+		icon: He[0].icon,
 		enabled: !0,
 		switch_entity: "",
 		power_entity: null,
 		max_runtime_min: 30,
 		receives_rain: !0,
-		safety: { ...Ne },
-		weather_rules: { ...Pe },
+		safety: { ...Be },
+		weather_rules: { ...Ve },
 		cycles: []
 	};
 }
-var Re = class extends K {
+var Ge = class extends q {
 	constructor(...e) {
-		super(...e), this.zone = null, this.state = null, this._draft = Le(), this._error = "", this._saving = !1, this._loadedFor = void 0, this._addCycle = () => {
+		super(...e), this.zone = null, this.state = null, this._draft = We(), this._error = "", this._saving = !1, this._loadedFor = void 0, this._addCycle = () => {
 			let e = this._draft.cycles.at(-1), t = {
 				enabled: !0,
 				start_time: e ? e.start_time : "06:00",
@@ -2367,11 +2417,11 @@ var Re = class extends K {
 		};
 	}
 	static {
-		this.styles = Me;
+		this.styles = ze;
 	}
 	willUpdate() {
 		let e = this.zone?.id ?? null;
-		e !== this._loadedFor && (this._loadedFor = e, this._draft = this.zone ? Ie(this._configOf(this.zone)) : Le(), this._error = "");
+		e !== this._loadedFor && (this._loadedFor = e, this._draft = this.zone ? Ue(this._configOf(this.zone)) : We(), this._error = "");
 	}
 	_configOf(e) {
 		let { id: t, name: n, icon: r, enabled: i, switch_entity: a, power_entity: o, max_runtime_min: s, receives_rain: c, safety: l, weather_rules: u, cycles: d } = e;
@@ -2407,7 +2457,7 @@ var Re = class extends K {
 	}
 	_stepper(e, t, n) {
 		let r = this._t, i = t.step ?? 1, a = t.fine && e <= (t.fineBelow ?? 0) ? t.fine : i, o = t.fine && e < (t.fineBelow ?? 0) ? t.fine : i, s = (e) => Math.round(e * 10) / 10, c = (e) => n(s(Math.min(t.max, Math.max(t.min, e))));
-		return F`<span class="stepper">
+		return I`<span class="stepper">
       <button
         type="button"
         aria-label=${r("editor.decrease", { what: t.what })}
@@ -2426,7 +2476,7 @@ var Re = class extends K {
     </span>`;
 	}
 	_switch(e, t, n) {
-		return F`<button
+		return I`<button
       type="button"
       class="switch"
       role="switch"
@@ -2436,7 +2486,7 @@ var Re = class extends K {
     ></button>`;
 	}
 	_entityPicker(e, t, n, r, i) {
-		if (customElements.get("ha-selector")) return F`<ha-selector
+		if (customElements.get("ha-selector")) return I`<ha-selector
         .hass=${this.hass}
         .selector=${{ entity: { filter: t } }}
         .value=${e ?? ""}
@@ -2444,11 +2494,11 @@ var Re = class extends K {
         @value-changed=${(e) => i(e.detail.value || null)}
       ></ha-selector>`;
 		let a = Object.values(this.hass.states).filter((e) => e.entity_id.startsWith(`${t.domain}.`) && (!t.device_class || e.attributes.device_class === t.device_class)).sort((e, t) => e.entity_id.localeCompare(t.entity_id));
-		return F`<label class="field">
+		return I`<label class="field">
       ${n}
       <select @change=${(e) => i(e.target.value || null)}>
         <option value="" ?selected=${!e}>${r}</option>
-        ${a.map((t) => F`<option value=${t.entity_id} ?selected=${t.entity_id === e}>
+        ${a.map((t) => I`<option value=${t.entity_id} ?selected=${t.entity_id === e}>
             ${t.attributes.friendly_name ?? t.entity_id} (${t.entity_id})
           </option>`)}
       </select>
@@ -2456,7 +2506,7 @@ var Re = class extends K {
 	}
 	_general(e) {
 		let t = this._t, n = this._draft;
-		return F`<section class="tile" aria-labelledby="hx-general">
+		return I`<section class="tile" aria-labelledby="hx-general">
       <h3 id="hx-general">${t("editor.general")}</h3>
       <label class="field">
         ${t("editor.name")}
@@ -2470,7 +2520,7 @@ var Re = class extends K {
       <div class="stack" role="group" aria-label=${t("editor.icon")}>
         <span class="small strong">${t("editor.icon")}</span>
         <div class="icon-grid">
-          ${Fe.map((e) => F`<button
+          ${He.map((e) => I`<button
               type="button"
               class="choice"
               aria-pressed=${n.icon === e.icon ? "true" : "false"}
@@ -2479,10 +2529,10 @@ var Re = class extends K {
             ><ha-icon .icon=${e.icon}></ha-icon></button>`)}
         </div>
       </div>
-      ${e ? F`<div class="stack" role="group" aria-label=${t("editor.rain_choice")}>
+      ${e ? I`<div class="stack" role="group" aria-label=${t("editor.rain_choice")}>
             <span class="small strong">${t("editor.rain_choice")}</span>
             <div class="choice-grid">
-              ${[!0, !1].map((e) => F`<button
+              ${[!0, !1].map((e) => I`<button
                   type="button"
                   class="choice"
                   aria-pressed=${n.receives_rain === e ? "true" : "false"}
@@ -2492,27 +2542,27 @@ var Re = class extends K {
                   <span class="tiny">${t(e ? "editor.receives_rain_desc" : "editor.no_rain_desc")}</span>
                 </button>`)}
             </div>
-          </div>` : L}
+          </div>` : R}
     </section>`;
 	}
 	_hardware(e) {
 		let t = this._t, n = this._draft, r = n.switch_entity ? this.hass.states[n.switch_entity] : void 0, i = r && r.state !== "unavailable", a = n.power_entity !== null, o = n.safety;
-		return F`<section class="tile" aria-labelledby="hx-hw">
+		return I`<section class="tile" aria-labelledby="hx-hw">
       <h3 id="hx-hw">${t(e ? "editor.valve" : "editor.hardware")}</h3>
       ${this._entityPicker(n.switch_entity || null, { domain: "switch" }, t("editor.switch"), t("editor.switch_choose"), (e) => this._set({ switch_entity: e ?? "" }))}
-      ${n.switch_entity ? F`<span class="chip ${i ? "success" : "error"}"
+      ${n.switch_entity ? I`<span class="chip ${i ? "success" : "error"}"
             >${t(i ? "editor.online" : "editor.offline")}</span
-          >` : L}
-      ${e ? F`<div class="row">
+          >` : R}
+      ${e ? I`<div class="row">
             <span class="grow strong">${t("editor.check")}</span>
             ${this._switch(a, t("editor.check"), (e) => this._set({ power_entity: e ? n.power_entity ?? "" : null }))}
-          </div>` : L}
+          </div>` : R}
       ${!e || a ? this._entityPicker(n.power_entity || null, {
 			domain: "sensor",
 			device_class: "power"
-		}, t("editor.power"), t("editor.power_choose"), (t) => this._set({ power_entity: t ?? (e ? "" : null) })) : L}
+		}, t("editor.power"), t("editor.power_choose"), (t) => this._set({ power_entity: t ?? (e ? "" : null) })) : R}
       <span class="tiny">${t("editor.power_hint")}</span>
-      ${e && a ? F`<div>
+      ${e && a ? I`<div>
             ${this._setting(t("editor.threshold"), t("editor.threshold_hint"), this._stepper(o.threshold_w, {
 			min: .1,
 			max: 100,
@@ -2552,31 +2602,31 @@ var Re = class extends K {
 			...o,
 			max_attempts: e
 		} })))}
-          </div>` : L}
+          </div>` : R}
       ${e ? this._setting(t("editor.cutoff"), t("editor.cutoff_hint"), this._stepper(n.max_runtime_min, {
 			min: 1,
 			max: 240,
 			unit: "min",
 			what: t("editor.cutoff")
-		}, (e) => this._set({ max_runtime_min: e }))) : L}
+		}, (e) => this._set({ max_runtime_min: e }))) : R}
     </section>`;
 	}
 	_setting(e, t, n) {
-		return F`<div class="setting">
+		return I`<div class="setting">
       <span class="stack"><span class="strong">${e}</span><span class="tiny">${t}</span></span>
       ${n}
     </div>`;
 	}
 	_cycles() {
 		let e = this._t, t = be(this.hass), n = this._draft.cycles;
-		return F`<section class="tile" aria-labelledby="hx-cycles">
+		return I`<section class="tile" aria-labelledby="hx-cycles">
       <div class="row">
         <h2 id="hx-cycles" class="grow">${e("editor.cycles")}</h2>
       </div>
-      ${n.length === 0 ? F`<span class="small">${e("editor.no_cycle")}</span>` : L}
+      ${n.length === 0 ? I`<span class="small">${e("editor.no_cycle")}</span>` : R}
       ${n.map((r, i) => {
-			let a = i + 1, o = je(r.weekdays);
-			return F`<div class="cycle-card ${r.enabled ? "" : "off"}">
+			let a = i + 1, o = Pe(r.weekdays);
+			return I`<div class="cycle-card ${r.enabled ? "" : "off"}">
           <div class="row">
             ${this._switch(r.enabled, e("editor.enable_cycle", { n: a }), (e) => this._setCycle(i, { enabled: e }))}
             <span class="stack grow">
@@ -2606,16 +2656,19 @@ var Re = class extends K {
 			}, (e) => this._setCycle(i, { duration_min: e }))}
           </div>
           <div class="days">
-            ${t.short.map((n, o) => F`<button
+            ${Re(this.hass).map((n) => {
+				let o = t.short[n];
+				return I`<button
                 type="button"
                 class="choice"
-                aria-pressed=${r.weekdays.includes(o) ? "true" : "false"}
+                aria-pressed=${r.weekdays.includes(n) ? "true" : "false"}
                 aria-label=${e("editor.day_label", {
-				day: t.long[o],
-				n: a
+					day: t.long[n],
+					n: a
+				})}
+                @click=${() => this._toggleDay(i, n)}
+              >${o}</button>`;
 			})}
-                @click=${() => this._toggleDay(i, o)}
-              >${n}</button>`)}
           </div>
         </div>`;
 		})}
@@ -2630,12 +2683,12 @@ var Re = class extends K {
 	}
 	_weather() {
 		let e = this._t, t = this._draft, n = t.receives_rain, r = t.weather_rules, i = this.state?.settings, a = this.zone?.weather;
-		return F`<section class="tile" aria-labelledby="hx-weather">
+		return I`<section class="tile" aria-labelledby="hx-weather">
       <span class="stack">
         <h2 id="hx-weather">${e("editor.weather_title")}</h2>
         <span class="tiny">${i?.weather_entity ? e("editor.rain_source", { name: i.weather_name ?? i.weather_entity }) : e("editor.rain_none")}</span>
       </span>
-      ${a && i?.weather_entity ? F`<div class="stack">
+      ${a && i?.weather_entity ? I`<div class="stack">
             <div class="row">
               <span class="grow small">${e("editor.today")}</span>
               <span class="strong">${a.coefficient_pct} %</span>
@@ -2647,7 +2700,7 @@ var Re = class extends K {
 			past: a.past_rain_mm ?? 0,
 			forecast: a.forecast_rain_mm ?? 0
 		}) : e("editor.no_rain_detail")}</span>
-          </div>` : L}
+          </div>` : R}
       <div>
         <div class="setting">
           <span class="stack"
@@ -2656,7 +2709,7 @@ var Re = class extends K {
           >
           ${this._switch(n, e("editor.rain"), (e) => this._set({ receives_rain: e }))}
         </div>
-        ${n ? F`${this._setting(e("editor.skip"), e("editor.skip_hint"), this._stepper(r.skip_mm, {
+        ${n ? I`${this._setting(e("editor.skip"), e("editor.skip_hint"), this._stepper(r.skip_mm, {
 			min: .5,
 			max: 50,
 			step: .5,
@@ -2675,7 +2728,7 @@ var Re = class extends K {
 		}, (e) => this._set({ weather_rules: {
 			...r,
 			past_window_h: e
-		} })))}` : L}
+		} })))}` : R}
         ${this._setting(e("editor.heat"), e("editor.heat_hint"), this._stepper(r.heat_bonus_pct, {
 			min: 0,
 			max: 100,
@@ -2696,12 +2749,12 @@ var Re = class extends K {
 		}, (e) => this._set({ weather_rules: {
 			...r,
 			heat_threshold_c: e
-		} }))) : L}
+		} }))) : R}
       </div>
-      ${r.heat_bonus_pct > 0 ? F`<span class="tiny">${e("editor.heat_summary", {
+      ${r.heat_bonus_pct > 0 ? I`<span class="tiny">${e("editor.heat_summary", {
 			t: r.heat_threshold_c.toLocaleString(X(this.hass)),
 			pct: r.heat_bonus_pct
-		})}</span>` : L}
+		})}</span>` : R}
     </section>`;
 	}
 	_validate() {
@@ -2751,7 +2804,7 @@ var Re = class extends K {
 	}
 	render() {
 		let e = this._t, t = !this.zone;
-		return F`<div class="form" style="display:flex;flex-direction:column;gap:14px">
+		return I`<div class="form" style="display:flex;flex-direction:column;gap:14px">
       <div class="header">
         <div class="header-left">
           <button
@@ -2762,25 +2815,25 @@ var Re = class extends K {
           ><ha-icon icon=${t ? "mdi:close" : "mdi:arrow-left"}></ha-icon></button>
           <div class="stack">
             <h1>${t ? e("new_zone") : this.zone.name}</h1>
-            ${t ? L : F`<span class="sub">${e("editor.subtitle")}</span>`}
+            ${t ? R : I`<span class="sub">${e("editor.subtitle")}</span>`}
           </div>
         </div>
       </div>
       ${this._general(t)}
       ${this._hardware(!t)}
-      ${t ? L : this._cycles()}
-      ${t ? L : this._weather()}
-      ${this._error ? F`<div class="error-text" role="alert">${this._error}</div>` : L}
+      ${t ? R : this._cycles()}
+      ${t ? R : this._weather()}
+      ${this._error ? I`<div class="error-text" role="alert">${this._error}</div>` : R}
       <button type="button" class="btn primary" ?disabled=${this._saving} @click=${this._save}>
         ${this._saving ? e("editor.saving") : e(t ? "editor.create" : "editor.save")}
       </button>
-      ${t ? F`<span class="tiny" style="text-align:center">${e("editor.create_hint")}</span>` : F`<button type="button" class="btn danger" @click=${this._delete}>${e("editor.delete")}</button>`}
+      ${t ? I`<span class="tiny" style="text-align:center">${e("editor.create_hint")}</span>` : I`<button type="button" class="btn danger" @click=${this._delete}>${e("editor.delete")}</button>`}
     </div>`;
 	}
 };
-customElements.get("hydraxoo-zone-form") || customElements.define("hydraxoo-zone-form", Re);
+customElements.get("hydraxoo-zone-form") || customElements.define("hydraxoo-zone-form", Ge);
 // src/hydraxoo-card.ts
-var ze = "0.1.0", Be = class extends K {
+var Ke = "0.1.1", qe = class extends q {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:hydraxoo-card" }, this._state = null, this._view = { name: "dashboard" }, this._error = "", this._runFor = null, this._runMinutes = 10, this._subscribing = !1;
 	}
@@ -2796,7 +2849,7 @@ var ze = "0.1.0", Be = class extends K {
 		};
 	}
 	static {
-		this.styles = Me;
+		this.styles = ze;
 	}
 	static getConfigElement() {
 		return document.createElement("hydraxoo-card-editor");
@@ -2862,7 +2915,13 @@ var ze = "0.1.0", Be = class extends K {
 		return this.hass.config.time_zone;
 	}
 	get _lang() {
-		return X(this.hass);
+		return $(this.hass);
+	}
+	get _h12() {
+		return Fe(this.hass);
+	}
+	_time(e) {
+		return Te(e, this._tz, this._lang, this._h12);
 	}
 	get _isAdmin() {
 		return this.hass.user?.is_admin ?? !1;
@@ -2875,14 +2934,14 @@ var ze = "0.1.0", Be = class extends K {
 		history.pushState(null, "", "/config/integrations/integration/hydraxoo"), window.dispatchEvent(new CustomEvent("location-changed"));
 	}
 	render() {
-		if (!this.hass) return L;
+		if (!this.hass) return R;
 		let e = this._t;
-		if (this._error === "not_loaded") return F`<ha-card><div class="small">${e("not_loaded")}</div></ha-card>`;
-		if (!this._state) return F`<ha-card><div class="small">${e("loading")}</div></ha-card>`;
+		if (this._error === "not_loaded") return I`<ha-card><div class="small">${e("not_loaded")}</div></ha-card>`;
+		if (!this._state) return I`<ha-card><div class="small">${e("loading")}</div></ha-card>`;
 		let t = this._view;
 		if (t.name === "zone") {
 			let e = this._state.zones.find((e) => e.id === t.id);
-			if (e) return F`<ha-card>
+			if (e) return I`<ha-card>
           <hydraxoo-zone-form
             .hass=${this.hass}
             .zone=${e}
@@ -2892,7 +2951,7 @@ var ze = "0.1.0", Be = class extends K {
           ></hydraxoo-zone-form>
         </ha-card>`;
 		}
-		return t.name === "new" ? F`<ha-card>
+		return t.name === "new" ? I`<ha-card>
         <hydraxoo-zone-form
           .hass=${this.hass}
           .zone=${null}
@@ -2906,47 +2965,47 @@ var ze = "0.1.0", Be = class extends K {
       </ha-card>` : this._dashboard();
 	}
 	_dashboard() {
-		let e = this._t, t = this._state, n = /* @__PURE__ */ new Date(), r = Q(n, this._tz), i = this._zones(), a = !!this._config.compact, o = new Map(i.map((e) => [e.id, ke(e, r, t.history, this._tz)]));
-		return F`<ha-card class=${a ? "compact" : ""}>
+		let e = this._t, t = this._state, n = /* @__PURE__ */ new Date(), r = Q(n, this._tz), i = this._zones(), a = !!this._config.compact, o = new Map(i.map((e) => [e.id, Me(e, r, t.history, this._tz)]));
+		return I`<ha-card class=${a ? "compact" : ""}>
       <div class="header">
         <div class="stack">
           <h1>${this._config.title || e("title")}</h1>
-          <span class="sub">${Te(n, this._tz, this._lang)} · ${$(n, this._tz, this._lang)}</span>
+          <span class="sub">${Oe(n, this._tz, this._lang)} · ${this._time(n)}</span>
         </div>
-        ${this._isAdmin ? F`<button type="button" class="icon-button" aria-label=${e("settings")} @click=${this._openSettings}>
+        ${this._isAdmin ? I`<button type="button" class="icon-button" aria-label=${e("settings")} @click=${this._openSettings}>
               <ha-icon icon="mdi:cog-outline"></ha-icon>
-            </button>` : L}
+            </button>` : R}
       </div>
       ${this._pauseBanner()}
       ${this._weatherBanner()}
       ${this._faultBanners(i)}
       ${this._safetyBanner()}
-      ${a ? L : this._timeline(i, o, r)}
+      ${a ? R : this._timeline(i, o, r)}
       ${i.map((e) => this._zoneCard(e, o.get(e.id) ?? []))}
-      ${this._isAdmin ? F`<button type="button" class="btn ghost-dashed" @click=${() => this._view = { name: "new" }}>
+      ${this._isAdmin ? I`<button type="button" class="btn ghost-dashed" @click=${() => this._view = { name: "new" }}>
             <ha-icon icon="mdi:plus"></ha-icon>${e("new_zone")}
-          </button>` : L}
-      ${this._error && this._error !== "not_loaded" ? F`<div class="error-text" role="alert">${this._error}</div>` : L}
+          </button>` : R}
+      ${this._error && this._error !== "not_loaded" ? I`<div class="error-text" role="alert">${this._error}</div>` : R}
     </ha-card>`;
 	}
 	_pauseBanner() {
 		let e = this._t, t = this._state.settings;
-		return t.paused ? F`<div class="tile">
+		return t.paused ? I`<div class="tile">
       <div class="row">
         <div class="badge-icon warning"><ha-icon icon="mdi:pause"></ha-icon></div>
         <span class="stack grow">
           <span class="strong">${e("pause.paused")}</span>
-          <span class="small">${t.pause_until ? e("pause.until", { date: `${Te(t.pause_until, this._tz, this._lang)} ${$(t.pause_until, this._tz, this._lang)}` }) : e("pause.indefinite")}</span>
+          <span class="small">${t.pause_until ? e("pause.until", { date: `${Oe(t.pause_until, this._tz, this._lang)} ${this._time(t.pause_until)}` }) : e("pause.indefinite")}</span>
         </span>
         <button type="button" class="btn" @click=${() => this._call("resume")}>${e("pause.resume")}</button>
       </div>
-    </div>` : L;
+    </div>` : R;
 	}
 	_weatherBanner() {
 		let e = this._t, t = this._state;
-		if (!t.settings.weather_entity) return L;
+		if (!t.settings.weather_entity) return R;
 		let n = t.weather;
-		if (n.warnings.includes("weather_unavailable")) return F`<div class="tile"><div class="row">
+		if (n.warnings.includes("weather_unavailable")) return I`<div class="tile"><div class="row">
         <div class="badge-icon warning"><ha-icon icon="mdi:weather-cloudy-alert"></ha-icon></div>
         <span class="stack grow">
           <span class="strong">${e("weather.unavailable")}</span>
@@ -2961,7 +3020,7 @@ var ze = "0.1.0", Be = class extends K {
 			bonus: n.heat_bonus_pct,
 			temp: n.temperature_c ?? ""
 		}) : e("weather.adjusted");
-		return F`<div class="tile"><div class="row">
+		return I`<div class="tile"><div class="row">
       <div class="badge-icon warning"><ha-icon icon=${i || r ? "mdi:weather-rainy" : "mdi:weather-partly-cloudy"}></ha-icon></div>
       <span class="stack grow">
         <span class="strong">${a}</span>
@@ -2975,7 +3034,7 @@ var ze = "0.1.0", Be = class extends K {
 	}
 	_faultBanners(e) {
 		let t = this._t;
-		return e.filter((e) => e.fault).map((e) => F`<div class="tile" role="alert"><div class="row">
+		return e.filter((e) => e.fault).map((e) => I`<div class="tile" role="alert"><div class="row">
           <div class="badge-icon error"><ha-icon icon="mdi:valve-closed"></ha-icon></div>
           <span class="stack grow">
             <span class="strong">${t("safety.failed", { zone: e.name })}</span>
@@ -2991,15 +3050,15 @@ var ze = "0.1.0", Be = class extends K {
 	}
 	_safetyBanner() {
 		let e = this._t, t = this._state.last_check;
-		if (!t || t.result === "failed") return L;
-		let n = this._state.zones.find((e) => e.id === t.zone_id), r = $(t.time, this._tz, this._lang), i, a, o = "success";
+		if (!t || t.result === "failed") return R;
+		let n = this._state.zones.find((e) => e.id === t.zone_id), r = this._time(t.time), i, a, o = "success";
 		return t.result === "sensor_unavailable" ? (i = e("safety.unavailable", { zone: t.zone_name }), a = e("safety.unavailable_detail", { time: r }), o = "warning") : t.retries > 0 ? (i = e("safety.retried", {
 			zone: t.zone_name,
 			time: r
 		}), a = xe(e, "safety.retried_detail", t.retries, { s: n?.safety.retry_pulse_s ?? 5 }), o = "warning") : (i = e("safety.confirmed", {
 			zone: t.zone_name,
 			time: r
-		}), a = e("safety.confirmed_detail")), F`<div class="tile"><div class="row">
+		}), a = e("safety.confirmed_detail")), I`<div class="tile"><div class="row">
       <div class="badge-icon ${o}"><ha-icon icon="mdi:shield-check-outline"></ha-icon></div>
       <span class="stack grow">
         <span class="strong">${i}</span>
@@ -3009,9 +3068,9 @@ var ze = "0.1.0", Be = class extends K {
 	}
 	_timeline(e, t, n) {
 		let r = this._t;
-		if (!e.length) return L;
-		let i = [...t.values()].reduce((e, t) => e + Ae(t), 0), a = n.minutes / 1440 * 100, o = new Set([...t.values()].flat().map((e) => e.status.kind));
-		return F`<section class="tile" aria-labelledby="hx-today">
+		if (!e.length) return R;
+		let i = [...t.values()].reduce((e, t) => e + Ne(t), 0), a = n.minutes / 1440 * 100, o = new Set([...t.values()].flat().map((e) => e.status.kind));
+		return I`<section class="tile" aria-labelledby="hx-today">
       <div class="row">
         <h2 id="hx-today" class="grow">${r("timeline.title")}</h2>
         <span class="small">${r("timeline.total", { min: i })}</span>
@@ -3019,29 +3078,37 @@ var ze = "0.1.0", Be = class extends K {
       <div class="timeline">
         ${e.map((e) => {
 			let n = t.get(e.id) ?? [];
-			return F`<span class="label">${e.name}</span>
+			return I`<span class="label">${e.name}</span>
             <div class="track" role="img" aria-label=${r("timeline.label", {
 				zone: e.name,
 				count: n.length
 			})}>
               ${n.map((e) => {
 				let t = e.start / 1440 * 100, n = Math.max(e.adjusted, e.base) / 1440 * 100;
-				return F`<div
+				return I`<div
                   class="mark ${e.status.kind}"
                   style="left: ${t}%; width: ${n}%"
-                  title="${e.cycle.start_time} · ${e.status.kind === "skipped" ? r(`zone.skip.${e.status.reason}`) : `${e.adjusted} min`}"
+                  title="${Ee(e.cycle.start_time, this._lang, this._h12)} · ${e.status.kind === "skipped" ? r(`zone.skip.${e.status.reason}`) : `${e.adjusted} min`}"
                 ></div>`;
 			})}
               <div class="now" style="left: ${a}%"></div>
             </div>`;
 		})}
         <span></span>
-        <div class="hours"><span>0 h</span><span>6 h</span><span>12 h</span><span>18 h</span><span>24 h</span></div>
+        <div class="hours">
+          ${[
+			0,
+			6,
+			12,
+			18,
+			24
+		].map((e) => I`<span>${De(e, this._lang, this._h12)}</span>`)}
+        </div>
       </div>
       <div class="legend">
-        ${o.has("running") ? F`<span><span class="swatch running"></span>${r("timeline.running")}</span>` : L}
+        ${o.has("running") ? I`<span><span class="swatch running"></span>${r("timeline.running")}</span>` : R}
         <span><span class="swatch done"></span>${r("timeline.done")}</span>
-        ${o.has("skipped") ? F`<span><span class="swatch skipped"></span>${r("timeline.skipped")}</span>` : L}
+        ${o.has("skipped") ? I`<span><span class="swatch skipped"></span>${r("timeline.skipped")}</span>` : R}
         <span><span class="swatch"></span>${r("timeline.upcoming")}</span>
         <span><span class="swatch disabled"></span>${r("timeline.disabled")}</span>
         <span><span class="swatch nowline"></span>${r("timeline.now")}</span>
@@ -3053,37 +3120,37 @@ var ze = "0.1.0", Be = class extends K {
 	}
 	_chips(e) {
 		let t = this._t, n = [];
-		if (e.fault && n.push(F`<span class="chip error">${t("zone.fault")}</span>`), e.running && n.push(F`<span class="chip success"><ha-icon icon="mdi:water"></ha-icon>${t("zone.running", { left: Ee(this._remaining(e)) })}</span>`), e.queued && n.push(F`<span class="chip warning">${t("zone.queued")}</span>`), e.checking && n.push(F`<span class="chip warning">${t("zone.checking")}</span>`), e.enabled || n.push(F`<span class="chip muted">${t("zone.disabled")}</span>`), e.next_run && !e.running) {
-			let r = new Date(e.next_run.time), i = Q(r, this._tz).dateKey === Q(/* @__PURE__ */ new Date(), this._tz).dateKey, a = $(r, this._tz, this._lang), o = e.next_run.adjusted_duration_min, s = be(this.hass).long[Q(r, this._tz).weekday], c = `zone.${i ? "next" : "next_day"}${o === 0 ? "_skipped" : ""}`;
-			n.push(F`<span class="chip ${o === 0 ? "muted" : ""}"><ha-icon icon="mdi:clock-outline"></ha-icon>${t(c, {
+		if (e.fault && n.push(I`<span class="chip error">${t("zone.fault")}</span>`), e.running && n.push(I`<span class="chip success"><ha-icon icon="mdi:water"></ha-icon>${t("zone.running", { left: ke(this._remaining(e)) })}</span>`), e.queued && n.push(I`<span class="chip warning">${t("zone.queued")}</span>`), e.checking && n.push(I`<span class="chip warning">${t("zone.checking")}</span>`), e.enabled || n.push(I`<span class="chip muted">${t("zone.disabled")}</span>`), e.next_run && !e.running) {
+			let r = new Date(e.next_run.time), i = Q(r, this._tz).dateKey === Q(/* @__PURE__ */ new Date(), this._tz).dateKey, a = this._time(r), o = e.next_run.adjusted_duration_min, s = be(this.hass).long[Q(r, this._tz).weekday], c = `zone.${i ? "next" : "next_day"}${o === 0 ? "_skipped" : ""}`;
+			n.push(I`<span class="chip ${o === 0 ? "muted" : ""}"><ha-icon icon="mdi:clock-outline"></ha-icon>${t(c, {
 				time: a,
 				min: o,
 				day: s
 			})}</span>`);
-		} else !e.next_run && e.enabled && !e.running && n.push(F`<span class="chip muted">${t("zone.nothing")}</span>`);
+		} else !e.next_run && e.enabled && !e.running && n.push(I`<span class="chip muted">${t("zone.nothing")}</span>`);
 		if (this._state.settings.weather_entity) {
 			let r = e.weather;
-			r.skip || r.coefficient_pct === 0 ? n.push(F`<span class="chip warning"><ha-icon icon="mdi:weather-rainy"></ha-icon>${t("zone.weather_skip")}</span>`) : r.coefficient_pct !== 100 && n.push(F`<span class="chip warning">${t("zone.weather", { pct: r.coefficient_pct })}</span>`);
+			r.skip || r.coefficient_pct === 0 ? n.push(I`<span class="chip warning"><ha-icon icon="mdi:weather-rainy"></ha-icon>${t("zone.weather_skip")}</span>`) : r.coefficient_pct !== 100 && n.push(I`<span class="chip warning">${t("zone.weather", { pct: r.coefficient_pct })}</span>`);
 		}
 		return n;
 	}
 	_statusLabel(e) {
 		let t = this._t, n = e.status;
 		switch (n.kind) {
-			case "running": return F`<span class="status running">${t("zone.status.running")}</span>`;
-			case "done": return F`<span class="status"><ha-icon icon="mdi:check"></ha-icon>${t("zone.status.done")}</span>`;
-			case "skipped": return F`<span class="status skipped"><ha-icon icon="mdi:close"></ha-icon>${t(`zone.skip.${n.reason}`)}</span>`;
-			case "disabled": return F`<span class="status">${t("zone.status.disabled")}</span>`;
-			case "past": return F`<span class="status">—</span>`;
+			case "running": return I`<span class="status running">${t("zone.status.running")}</span>`;
+			case "done": return I`<span class="status"><ha-icon icon="mdi:check"></ha-icon>${t("zone.status.done")}</span>`;
+			case "skipped": return I`<span class="status skipped"><ha-icon icon="mdi:close"></ha-icon>${t(`zone.skip.${n.reason}`)}</span>`;
+			case "disabled": return I`<span class="status">${t("zone.status.disabled")}</span>`;
+			case "past": return I`<span class="status">—</span>`;
 			case "upcoming": {
 				let e;
-				return e = n.inMinutes < 60 ? t("zone.status.in_min", { m: n.inMinutes }) : n.startMinutes >= 1080 && n.inMinutes >= 180 ? t("zone.status.tonight") : t("zone.status.in_h", { h: Math.round(n.inMinutes / 60) }), F`<span class="status upcoming">${e}</span>`;
+				return e = n.inMinutes < 60 ? t("zone.status.in_min", { m: n.inMinutes }) : n.startMinutes >= 1080 && n.inMinutes >= 180 ? t("zone.status.tonight") : t("zone.status.in_h", { h: Math.round(n.inMinutes / 60) }), I`<span class="status upcoming">${e}</span>`;
 			}
 		}
 	}
 	_zoneCard(e, t) {
 		let n = this._t, r = e.running || e.queued;
-		return F`<section class="tile" aria-labelledby="hx-zone-${e.id}">
+		return I`<section class="tile" aria-labelledby="hx-zone-${e.id}">
       <div class="row">
         <div class="badge-icon"><ha-icon .icon=${e.icon}></ha-icon></div>
         <span class="stack grow">
@@ -3113,19 +3180,19 @@ var ze = "0.1.0", Be = class extends K {
 				"disabled",
 				"skipped"
 			].includes(e.status.kind), n = e.adjusted !== e.base && e.status.kind !== "skipped";
-			return F`<div class="cycle-row ${t ? "muted" : ""}">
-                <span class="time">${e.cycle.start_time}</span>
+			return I`<div class="cycle-row ${t ? "muted" : ""}">
+                <span class="time">${Ee(e.cycle.start_time, this._lang, this._h12)}</span>
                 <span class="dur">
-                  ${e.status.kind === "skipped" ? F`<s>${e.base} min</s>` : F`${n ? F`<s>${e.base} min</s>` : L}<b>${n ? e.adjusted : e.base} min</b>`}
+                  ${e.status.kind === "skipped" ? I`<s>${e.base} min</s>` : I`${n ? I`<s>${e.base} min</s>` : R}<b>${n ? e.adjusted : e.base} min</b>`}
                 </span>
                 ${this._statusLabel(e)}
               </div>`;
-		}) : F`<div class="cycle-row muted"><span class="small" style="grid-column: 1 / -1">${n("zone.no_cycle_today")}</span></div>`}
+		}) : I`<div class="cycle-row muted"><span class="small" style="grid-column: 1 / -1">${n("zone.no_cycle_today")}</span></div>`}
       </div>
-      ${this._runFor === e.id ? this._runPicker(e) : F`<div class="actions">
-        ${r ? F`<button type="button" class="btn grow" @click=${() => this._call("zone/stop", { zone_id: e.id })}>
+      ${this._runFor === e.id ? this._runPicker(e) : I`<div class="actions">
+        ${r ? I`<button type="button" class="btn grow" @click=${() => this._call("zone/stop", { zone_id: e.id })}>
               <ha-icon icon="mdi:stop"></ha-icon>${n("zone.stop")}
-            </button>` : F`<button
+            </button>` : I`<button
               type="button"
               class="btn primary grow"
               ?disabled=${e.fault}
@@ -3133,16 +3200,16 @@ var ze = "0.1.0", Be = class extends K {
 			this._runFor = e.id, this._runMinutes = Math.min(e.cycles.find((e) => e.enabled)?.duration_min ?? 10, e.max_runtime_min);
 		}}
             ><ha-icon icon="mdi:play"></ha-icon>${n("zone.water_now")}</button>`}
-        ${this._isAdmin ? F`<button type="button" class="btn" @click=${() => this._view = {
+        ${this._isAdmin ? I`<button type="button" class="btn" @click=${() => this._view = {
 			name: "zone",
 			id: e.id
-		}}>${n("zone.edit")}</button>` : L}
+		}}>${n("zone.edit")}</button>` : R}
       </div>`}
     </section>`;
 	}
 	_runPicker(e) {
 		let t = this._t, n = (t) => this._runMinutes = Math.min(e.max_runtime_min, Math.max(1, t));
-		return F`<div class="row" style="flex-wrap: wrap">
+		return I`<div class="row" style="flex-wrap: wrap">
       <span class="strong">${t("zone.duration")}</span>
       <span class="stepper">
         <button type="button" aria-label=${t("editor.decrease", { what: t("zone.duration") })} @click=${() => n(this._runMinutes - 1)}>−</button>
@@ -3164,10 +3231,10 @@ var ze = "0.1.0", Be = class extends K {
     </div>`;
 	}
 };
-customElements.get("hydraxoo-card") || customElements.define("hydraxoo-card", Be), window.customCards = window.customCards ?? [], window.customCards.some((e) => e.type === "hydraxoo-card") || window.customCards.push({
+customElements.get("hydraxoo-card") || customElements.define("hydraxoo-card", qe), window.customCards = window.customCards ?? [], window.customCards.some((e) => e.type === "hydraxoo-card") || window.customCards.push({
 	type: "hydraxoo-card",
 	name: "hydraXoo",
 	description: "Zone-based irrigation: schedule, weather and valve safety.",
 	preview: !1
-}), console.info(`%c hydraXoo card %c ${ze} `, "background:#1d4ed8;color:#fff", "");
-export { Be as HydraxooCard };
+}), console.info(`%c hydraXoo card %c ${Ke} `, "background:#1d4ed8;color:#fff", "");
+export { qe as HydraxooCard };
