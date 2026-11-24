@@ -8,6 +8,7 @@
 #   ./dev card     install, test and build the Lovelace card
 #   ./dev card-test / card-build   one step only
 #   ./dev screenshots   retake the README screenshots (headless Chromium in Docker)
+#   ./dev zip [version]  build dist/hydraxoo.zip, the file the Marketplace installs
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -19,6 +20,7 @@ case "${1:-}" in
   lint)   run sh -c "ruff check . && ruff format --check ." ;;
   format) run sh -c "ruff format . ; ruff check --fix ." ;;
   shell)  run bash ;;
+  zip)    shift; run python tools/build_release_zip.py "$@" ;;
   card)   docker compose run --rm node sh -c "npm install --no-audit --no-fund && npx tsc --noEmit && npm test && npm run build" ;;
   card-test)  docker compose run --rm node sh -c "npm install --no-audit --no-fund >/dev/null && npm test" ;;
   card-build) docker compose run --rm node sh -c "npm install --no-audit --no-fund >/dev/null && npm run build" ;;
@@ -27,5 +29,5 @@ case "${1:-}" in
       npm init -y >/dev/null && npm i --silent playwright@1.49.1 >/dev/null
       npx playwright install --with-deps chromium >/dev/null 2>&1
       cp /work/tools/screenshots/shoot.mjs /tmp/ && node /tmp/shoot.mjs' ;;
-  *) sed -n '2,11p' "$0"; exit 1 ;;
+  *) sed -n '2,12p' "$0"; exit 1 ;;
 esac

@@ -21,3 +21,6 @@ htmlcov/
 
 # Card tooling (kept in a Docker volume)
 frontend/node_modules/
+
+# Release ZIP built by ./dev zip
+dist/

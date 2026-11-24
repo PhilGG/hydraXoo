@@ -5,6 +5,7 @@ All notable changes to hydraXoo. Versions follow [Semantic Versioning](https://s
 ## Unreleased
 
 - README: installation from the official Marketplace (search "hydraXoo"); the development section is hidden in the Marketplace view.
+- Releases now ship `hydraxoo.zip`, which the Marketplace installs (`zip_release`): its download counter now works. Nothing changes for users.
 
 ## 0.2.0
 

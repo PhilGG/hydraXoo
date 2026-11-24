@@ -1,0 +1,35 @@
+name: Release ZIP
+
+# The Marketplace installs hydraxoo.zip from each release (hacs.json:
+# zip_release). Releases are normally created with the ZIP already attached;
+# this workflow is the safety net that attaches it if it is missing.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  zip:
+    name: Attach hydraxoo.zip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Build the ZIP (checks the manifest version)
+        run: python tools/build_release_zip.py "${{ github.event.release.tag_name }}"
+      - name: Attach it if missing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if gh release view "$TAG" --json assets --jq '.assets[].name' | grep -qx hydraxoo.zip; then
+            echo "hydraxoo.zip already attached"
+          else
+            gh release upload "$TAG" dist/hydraxoo.zip
+          fi
