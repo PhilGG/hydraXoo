@@ -51,9 +51,11 @@ Arrosage automatique par zones pour Home Assistant, libre et gratuit. Tout se r�
 
 ## Installation
 
+hydraXoo fait partie du Marketplace officiel de Home Assistant.
+
 1. Dans Home Assistant, ouvrez **Paramètres › Marketplace**.
-2. Choisissez **Add from link**, saisissez `PhilGG/hydraXoo` puis **Add** (une connexion GitHub est demandée la première fois).
-3. Ouvrez hydraXoo dans le Marketplace, installez-le, puis **redémarrez Home Assistant**.
+2. Recherchez **hydraXoo** et ouvrez-le.
+3. Installez-le, puis **redémarrez Home Assistant**.
 4. hydraXoo est en général proposé automatiquement après le redémarrage. Sinon : **Paramètres › Appareils et services › Ajouter une intégration › hydraXoo**.
 5. **Rechargez une fois la page du tableau de bord** pour que le navigateur charge la carte.
 
@@ -283,6 +285,7 @@ Signalez les problèmes sur [GitHub](https://github.com/PhilGG/hydraXoo/issues).
 
 Français, anglais, allemand, espagnol et italien, partout : écrans de configuration, entités, services, notifications et carte. La carte suit la langue de votre profil Home Assistant (anglais sinon). Les traductions sont dans `custom_components/hydraxoo/translations/` et `frontend/src/locales/` ; corrections et nouvelles langues bienvenues.
 
+<!-- ha-marketplace:exclude-start -->
 ## Développement
 
 Tout tourne dans Docker ; rien d'autre n'est nécessaire sur votre machine.
@@ -296,6 +299,8 @@ Tout tourne dans Docker ; rien d'autre n'est nécessaire sur votre machine.
 ```
 
 Les sources de la carte sont dans `frontend/` (TypeScript + Lit). `custom_components/hydraxoo/frontend/hydraxoo-card.js` est généré par `./dev card` : ne pas le modifier à la main. L'historique des versions est dans [CHANGELOG.md](CHANGELOG.md).
+
+<!-- ha-marketplace:exclude-end -->
 
 ## Licence
 

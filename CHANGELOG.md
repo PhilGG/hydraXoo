@@ -2,6 +2,10 @@
 
 All notable changes to hydraXoo. Versions follow [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+- README: installation from the official Marketplace (search "hydraXoo"); the development section is hidden in the Marketplace view.
+
 ## 0.2.0
 
 - **Frost warning**: when frost is forecast within 24 hours while cycles are scheduled, the chosen phones are reminded to shut the outdoor water circuits. One alert per frost episode and one reminder about 3 hours before the frost if nobody confirmed; **Done** and **Pause watering** buttons on the notification and in the card; quiet at night when there is time; saved across restarts; optional end-of-frost notice. Threshold adjustable (2 °C by default, °F handled). Can be turned off per zone (heated greenhouse).
