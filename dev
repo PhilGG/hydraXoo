@@ -21,9 +21,9 @@ case "${1:-}" in
   format) run sh -c "ruff format . ; ruff check --fix ." ;;
   shell)  run bash ;;
   zip)    shift; run python tools/build_release_zip.py "$@" ;;
-  card)   docker compose run --rm node sh -c "npm install --no-audit --no-fund && npx tsc --noEmit && npm test && npm run build" ;;
-  card-test)  docker compose run --rm node sh -c "npm install --no-audit --no-fund >/dev/null && npm test" ;;
-  card-build) docker compose run --rm node sh -c "npm install --no-audit --no-fund >/dev/null && npm run build" ;;
+  card)   docker compose run --rm node sh -c "npm ci --no-audit --no-fund && npx tsc --noEmit && npm test && npm run build" ;;
+  card-test)  docker compose run --rm node sh -c "npm ci --no-audit --no-fund >/dev/null && npm test" ;;
+  card-build) docker compose run --rm node sh -c "npm ci --no-audit --no-fund >/dev/null && npm run build" ;;
   screenshots) docker run --rm -v "$PWD:/work" -w /tmp node:22-bookworm-slim sh -c '
       apt-get update -qq >/dev/null && apt-get install -y -qq fonts-roboto >/dev/null 2>&1
       npm init -y >/dev/null && npm i --silent playwright@1.49.1 >/dev/null

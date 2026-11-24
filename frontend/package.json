@@ -1,6 +1,6 @@
 {
   "name": "hydraxoo-card",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Lovelace card for the hydraXoo irrigation integration",
   "license": "MIT",

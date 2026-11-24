@@ -26,7 +26,7 @@ type View =
   | { name: "new" }
   | { name: "settings" };
 
-const VERSION = "0.2.0";
+const VERSION = "0.2.1";
 
 export class HydraxooCard extends LitElement {
   static properties = {

@@ -3460,7 +3460,7 @@ var Ye = class extends W {
 };
 customElements.get("hydraxoo-zone-form") || customElements.define("hydraxoo-zone-form", Ye);
 // src/hydraxoo-card.ts
-var Xe = "0.2.0", Ze = class extends W {
+var Xe = "0.2.1", Ze = class extends W {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:hydraxoo-card" }, this._state = null, this._view = { name: "dashboard" }, this._error = "", this._runFor = null, this._runMinutes = 10, this._subscribing = !1;
 	}
